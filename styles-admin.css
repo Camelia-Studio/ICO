@@ -220,6 +220,32 @@ body {
     gap: 0.5rem;
 }
 
+.admin-table tr.main-admin {
+    background-color: rgba(33, 150, 243, 0.1);
+}
+
+.admin-table tr.main-admin:hover {
+    background-color: rgba(33, 150, 243, 0.15);
+}
+
+.admin-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 1rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    background-color: #2196f3;
+    color: white;
+    margin-left: 0.5rem;
+}
+
+.admin-badge .icon {
+    width: 12px;
+    height: 12px;
+}
+
 /* Formulaires */
 .form-group {
     margin-bottom: 1.5rem;

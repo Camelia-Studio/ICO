@@ -195,10 +195,22 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($users as $user): ?>
-                    <tr>
+                    <?php foreach ($users as $user): 
+                        $isMainAdmin = $user['id'] === $users[0]['id'];
+                    ?>
+                    <tr class="<?php echo $isMainAdmin ? 'main-admin' : ''; ?>">
                         <td><?php echo htmlspecialchars($user['id']); ?></td>
-                        <td><?php echo htmlspecialchars($user['username']); ?></td>
+                        <td>
+                            <?php echo htmlspecialchars($user['username']); ?>
+                            <?php if ($isMainAdmin): ?>
+                                <span class="admin-badge">
+                                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M12 2l3 7h7l-6 4 3 7-7-4-7 4 3-7-6-4h7z"/>
+                                    </svg>
+                                    Admin principal
+                                </span>
+                            <?php endif; ?>
+                        </td>
                         <td><?php echo htmlspecialchars($user['created_at']); ?></td>
                         <td class="table-actions">
                             <button onclick="editUser(<?php 
@@ -207,7 +219,7 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
                                 class="tree-button">
                                 ✏️
                             </button>
-                            <?php if ($user['id'] !== $users[0]['id']): ?>
+                            <?php if (!$isMainAdmin): ?>
                             <button onclick="deleteUser(<?php echo htmlspecialchars($user['id']); ?>)"
                                 class="tree-button tree-button-danger">
                                 🗑️
