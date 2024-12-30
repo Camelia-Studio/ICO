@@ -1,5 +1,16 @@
 <?php
-// Fonction pour récupérer les 5 dernières images
+// Fonction pour vérifier si un dossier contient du contenu mature
+function isMatureContent($path) {
+    $infoFile = dirname($path) . '/infos.txt';
+    if (file_exists($infoFile)) {
+        $content = file_get_contents($infoFile);
+        $lines = explode("\n", $content);
+        return isset($lines[2]) && trim($lines[2]) === '18+';
+    }
+    return false;
+}
+
+// Fonction pour récupérer les 5 dernières images (excluant le contenu mature)
 function getLatestImages($rootDir = './liste_albums', $limit = 5) {
     $images = [];
     $iterator = new RecursiveIteratorIterator(
@@ -11,7 +22,10 @@ function getLatestImages($rootDir = './liste_albums', $limit = 5) {
         if ($file->isFile()) {
             $extension = strtolower($file->getExtension());
             if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif'])) {
-                $images[] = str_replace('\\', '/', $file->getPathname());
+                // Vérifier si l'image provient d'un dossier mature
+                if (!isMatureContent($file->getPathname())) {
+                    $images[] = str_replace('\\', '/', $file->getPathname());
+                }
             }
         }
     }
