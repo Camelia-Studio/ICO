@@ -21,8 +21,8 @@ Il s'agit d'un outil de galeries d'illustrations simple et léger en PHP, que vo
 - Connexion avec un identifiant et un mot de passe.
 - Possibilité de changer son mot de passe.
 - Permet de voir l'arborescence des albums, de les éditer, d'en ajouter ou d'en supprimer.
-![image](https://concepts.esenjin.xyz/cyla/v2/file/105EF9.png)
-![image](https://concepts.esenjin.xyz/cyla/v2/file/075365.png)
+![image](https://concepts.esenjin.xyz/cyla/v2/file/7A4086.png)
+![image](https://concepts.esenjin.xyz/cyla/v2/file/6C0F67.png)
 - Affichage d'une gestion des illustrations d'un album, possibilité d'en téléverser ou d'en supprimer.
 ![image](https://concepts.esenjin.xyz/cyla/v2/file/7A5C3C.png)
 - Gestions des comptes administrateurs (seulement pour le Super Admin).
