@@ -3,76 +3,77 @@ require_once 'fonctions.php';
 
 session_start();
 if (!isset($_SESSION['admin_id'])) {
-  header('Location: admin.php?action=login');
-  exit;
+    header('Location: admin.php?action=login');
+    exit;
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  $action = $_POST['action'] ?? '';
-  $path = $_POST['path'] ?? '';
-  $newName = $_POST['new_name'] ?? '';
-  $description = $_POST['description'] ?? '';
-  
-  switch ($action) {
-      case 'create_folder':
-          if ($path && $newName) {
-              $newPath = $path . '/' . sanitizeFilename($newName);
-              if (!file_exists($newPath)) {
-                  mkdir($newPath, 0755, true);
-                  $infoContent = $newName . "\n" . $description;
-                  file_put_contents($newPath . '/infos.txt', $infoContent);
-                  $_SESSION['success_message'] = "Dossier créé avec succès.";
-              } else {
-                  $_SESSION['error_message'] = "Ce dossier existe déjà.";
-              }
-          }
-          break;
-          
-      case 'edit_folder':
-          if ($path && isSecurePath($path)) {
-              $infoContent = $newName . "\n" . $description;
-              $infoPath = $path . '/infos.txt';
-              if (file_put_contents($infoPath, $infoContent) !== false) {
-                  $_SESSION['success_message'] = "Dossier modifié avec succès.";
-              } else {
-                  $_SESSION['error_message'] = "Erreur lors de la modification du dossier.";
-              }
-          }
-          break;
-          
-      case 'delete_folder':
-          if ($path && isSecurePath($path) && $path !== './liste_albums') { // Empêcher la suppression du dossier racine
-              function rrmdir($dir) {
-                  if (is_dir($dir)) {
-                      $objects = scandir($dir);
-                      foreach ($objects as $object) {
-                          if ($object != "." && $object != "..") {
-                              if (is_dir($dir . "/" . $object)) {
-                                  rrmdir($dir . "/" . $object);
-                              } else {
-                                  unlink($dir . "/" . $object);
-                              }
-                          }
-                      }
-                      rmdir($dir);
-                  }
-              }
-              rrmdir($path);
-              $_SESSION['success_message'] = "Dossier supprimé avec succès.";
-          }
-          break;
-  }
-  
-  header('Location: arbre.php');
-  exit;
+    $action = $_POST['action'] ?? '';
+    $path = $_POST['path'] ?? '';
+    $newName = $_POST['new_name'] ?? '';
+    $description = $_POST['description'] ?? '';
+    $matureContent = isset($_POST['mature_content']) ? '18+' : '18-';
+    
+    switch ($action) {
+        case 'create_folder':
+            if ($path && $newName) {
+                $newPath = $path . '/' . sanitizeFilename($newName);
+                if (!file_exists($newPath)) {
+                    mkdir($newPath, 0755, true);
+                    $infoContent = $newName . "\n" . $description . "\n" . $matureContent;
+                    file_put_contents($newPath . '/infos.txt', $infoContent);
+                    $_SESSION['success_message'] = "Dossier créé avec succès.";
+                } else {
+                    $_SESSION['error_message'] = "Ce dossier existe déjà.";
+                }
+            }
+            break;
+            
+        case 'edit_folder':
+            if ($path && isSecurePath($path)) {
+                $infoContent = $newName . "\n" . $description . "\n" . $matureContent;
+                $infoPath = $path . '/infos.txt';
+                if (file_put_contents($infoPath, $infoContent) !== false) {
+                    $_SESSION['success_message'] = "Dossier modifié avec succès.";
+                } else {
+                    $_SESSION['error_message'] = "Erreur lors de la modification du dossier.";
+                }
+            }
+            break;
+            
+        case 'delete_folder':
+            if ($path && isSecurePath($path) && $path !== './liste_albums') {
+                function rrmdir($dir) {
+                    if (is_dir($dir)) {
+                        $objects = scandir($dir);
+                        foreach ($objects as $object) {
+                            if ($object != "." && $object != "..") {
+                                if (is_dir($dir . "/" . $object)) {
+                                    rrmdir($dir . "/" . $object);
+                                } else {
+                                    unlink($dir . "/" . $object);
+                                }
+                            }
+                        }
+                        rmdir($dir);
+                    }
+                }
+                rrmdir($path);
+                $_SESSION['success_message'] = "Dossier supprimé avec succès.";
+            }
+            break;
+    }
+    
+    header('Location: arbre.php');
+    exit;
 }
 
 $currentPath = isset($_GET['path']) ? $_GET['path'] : './liste_albums';
 $currentPath = realpath($currentPath);
 
 if (!isSecurePath($currentPath)) {
-  header('Location: arbre.php');
-  exit;
+    header('Location: arbre.php');
+    exit;
 }
 
 function generateTree($path, $currentPath) {
@@ -87,9 +88,12 @@ function generateTree($path, $currentPath) {
         $output .= '<div class="tree-item-content">';
         $output .= '<span class="tree-link">';
         $output .= '<span class="folder-icon">📁</span> ' . htmlspecialchars($info['title']);
+        if ($info['mature_content']) {
+            $output .= ' <span class="mature-warning">🔞</span>';
+        }
         $output .= '</span>';
         $output .= '<div class="tree-actions">';
-        $output .= '<button onclick="editFolder(\'' . htmlspecialchars($path) . '\', \'' . htmlspecialchars($info['title']) . '\', \'' . htmlspecialchars($info['description']) . '\')" class="tree-button">✏️</button>';
+        $output .= '<button onclick="editFolder(\'' . htmlspecialchars($path) . '\', \'' . htmlspecialchars($info['title']) . '\', \'' . htmlspecialchars($info['description']) . '\', ' . ($info['mature_content'] ? 'true' : 'false') . ')" class="tree-button">✏️</button>';
         $output .= '<button onclick="createSubfolder(\'' . htmlspecialchars($path) . '\')" class="tree-button">➕</button>';
         $output .= '</div></div>';
     }
@@ -107,12 +111,15 @@ function generateTree($path, $currentPath) {
             $output .= '<div class="tree-item-content">';
             $output .= '<span class="tree-link">';
             $output .= '<span class="folder-icon">📁</span> ' . htmlspecialchars($info['title']);
+            if ($info['mature_content']) {
+                $output .= ' <span class="mature-warning">🔞</span>';
+            }
             $output .= '</span>';
             $output .= '<div class="tree-actions">';
             if (!$hasSubfolders) {
                 $output .= '<a href="arbre-img.php?path=' . urlencode($fullPath) . '" class="tree-button" style="text-decoration: none">🖼️</a>';
             }
-            $output .= '<button onclick="editFolder(\'' . htmlspecialchars($fullPath) . '\', \'' . htmlspecialchars($info['title']) . '\', \'' . htmlspecialchars($info['description']) . '\')" class="tree-button">✏️</button>';
+            $output .= '<button onclick="editFolder(\'' . htmlspecialchars($fullPath) . '\', \'' . htmlspecialchars($info['title']) . '\', \'' . htmlspecialchars($info['description']) . '\', ' . ($info['mature_content'] ? 'true' : 'false') . ')" class="tree-button">✏️</button>';
             $output .= '<button onclick="createSubfolder(\'' . htmlspecialchars($fullPath) . '\')" class="tree-button">➕</button>';
             if ($fullPath !== './liste_albums') {
                 $output .= '<button onclick="deleteFolder(\'' . htmlspecialchars($fullPath) . '\')" class="tree-button tree-button-danger">🗑️</button>';
@@ -179,6 +186,13 @@ function generateTree($path, $currentPath) {
                     <label for="description">Description :</label>
                     <textarea id="description" name="description" rows="4" class="form-textarea"></textarea>
                 </div>
+                <div class="form-group">
+                    <label class="toggle-label">
+                        <input type="checkbox" name="mature_content" id="mature_content">
+                        <span class="toggle-text">Contenu réservé aux plus de 18 ans</span>
+                        <span class="toggle-warning">⚠️</span>
+                    </label>
+                </div>
                 <div class="form-actions">
                     <button type="button" onclick="closeModal()" class="action-button action-button-secondary">Annuler</button>
                     <button type="submit" class="action-button">Créer</button>
@@ -201,6 +215,13 @@ function generateTree($path, $currentPath) {
                 <div class="form-group">
                     <label for="edit_description">Description :</label>
                     <textarea id="edit_description" name="description" rows="4" class="form-textarea"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="toggle-label">
+                        <input type="checkbox" name="mature_content" id="edit_mature_content">
+                        <span class="toggle-text">Contenu réservé aux plus de 18 ans</span>
+                        <span class="toggle-warning">⚠️</span>
+                    </label>
                 </div>
                 <div class="form-actions">
                     <button type="button" onclick="closeModal()" class="action-button action-button-secondary">Annuler</button>
@@ -232,10 +253,11 @@ function generateTree($path, $currentPath) {
         document.getElementById('createFolderModal').style.display = 'block';
     }
 
-    function editFolder(path, title, description) {
+    function editFolder(path, title, description, matureContent = false) {
         document.getElementById('editPath').value = path;
         document.getElementById('edit_name').value = title;
         document.getElementById('edit_description').value = description;
+        document.getElementById('edit_mature_content').checked = matureContent;
         document.getElementById('editFolderModal').style.display = 'block';
     }
 
