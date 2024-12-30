@@ -1,0 +1,304 @@
+<?php
+require_once 'fonctions.php';
+
+session_start();
+if (!isset($_SESSION['admin_id'])) {
+    header('Location: admin.php?action=login');
+    exit;
+}
+
+// Se connecter à la base de données
+function getDB() {
+    return new SQLite3('database.sqlite');
+}
+
+// Gérer les actions POST
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? '';
+    $db = getDB();
+    
+    switch ($action) {
+        case 'add':
+            $username = $_POST['username'] ?? '';
+            $password = $_POST['password'] ?? '';
+            
+            if (empty($username) || empty($password)) {
+                $_SESSION['error_message'] = "L'identifiant et le mot de passe sont requis.";
+                break;
+            }
+            
+            // Vérifier si l'utilisateur existe déjà
+            $stmt = $db->prepare('SELECT COUNT(*) as count FROM admins WHERE username = :username');
+            $stmt->bindValue(':username', $username, SQLITE3_TEXT);
+            $result = $stmt->execute()->fetchArray();
+            
+            if ($result['count'] > 0) {
+                $_SESSION['error_message'] = "Cet identifiant existe déjà.";
+                break;
+            }
+            
+            // Créer le nouvel utilisateur
+            $stmt = $db->prepare('INSERT INTO admins (username, password_hash) VALUES (:username, :password_hash)');
+            $stmt->bindValue(':username', $username, SQLITE3_TEXT);
+            $stmt->bindValue(':password_hash', password_hash($password, PASSWORD_DEFAULT), SQLITE3_TEXT);
+            
+            if ($stmt->execute()) {
+                $_SESSION['success_message'] = "Utilisateur ajouté avec succès.";
+            } else {
+                $_SESSION['error_message'] = "Erreur lors de l'ajout de l'utilisateur.";
+            }
+            break;
+            
+        case 'edit':
+            $userId = $_POST['user_id'] ?? '';
+            $username = $_POST['username'] ?? '';
+            $password = $_POST['password'] ?? '';
+            
+            if (empty($userId) || empty($username)) {
+                $_SESSION['error_message'] = "Des informations sont manquantes.";
+                break;
+            }
+            
+            // Vérifier que l'utilisateur existe et n'est pas le premier compte
+            $stmt = $db->prepare('SELECT id FROM admins WHERE id = :id');
+            $stmt->bindValue(':id', $userId, SQLITE3_INTEGER);
+            $user = $stmt->execute()->fetchArray();
+            
+            if (!$user) {
+                $_SESSION['error_message'] = "Utilisateur introuvable.";
+                break;
+            }
+            
+            // Vérifier si le nouveau nom d'utilisateur existe déjà pour un autre utilisateur
+            $stmt = $db->prepare('SELECT id FROM admins WHERE username = :username AND id != :id');
+            $stmt->bindValue(':username', $username, SQLITE3_TEXT);
+            $stmt->bindValue(':id', $userId, SQLITE3_INTEGER);
+            $exists = $stmt->execute()->fetchArray();
+            
+            if ($exists) {
+                $_SESSION['error_message'] = "Cet identifiant est déjà utilisé.";
+                break;
+            }
+            
+            // Mettre à jour l'utilisateur
+            if (!empty($password)) {
+                $stmt = $db->prepare('UPDATE admins SET username = :username, password_hash = :password_hash WHERE id = :id');
+                $stmt->bindValue(':password_hash', password_hash($password, PASSWORD_DEFAULT), SQLITE3_TEXT);
+            } else {
+                $stmt = $db->prepare('UPDATE admins SET username = :username WHERE id = :id');
+            }
+            
+            $stmt->bindValue(':username', $username, SQLITE3_TEXT);
+            $stmt->bindValue(':id', $userId, SQLITE3_INTEGER);
+            
+            if ($stmt->execute()) {
+                $_SESSION['success_message'] = "Utilisateur modifié avec succès.";
+            } else {
+                $_SESSION['error_message'] = "Erreur lors de la modification de l'utilisateur.";
+            }
+            break;
+            
+        case 'delete':
+            $userId = $_POST['user_id'] ?? '';
+            
+            if (empty($userId)) {
+                $_SESSION['error_message'] = "ID utilisateur manquant.";
+                break;
+            }
+            
+            // Vérifier que l'utilisateur n'est pas le premier compte
+            $stmt = $db->prepare('SELECT MIN(id) as first_id FROM admins');
+            $firstId = $stmt->execute()->fetchArray()['first_id'];
+            
+            if ($userId == $firstId) {
+                $_SESSION['error_message'] = "Impossible de supprimer le compte principal.";
+                break;
+            }
+            
+            // Supprimer l'utilisateur
+            $stmt = $db->prepare('DELETE FROM admins WHERE id = :id AND id != (SELECT MIN(id) FROM admins)');
+            $stmt->bindValue(':id', $userId, SQLITE3_INTEGER);
+            
+            if ($stmt->execute()) {
+                $_SESSION['success_message'] = "Utilisateur supprimé avec succès.";
+            } else {
+                $_SESSION['error_message'] = "Erreur lors de la suppression de l'utilisateur.";
+            }
+            break;
+    }
+    
+    header('Location: utilisateurs.php');
+    exit;
+}
+
+// Récupérer la liste des utilisateurs
+$db = getDB();
+$users = [];
+$result = $db->query('SELECT * FROM admins ORDER BY id');
+while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+    $users[] = $row;
+}
+?>
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des utilisateurs - ICO</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles-admin.css">
+</head>
+<body class="admin-page">
+    <div class="admin-header">
+        <h1>Gestion des utilisateurs</h1>
+        <div class="admin-actions">
+            <button onclick="openAddModal()" class="action-button action-button-success">
+                Ajouter un utilisateur
+            </button>
+            <a href="admin.php" class="action-button action-button-secondary">Retour</a>
+        </div>
+    </div>
+
+    <div class="admin-content">
+        <?php if (isset($_SESSION['success_message'])): ?>
+            <div class="message success-message"><?php echo htmlspecialchars($_SESSION['success_message']); ?></div>
+            <?php unset($_SESSION['success_message']); ?>
+        <?php endif; ?>
+
+        <?php if (isset($_SESSION['error_message'])): ?>
+            <div class="message error-message"><?php echo htmlspecialchars($_SESSION['error_message']); ?></div>
+            <?php unset($_SESSION['error_message']); ?>
+        <?php endif; ?>
+
+        <div class="users-list">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Identifiant</th>
+                        <th>Date de création</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($users as $user): ?>
+                    <tr>
+                        <td><?php echo htmlspecialchars($user['id']); ?></td>
+                        <td><?php echo htmlspecialchars($user['username']); ?></td>
+                        <td><?php echo htmlspecialchars($user['created_at']); ?></td>
+                        <td class="table-actions">
+                            <button onclick="editUser(<?php 
+                                echo htmlspecialchars($user['id']); ?>, 
+                                '<?php echo htmlspecialchars($user['username']); ?>')" 
+                                class="tree-button">
+                                ✏️
+                            </button>
+                            <?php if ($user['id'] !== $users[0]['id']): ?>
+                            <button onclick="deleteUser(<?php echo htmlspecialchars($user['id']); ?>)"
+                                class="tree-button tree-button-danger">
+                                🗑️
+                            </button>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal d'ajout -->
+    <div id="addUserModal" class="modal">
+        <div class="modal-content">
+            <h2>Ajouter un utilisateur</h2>
+            <form method="post" action="utilisateurs.php">
+                <input type="hidden" name="action" value="add">
+                <div class="form-group">
+                    <label for="username">Identifiant :</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Mot de passe :</label>
+                    <input type="password" id="password" name="password" required minlength="8">
+                </div>
+                <div class="form-actions">
+                    <button type="button" onclick="closeModal('addUserModal')" 
+                        class="action-button action-button-secondary">Annuler</button>
+                    <button type="submit" class="action-button">Ajouter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal d'édition -->
+    <div id="editUserModal" class="modal">
+        <div class="modal-content">
+            <h2>Modifier l'utilisateur</h2>
+            <form method="post" action="utilisateurs.php">
+                <input type="hidden" name="action" value="edit">
+                <input type="hidden" name="user_id" id="edit_user_id">
+                <div class="form-group">
+                    <label for="edit_username">Identifiant :</label>
+                    <input type="text" id="edit_username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit_password">Nouveau mot de passe (laisser vide pour ne pas changer) :</label>
+                    <input type="password" id="edit_password" name="password" minlength="8">
+                </div>
+                <div class="form-actions">
+                    <button type="button" onclick="closeModal('editUserModal')" 
+                        class="action-button action-button-secondary">Annuler</button>
+                    <button type="submit" class="action-button">Modifier</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de suppression -->
+    <div id="deleteUserModal" class="modal">
+        <div class="modal-content">
+            <h2>Confirmer la suppression</h2>
+            <p>Êtes-vous sûr de vouloir supprimer cet utilisateur ?</p>
+            <form method="post" action="utilisateurs.php">
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="user_id" id="delete_user_id">
+                <div class="form-actions">
+                    <button type="button" onclick="closeModal('deleteUserModal')" 
+                        class="action-button action-button-secondary">Annuler</button>
+                    <button type="submit" class="action-button action-button-danger">Supprimer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    function openAddModal() {
+        document.getElementById('addUserModal').style.display = 'block';
+    }
+
+    function editUser(id, username) {
+        document.getElementById('edit_user_id').value = id;
+        document.getElementById('edit_username').value = username;
+        document.getElementById('edit_password').value = '';
+        document.getElementById('editUserModal').style.display = 'block';
+    }
+
+    function deleteUser(id) {
+        document.getElementById('delete_user_id').value = id;
+        document.getElementById('deleteUserModal').style.display = 'block';
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        if (event.target.classList.contains('modal')) {
+            event.target.style.display = 'none';
+        }
+    }
+    </script>
+</body>
+</html>

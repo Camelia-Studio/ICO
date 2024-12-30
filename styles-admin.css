@@ -188,6 +188,38 @@ body {
     bottom: 0;
 }
 
+/* Styles pour la table des utilisateurs */
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    background: #1e1e1e;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.admin-table th,
+.admin-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.admin-table th {
+    background-color: #2a2a2a;
+    font-weight: 500;
+    color: #ffffff;
+}
+
+.admin-table tr:hover {
+    background-color: #2a2a2a;
+}
+
+.table-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
 /* Formulaires */
 .form-group {
     margin-bottom: 1.5rem;

@@ -69,7 +69,7 @@ function showAdminInterface() {
         <h1>Administration ICO</h1>
         <div class="admin-actions">
             <a href="index.php" target="_blank" class="action-button action-button-success">Accéder à la galerie</a>
-            <a href="admin.php?action=show_change_password" class="action-button">Changer le mot de passe</a>
+            <a href="admin.php?action=show_change_password" class="action-button">Changer mon mdp</a>
             <a href="admin.php?action=logout" class="action-button action-button-danger">Déconnexion</a>
         </div>
     </div>
@@ -96,6 +96,19 @@ function showAdminInterface() {
                 <div class="menu-content">
                     <h2>Gestion des albums</h2>
                     <p>Organisez vos albums et gérez l'arborescence de votre galerie photo.</p>
+                </div>
+            </a>
+
+            <a href="utilisateurs.php" class="admin-menu-item">
+                <div class="menu-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </div>
+                <div class="menu-content">
+                    <h2>Gestion des comptes</h2>
+                    <p>Gérez les comptes administrateurs de la galerie photo.</p>
                 </div>
             </a>
         </div>
