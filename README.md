@@ -27,7 +27,7 @@ Il s'agit d'un outil de galeries d'illustrations simple et léger en PHP, que vo
 - Télécharger l'archive `.rar` de la branche `main`.
 - Extraire l'archive dans un dossier dédié pour.
 - Téléverser les fichiers (ainsi que le dossier `liste_albums` !) sur votre serveur.
-- Accéder au la page `init-db-php.php`, par exemple `https://ma-galerie.org/init-db-php.php`. Cela va créer la base de données `database.sqlite`, avec un utilisateur « admin », ayant par défaut le mot de passe « admin ». Vous devriez avoir un message de confirmation si cela s'est bien passé.
+- Accéder à la page `init-db-php.php`, par exemple `https://ma-galerie.org/init-db-php.php`. Cela va créer la base de données `database.sqlite`, avec un utilisateur « admin », ayant par défaut le mot de passe « admin ». Vous devriez avoir un message de confirmation si cela s'est bien passé.
 - Supprimer le fichier `init-db-php.php` de votre serveur !
 - Accéder à l'interface d'administration et changer votre mot de passe !
 - Bravo ! Vous pouvez désormais utiliser ICO.
