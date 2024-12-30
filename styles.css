@@ -105,6 +105,45 @@ body {
     overflow-y: auto;
 }
 
+/* Styles pour le contenu mature */
+.album-card-mature .album-images {
+    filter: blur(10px);
+    transition: filter 0.3s ease;
+}
+
+.album-card-mature::before {
+    content: attr(data-mature-warning);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(220, 53, 69, 0.9);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    z-index: 2;
+    white-space: nowrap;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+.album-card-mature::after {
+    content: "🔞";
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 1.5rem;
+    z-index: 2;
+}
+
+.album-card-mature:hover .album-images {
+    filter: blur(0);
+}
+
+.album-card-mature:hover::before {
+    opacity: 0;
+}
+
 .album-info {
     max-width: 1800px;
     margin: 0 auto;

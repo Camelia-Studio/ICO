@@ -33,7 +33,8 @@ foreach (new DirectoryIterator($currentPath) as $item) {
             'description' => $info['description'],
             'images' => $images,
             'hasSubfolders' => hasSubfolders($albumPath),
-            'hasImages' => hasImages($albumPath)
+            'hasImages' => hasImages($albumPath),
+            'mature_content' => $info['mature_content']
         ];
     }
 }
@@ -43,7 +44,8 @@ $parentPath = dirname($currentPath);
 if (!isSecurePath($parentPath)) {
     $parentPath = null;
 }
-?><!DOCTYPE html>
+?>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -69,7 +71,8 @@ if (!isSecurePath($parentPath)) {
     <div class="albums-grid">
         <?php foreach ($albums as $album): ?>
         <a href="<?php echo $album['hasSubfolders'] ? 'albums.php' : 'galeries.php'; ?>?path=<?php echo urlencode($album['path']); ?>" 
-           class="album-card">
+           class="album-card<?php echo $album['mature_content'] ? ' album-card-mature' : ''; ?>"
+           <?php if ($album['mature_content']): ?>data-mature-warning="Contenu réservé aux plus de 18 ans"<?php endif; ?>>
             <div class="album-images">
                 <?php if (empty($album['images'])): ?>
                     <div class="empty-album"></div>
@@ -84,6 +87,9 @@ if (!isSecurePath($parentPath)) {
             </div>
             <div class="album-info">
                 <h2><?php echo htmlspecialchars($album['title']); ?></h2>
+                <?php if (!empty($album['description'])): ?>
+                    <p><?php echo nl2br(htmlspecialchars($album['description'])); ?></p>
+                <?php endif; ?>
             </div>
         </a>
         <?php endforeach; ?>
