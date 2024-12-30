@@ -216,10 +216,6 @@ p {
     margin: 0 auto;
 }
 
-.gallery-grid.is-loading .gallery-item {
-    opacity: 0;
-}
-
 .gallery-grid .gallery-item {
     opacity: 1;
     transition: opacity 0.3s ease;
@@ -232,6 +228,7 @@ p {
     border-radius: 8px;
     overflow: hidden;
     background-color: #1e1e1e;
+    opacity: 0;
     transition: transform 0.3s ease;
 }
 

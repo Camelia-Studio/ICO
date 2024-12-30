@@ -66,15 +66,38 @@ if (!isSecurePath($parentPath)) {
    </div>
 
    <div class="gallery-grid" id="gallery-grid">
-       <?php foreach($images as $image): ?>
-       <div class="gallery-item">
-           <a href="partage.php?image=<?php echo urlencode($image); ?>">
-               <img src="<?php echo htmlspecialchars($image); ?>" alt="Image de la galerie" loading="lazy">
-           </a>
-       </div>
-       <?php endforeach; ?>
-   </div>
+    <?php foreach($images as $image): ?>
+    <div class="gallery-item">
+        <a href="partage.php?image=<?php echo urlencode($image); ?>">
+            <img src="<?php echo htmlspecialchars($image); ?>" 
+                 alt="Image de la galerie" 
+                 loading="lazy"
+                 onload="this.parentElement.parentElement.style.opacity = '1'">
+        </a>
+    </div>
+    <?php endforeach; ?>
+</div>
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const grid = document.querySelector('#gallery-grid');
+    
+    // Initialiser Masonry immédiatement sans attendre le chargement des images
+    const masonry = new Masonry(grid, {
+        itemSelector: '.gallery-item',
+        columnWidth: '.gallery-item',
+        gutter: 20,
+        fitWidth: true
+    });
+    
+    // Réorganiser la grille quand une image est chargée
+    grid.addEventListener('load', function(e) {
+        if (e.target.tagName === 'IMG') {
+            masonry.layout();
+        }
+    }, true);
+});
+</script>
    <script src="https://unpkg.com/masonry-layout@4/dist/masonry.pkgd.min.js"></script>
    <script src="https://unpkg.com/imagesloaded@5/imagesloaded.pkgd.min.js"></script>
    <script>
