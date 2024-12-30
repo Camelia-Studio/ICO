@@ -7,6 +7,18 @@ if (!isset($_SESSION['admin_id'])) {
     exit;
 }
 
+// Vérifier que c'est bien le premier administrateur
+$db = new SQLite3('database.sqlite');
+$stmt = $db->prepare('SELECT MIN(id) as first_id FROM admins');
+$result = $stmt->execute();
+$firstId = $result->fetchArray()['first_id'];
+
+if ($_SESSION['admin_id'] != $firstId) {
+    $_SESSION['error_message'] = "Accès non autorisé. Seul le premier administrateur peut gérer les comptes.";
+    header('Location: admin.php');
+    exit;
+}
+
 // Se connecter à la base de données
 function getDB() {
     return new SQLite3('database.sqlite');

@@ -99,6 +99,15 @@ function showAdminInterface() {
                 </div>
             </a>
 
+            <?php
+            // Vérifier si c'est le premier administrateur
+            $db = getDB();
+            $stmt = $db->prepare('SELECT MIN(id) as first_id FROM admins');
+            $result = $stmt->execute();
+            $firstId = $result->fetchArray()['first_id'];
+            
+            if ($_SESSION['admin_id'] == $firstId):
+            ?>
             <a href="utilisateurs.php" class="admin-menu-item">
                 <div class="menu-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -111,6 +120,7 @@ function showAdminInterface() {
                     <p>Gérez les comptes administrateurs de la galerie photo.</p>
                 </div>
             </a>
+            <?php endif; ?>
         </div>
     </div>
 </body>
