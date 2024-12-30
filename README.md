@@ -13,6 +13,9 @@ Il s'agit d'un outil de galeries d'illustrations simple et léger en PHP, que vo
 ![image](https://concepts.esenjin.xyz/cyla/v2/file/3D30C4.png)
 - Possibilité d'afficher en grand une illustration en cliquant dessus, des options de partage sont disponibles.
 ![image](https://concepts.esenjin.xyz/cyla/v2/file/B2D3D0.png)
+- Gère les albums au contenu sensible.
+![image](https://concepts.esenjin.xyz/cyla/v2/file/A655F6.png)
+![image](https://concepts.esenjin.xyz/cyla/v2/file/065B15.png)
 - Partie administration qui permet de gérer le site.
 ![image](https://concepts.esenjin.xyz/cyla/v2/file/300601.png)
 - Connexion avec un identifiant et un mot de passe.
