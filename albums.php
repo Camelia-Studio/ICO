@@ -12,6 +12,9 @@ if (!isSecurePath($currentPath)) {
     exit;
 }
 
+// Récupérer les informations de l'album courant
+$currentAlbumInfo = getAlbumInfo($currentPath);
+
 // Récupérer tous les sous-dossiers
 $albums = [];
 foreach (new DirectoryIterator($currentPath) as $item) {
@@ -45,7 +48,7 @@ if (!isSecurePath($parentPath)) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Albums - ICO</title>
+    <title><?php echo htmlspecialchars($currentAlbumInfo['title']); ?> - ICO</title>
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -55,6 +58,13 @@ if (!isSecurePath($parentPath)) {
     <?php else: ?>
     <a href="index.php" class="back-button">Retour</a>
     <?php endif; ?>
+
+    <div class="album-info">
+        <h1 class="current-album-title"><?php echo htmlspecialchars($currentAlbumInfo['title']); ?></h1>
+        <?php if (!empty($currentAlbumInfo['description'])): ?>
+            <p><?php echo nl2br(htmlspecialchars($currentAlbumInfo['description'])); ?></p>
+        <?php endif; ?>
+    </div>
 
     <div class="albums-grid">
         <?php foreach ($albums as $album): ?>
