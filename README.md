@@ -22,6 +22,8 @@ Il s'agit d'un outil de galeries d'illustrations simple et léger en PHP, que vo
 ![image](https://concepts.esenjin.xyz/cyla/v2/file/A6A205.png)
 - Affichage d'une gestion des illustrations d'un album, possibilité d'en téléverser ou d'en supprimer.
 ![image](https://concepts.esenjin.xyz/cyla/v2/file/7A5C3C.png)
+- Gestions des comptes administrateurs (seulement pour le Super Admin).
+![image](https://concepts.esenjin.xyz/cyla/v2/file/6DEE58.png)
 
 ## Installation
 - Télécharger l'archive `.rar` de la branche `main`.
