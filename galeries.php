@@ -40,7 +40,8 @@ $parentPath = dirname($currentPath);
 if (!isSecurePath($parentPath)) {
    $parentPath = './liste_albums';
 }
-?><!DOCTYPE html>
+?>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
    <meta charset="UTF-8">
@@ -49,7 +50,18 @@ if (!isSecurePath($parentPath)) {
    <link rel="icon" type="image/png" href="favicon.png">
    <link rel="stylesheet" href="styles.css">
 </head>
-<body class="gallery-page">
+<body class="gallery-page<?php echo $albumInfo['mature_content'] ? ' gallery-page-mature content-blurred' : ''; ?>">
+   <?php if ($albumInfo['mature_content']): ?>
+   <div id="mature-warning" class="mature-overlay">
+       <div class="mature-content">
+           <div class="mature-icon">🔞</div>
+           <h2>Contenu réservé aux plus de 18 ans</h2>
+           <p>Cet album contient du contenu réservé à un public averti.</p>
+           <button onclick="acceptMatureContent()" class="mature-button">J'ai plus de 18 ans - Afficher le contenu</button>
+       </div>
+   </div>
+   <?php endif; ?>
+
    <a href="albums.php?path=<?php echo urlencode($parentPath); ?>" class="back-button">Retour</a>
 
    <?php if ($headerImage): ?>
@@ -62,6 +74,12 @@ if (!isSecurePath($parentPath)) {
        <h1><?php echo htmlspecialchars($albumInfo['title']); ?></h1>
        <?php if (!empty($albumInfo['description'])): ?>
        <p><?php echo nl2br(htmlspecialchars($albumInfo['description'])); ?></p>
+       <?php endif; ?>
+       <?php if ($albumInfo['mature_content']): ?>
+       <div class="mature-badge">
+           <span class="mature-badge-icon">🔞</span>
+           Contenu réservé aux plus de 18 ans
+       </div>
        <?php endif; ?>
    </div>
 
@@ -76,28 +94,8 @@ if (!isSecurePath($parentPath)) {
         </a>
     </div>
     <?php endforeach; ?>
-</div>
+   </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const grid = document.querySelector('#gallery-grid');
-    
-    // Initialiser Masonry immédiatement sans attendre le chargement des images
-    const masonry = new Masonry(grid, {
-        itemSelector: '.gallery-item',
-        columnWidth: '.gallery-item',
-        gutter: 20,
-        fitWidth: true
-    });
-    
-    // Réorganiser la grille quand une image est chargée
-    grid.addEventListener('load', function(e) {
-        if (e.target.tagName === 'IMG') {
-            masonry.layout();
-        }
-    }, true);
-});
-</script>
    <script src="https://unpkg.com/masonry-layout@4/dist/masonry.pkgd.min.js"></script>
    <script src="https://unpkg.com/imagesloaded@5/imagesloaded.pkgd.min.js"></script>
    <script>
@@ -127,7 +125,19 @@ document.addEventListener('DOMContentLoaded', function() {
             masonry.layout();
         }, 100);
     });
-});
+   });
+
+   // Gestion du contenu mature
+   function acceptMatureContent() {
+       document.body.classList.remove('content-blurred');
+       const warning = document.getElementById('mature-warning');
+       if (warning) {
+           warning.style.opacity = '0';
+           setTimeout(() => {
+               warning.style.display = 'none';
+           }, 300);
+       }
+   }
    </script>
 </body>
 </html>
