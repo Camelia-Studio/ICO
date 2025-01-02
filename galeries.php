@@ -55,8 +55,7 @@ if (!isSecurePath($parentPath)) {
    <div id="mature-warning" class="mature-overlay">
        <div class="mature-content">
            <div class="mature-icon">🔞</div>
-           <h2>Contenu réservé aux plus de 18 ans</h2>
-           <p>Cet album contient du contenu réservé à un public averti.</p>
+           <h2>Cet album contient du contenu réservé à un public averti.</h2>
            <button onclick="acceptMatureContent()" class="mature-button">J'ai plus de 18 ans - Afficher le contenu</button>
        </div>
    </div>
