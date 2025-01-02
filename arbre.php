@@ -131,7 +131,9 @@ function generateTree($path, $currentPath) {
                 $output .= '<a href="arbre-img.php?path=' . urlencode($fullPath) . '" class="tree-button" style="text-decoration: none">🖼️</a>';
             }
             $output .= '<button onclick="editFolder(\'' . htmlspecialchars($fullPath) . '\', \'' . htmlspecialchars($info['title']) . '\', \'' . htmlspecialchars($info['description']) . '\', ' . ($info['mature_content'] ? 'true' : 'false') . ')" class="tree-button">✏️</button>';
-            $output .= '<button onclick="createSubfolder(\'' . htmlspecialchars($fullPath) . '\')" class="tree-button">➕</button>';
+            if (!hasImages($fullPath)) {
+                $output .= '<button onclick="createSubfolder(\'' . htmlspecialchars($fullPath) . '\')" class="tree-button">➕</button>';
+            }
             if ($fullPath !== './liste_albums') {
                 $output .= '<button onclick="deleteFolder(\'' . htmlspecialchars($fullPath) . '\')" class="tree-button tree-button-danger">🗑️</button>';
             }
