@@ -130,7 +130,15 @@ $images = array_map(function($img) {
 </head>
 <body class="admin-page" data-page="<?php echo strpos($currentPath, 'img_carrousel') !== false ? 'carrousel' : 'default'; ?>">
     <div class="admin-header">
-    <h1><?php echo strpos($currentPath, 'img_carrousel') !== false ? 'Images du carrousel' : 'Gestion des images'; ?></h1>
+    <h1>
+            <?php
+            if (strpos($currentPath, 'img_carrousel') !== false) {
+                echo 'Images du carrousel';
+            } else {
+                $currentAlbumInfo = getAlbumInfo($currentPath);
+                echo 'Images de : ' . htmlspecialchars($currentAlbumInfo['title']);
+            }
+            ?></h1>
         <div class="admin-actions">
             <button onclick="document.getElementById('imageUploadForm').click()" class="action-button action-button-success">
                 Ajouter des images
