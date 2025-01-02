@@ -1,0 +1,2 @@
+Images du carrousel
+Mettre dans ce dossier les images pour le carrousel de la page d'accueil.

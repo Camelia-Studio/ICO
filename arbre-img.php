@@ -128,9 +128,9 @@ $images = array_map(function($img) {
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="styles-admin.css">
 </head>
-<body class="admin-page">
+<body class="admin-page" data-page="<?php echo strpos($currentPath, 'img_carrousel') !== false ? 'carrousel' : 'default'; ?>">
     <div class="admin-header">
-        <h1>Gestion des images</h1>
+    <h1><?php echo strpos($currentPath, 'img_carrousel') !== false ? 'Images du carrousel' : 'Gestion des images'; ?></h1>
         <div class="admin-actions">
             <button onclick="document.getElementById('imageUploadForm').click()" class="action-button action-button-success">
                 Ajouter des images
@@ -166,8 +166,15 @@ $images = array_map(function($img) {
         <form method="post" id="deleteForm">
             <input type="hidden" name="action" value="delete">
             <div class="images-grid">
-            <?php foreach($images as $image): 
-                $imageUrl = getBaseUrl() . '/liste_albums/' . substr($currentPath, strpos($currentPath, '/liste_albums/') + strlen('/liste_albums/')) . '/' . $image;
+            <?php foreach($images as $image):
+                // Déterminer si nous sommes dans le dossier du carrousel
+                $isCarousel = strpos($currentPath, 'img_carrousel') !== false;
+                
+                if ($isCarousel) {
+                    $imageUrl = getBaseUrl() . '/img_carrousel/' . $image;
+                } else {
+                    $imageUrl = getBaseUrl() . '/liste_albums/' . substr($currentPath, strpos($currentPath, '/liste_albums/') + strlen('/liste_albums/')) . '/' . $image;
+                }
             ?>
         <div class="image-item">
             <input type="checkbox" name="images[]" value="<?php echo htmlspecialchars($image); ?>" 

@@ -1,35 +1,26 @@
 <?php
-// Fonction pour vérifier si un dossier contient du contenu mature
-function isMatureContent($path) {
-    $infoFile = dirname($path) . '/infos.txt';
-    if (file_exists($infoFile)) {
-        $content = file_get_contents($infoFile);
-        $lines = explode("\n", $content);
-        return isset($lines[2]) && trim($lines[2]) === '18+';
-    }
-    return false;
-}
-
-// Fonction pour récupérer les 5 dernières images (excluant le contenu mature)
-function getLatestImages($rootDir = './liste_albums', $limit = 5) {
+function getCarouselImages($limit = 5) {
     $images = [];
-    $iterator = new RecursiveIteratorIterator(
-        new RecursiveDirectoryIterator($rootDir),
-        RecursiveIteratorIterator::SELF_FIRST
-    );
-
-    foreach ($iterator as $file) {
+    $carouselDir = './img_carrousel';
+    
+    // Vérifier si le dossier existe
+    if (!is_dir($carouselDir)) {
+        // Créer le dossier s'il n'existe pas
+        mkdir($carouselDir, 0755, true);
+        return $images;
+    }
+    
+    foreach (new DirectoryIterator($carouselDir) as $file) {
+        if ($file->isDot()) continue;
         if ($file->isFile()) {
             $extension = strtolower($file->getExtension());
             if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif'])) {
-                // Vérifier si l'image provient d'un dossier mature
-                if (!isMatureContent($file->getPathname())) {
-                    $images[] = str_replace('\\', '/', $file->getPathname());
-                }
+                $images[] = str_replace('\\', '/', $file->getPathname());
             }
         }
     }
 
+    // Trier par date de création décroissante
     usort($images, function($a, $b) {
         return filectime($b) - filectime($a);
     });
@@ -37,7 +28,7 @@ function getLatestImages($rootDir = './liste_albums', $limit = 5) {
     return array_slice($images, 0, $limit);
 }
 
-$latestImages = getLatestImages();
+$carouselImages = getCarouselImages();
 ?>
 
 <!DOCTYPE html>
@@ -51,9 +42,9 @@ $latestImages = getLatestImages();
 </head>
 <body>
     <div class="carousel">
-        <?php foreach($latestImages as $index => $image): ?>
+        <?php foreach($carouselImages as $index => $image): ?>
             <div class="carousel-slide <?php echo $index === 0 ? 'active' : ''; ?>">
-                <img src="<?php echo htmlspecialchars($image); ?>" alt="Image de la galerie">
+                <img src="<?php echo htmlspecialchars($image); ?>" alt="Image du carrousel">
             </div>
         <?php endforeach; ?>
     </div>
@@ -68,6 +59,8 @@ $latestImages = getLatestImages();
         document.addEventListener('DOMContentLoaded', function() {
             let currentSlide = 0;
             const slides = document.querySelectorAll('.carousel-slide');
+            
+            if (slides.length === 0) return; // Sortir si aucune image
             
             function showSlide(index) {
                 slides.forEach(slide => {
@@ -85,8 +78,10 @@ $latestImages = getLatestImages();
             // Initialiser le premier slide
             showSlide(0);
             
-            // Changer de slide toutes les 5 secondes
-            setInterval(nextSlide, 5000);
+            // Changer de slide toutes les 5 secondes seulement s'il y a plus d'une image
+            if (slides.length > 1) {
+                setInterval(nextSlide, 5000);
+            }
         });
     </script>
 </body>

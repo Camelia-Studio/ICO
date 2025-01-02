@@ -145,7 +145,12 @@ function hasImages($path) {
 function isSecurePath($path) {
     $realPath = realpath($path);
     $rootPath = realpath('./liste_albums');
-    return $realPath && strpos($realPath, $rootPath) === 0;
+    $carouselPath = realpath('./img_carrousel');
+    
+    return $realPath && (
+        (strpos($realPath, $rootPath) === 0) || 
+        ($carouselPath && $realPath === $carouselPath)
+    );
 }
 
 /**

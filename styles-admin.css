@@ -424,6 +424,42 @@ body {
     color: #ffffff;
 }
 
+/* Styles pour le dossier carousel */
+.carousel-folder > .tree-item-content {
+    background: rgba(255, 140, 0, 0.1);
+    border-left: 4px solid #ff8c00;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    transition: all 0.3s ease;
+}
+
+.carousel-folder > .tree-item-content:hover {
+    background: rgba(255, 140, 0, 0.2);
+}
+
+.carousel-folder .tree-link {
+    color: #ff8c00;
+    font-weight: 500;
+}
+
+.carousel-folder .folder-icon {
+    color: #ff8c00;
+    font-size: 1.2rem;
+}
+
+.carousel-button {
+    background: rgba(255, 140, 0, 0.2) !important;
+    color: #ff8c00 !important;
+    padding: 0.5rem !important;
+    border-radius: 0.5rem !important;
+    transition: all 0.3s ease !important;
+}
+
+.carousel-button:hover {
+    background: rgba(255, 140, 0, 0.3) !important;
+    transform: scale(1.1) !important;
+}
+
 .folder-icon {
     font-size: 1.2rem;
 }
@@ -633,6 +669,24 @@ body {
 .upload-zone.drag-over {
     background-color: rgba(33, 150, 243, 0.2);
     border-color: #1976d2;
+}
+
+/* Styles spécifiques pour la page de gestion du carrousel */
+body[data-page="carrousel"] .upload-zone {
+    border-color: #ff8c00;
+    background-color: rgba(255, 140, 0, 0.1);
+}
+
+body[data-page="carrousel"] .action-button-success {
+    background-color: #ff8c00;
+}
+
+body[data-page="carrousel"] .action-button-success:hover {
+    background-color: #ff7700;
+}
+
+body[data-page="carrousel"] .admin-header {
+    border-bottom-color: rgba(255, 140, 0, 0.3);
 }
 
 #imageUploadForm {

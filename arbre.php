@@ -83,6 +83,17 @@ function generateTree($path, $currentPath) {
     
     // Si c'est le dossier racine, ajoutons-le à l'arborescence
     if ($path === './liste_albums') {
+        $carouselPath = './img_carrousel';
+        if (is_dir($carouselPath)) {
+            $output .= '<li class="tree-item carousel-folder' . ($carouselPath === $currentPath ? ' active' : '') . '">';
+            $output .= '<div class="tree-item-content">';
+            $output .= '<span class="tree-link">';
+            $output .= '<span class="folder-icon">🎞️</span> Images du carrousel';
+            $output .= '</span>';
+            $output .= '<div class="tree-actions">';
+            $output .= '<a href="arbre-img.php?path=' . urlencode($carouselPath) . '" class="tree-button carousel-button" title="Gérer les images">🖼️</a>';
+            $output .= '</div></div></li>';
+        }
         $info = getAlbumInfo($path);
         $output .= '<li class="tree-item root-folder' . ($path === $currentPath ? ' active' : '') . '">';
         $output .= '<div class="tree-item-content">';
