@@ -322,6 +322,34 @@ body {
     font-size: 1.2rem;
 }
 
+.more-info-button {
+    margin-top: 2rem;
+}
+
+.more-info-button .action-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.5rem;
+    background-color: #2196f3;
+    color: white;
+    text-decoration: none;
+    border-radius: 2rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.more-info-button .action-button:hover {
+    background-color: #1976d2;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+}
+
+.more-info-button .icon {
+    width: 1.2em;
+    height: 1.2em;
+}
+
 .gallery-header {
     width: 100%;
     height: 500px;

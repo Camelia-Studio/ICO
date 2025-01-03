@@ -80,6 +80,21 @@ if (!isSecurePath($parentPath)) {
            Contenu réservé aux plus de 18 ans
        </div>
        <?php endif; ?>
+       <?php if (!empty($albumInfo['more_info_url'])): ?>
+       <div class="more-info-button">
+           <a href="<?php echo htmlspecialchars($albumInfo['more_info_url']); ?>" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              class="action-button">
+               <svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+                   <circle cx="12" cy="12" r="10"/>
+                   <line x1="12" y1="16" x2="12" y2="12"/>
+                   <line x1="12" y1="8" x2="12" y2="8"/>
+               </svg>
+               En savoir plus sur <?php echo htmlspecialchars($albumInfo['title']); ?>
+           </a>
+       </div>
+       <?php endif; ?>
    </div>
 
    <div class="gallery-grid" id="gallery-grid">

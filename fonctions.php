@@ -22,7 +22,8 @@ function getAlbumInfo($albumPath) {
     $info = [
         'title' => basename($albumPath),
         'description' => '',
-        'mature_content' => false
+        'mature_content' => false,
+        'more_info_url' => ''
     ];
     
     if (file_exists($infoFile)) {
@@ -31,6 +32,7 @@ function getAlbumInfo($albumPath) {
         if (isset($lines[0])) $info['title'] = trim($lines[0]);
         if (isset($lines[1])) $info['description'] = trim($lines[1]);
         if (isset($lines[2])) $info['mature_content'] = trim($lines[2]) === '18+';
+        if (isset($lines[3])) $info['more_info_url'] = trim($lines[3]);
     }
     
     return $info;

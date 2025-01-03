@@ -19,8 +19,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($path && $newName) {
                 $newPath = $path . '/' . sanitizeFilename($newName);
                 if (!file_exists($newPath)) {
+                    $moreInfoUrl = $_POST['more_info_url'] ?? '';
                     mkdir($newPath, 0755, true);
-                    $infoContent = $newName . "\n" . $description . "\n" . $matureContent;
+                    $infoContent = $newName . "\n" . $description . "\n" . $matureContent . "\n" . $moreInfoUrl;
                     file_put_contents($newPath . '/infos.txt', $infoContent);
                     $_SESSION['success_message'] = "Dossier créé avec succès.";
                 } else {
@@ -28,10 +29,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
             break;
-            
+                
         case 'edit_folder':
             if ($path && isSecurePath($path)) {
-                $infoContent = $newName . "\n" . $description . "\n" . $matureContent;
+                $moreInfoUrl = $_POST['more_info_url'] ?? '';
+                $infoContent = $newName . "\n" . $description . "\n" . $matureContent . "\n" . $moreInfoUrl;
                 $infoPath = $path . '/infos.txt';
                 if (file_put_contents($infoPath, $infoContent) !== false) {
                     $_SESSION['success_message'] = "Dossier modifié avec succès.";
@@ -104,7 +106,7 @@ function generateTree($path, $currentPath) {
         }
         $output .= '</span>';
         $output .= '<div class="tree-actions">';
-        $output .= '<button onclick="editFolder(\'' . htmlspecialchars($path) . '\', \'' . htmlspecialchars($info['title']) . '\', \'' . htmlspecialchars($info['description']) . '\', ' . ($info['mature_content'] ? 'true' : 'false') . ')" class="tree-button">✏️</button>';
+        $output .= '<button onclick="editFolder(\'' . htmlspecialchars($fullPath) . '\', \'' . rawurlencode($info['title']) . '\', \'' . rawurlencode($info['description']) . '\', ' . ($info['mature_content'] ? 'true' : 'false') . ', \'' . rawurlencode($info['more_info_url']) . '\', ' . (hasImages($fullPath) ? 'true' : 'false') . ')" class="tree-button">✏️</button>';
         $output .= '<button onclick="createSubfolder(\'' . htmlspecialchars($path) . '\')" class="tree-button">➕</button>';
         $output .= '</div></div>';
     }
@@ -130,7 +132,22 @@ function generateTree($path, $currentPath) {
             if (!$hasSubfolders) {
                 $output .= '<a href="arbre-img.php?path=' . urlencode($fullPath) . '" class="tree-button" style="text-decoration: none">🖼️</a>';
             }
-            $output .= '<button onclick="editFolder(\'' . htmlspecialchars($fullPath) . '\', \'' . htmlspecialchars($info['title']) . '\', \'' . htmlspecialchars($info['description']) . '\', ' . ($info['mature_content'] ? 'true' : 'false') . ')" class="tree-button">✏️</button>';
+            // Pour les dossiers avec des images
+            if (!$hasSubfolders) {
+                $output .= '<button onclick="editFolder(\'' . htmlspecialchars($fullPath) . '\', \'' 
+                    . rawurlencode($info['title']) . '\', \'' 
+                    . rawurlencode($info['description']) . '\', ' 
+                    . ($info['mature_content'] ? 'true' : 'false') . ', \'' 
+                    . rawurlencode($info['more_info_url']) . '\', ' 
+                    . (hasImages($fullPath) ? 'true' : 'false') 
+                    . ')" class="tree-button">✏️</button>';
+            } else {
+                // Pour les dossiers sans images
+                $output .= '<button onclick="editFolder(\'' . htmlspecialchars($fullPath) . '\', \'' 
+                    . rawurlencode($info['title']) . '\', \'' 
+                    . rawurlencode($info['description']) . '\', ' 
+                    . ($info['mature_content'] ? 'true' : 'false') . ', \'\', false)" class="tree-button">✏️</button>';
+            }
             if (!hasImages($fullPath)) {
                 $output .= '<button onclick="createSubfolder(\'' . htmlspecialchars($fullPath) . '\')" class="tree-button">➕</button>';
             }
@@ -200,11 +217,19 @@ function generateTree($path, $currentPath) {
                     <textarea id="description" name="description" rows="4" class="form-textarea"></textarea>
                 </div>
                 <div class="form-group">
+                    <label for="more_info_url">Lien "En savoir plus" (optionnel) :</label>
+                    <input type="url" id="more_info_url" name="more_info_url" placeholder="https://...">
+                </div>
+                <div class="form-group">
                     <label class="toggle-label">
                         <input type="checkbox" name="mature_content" id="mature_content">
                         <span class="toggle-text">Contenu réservé aux plus de 18 ans</span>
                         <span class="toggle-warning">⚠️</span>
                     </label>
+                </div>
+                <div class="form-group" id="create_more_info_url_field" style="display: none;">
+                    <label for="more_info_url">Lien "En savoir plus" (optionnel) :</label>
+                    <input type="url" id="more_info_url" name="more_info_url" placeholder="https://...">
                 </div>
                 <div class="form-actions">
                     <button type="button" onclick="closeModal()" class="action-button action-button-secondary">Annuler</button>
@@ -236,6 +261,10 @@ function generateTree($path, $currentPath) {
                         <span class="toggle-warning">⚠️</span>
                     </label>
                 </div>
+                <div class="form-group" id="edit_more_info_url_field">
+                    <label for="edit_more_info_url">Lien "En savoir plus" (optionnel) :</label>
+                    <input type="url" id="edit_more_info_url" name="more_info_url" placeholder="https://...">
+                </div>
                 <div class="form-actions">
                     <button type="button" onclick="closeModal()" class="action-button action-button-secondary">Annuler</button>
                     <button type="submit" class="action-button">Enregistrer</button>
@@ -263,15 +292,45 @@ function generateTree($path, $currentPath) {
     <script>
     function createSubfolder(path) {
         document.getElementById('parentPath').value = path;
+        document.getElementById('create_more_info_url_field').style.display = 'none';
         document.getElementById('createFolderModal').style.display = 'block';
     }
 
-    function editFolder(path, title, description, matureContent = false) {
+    function editFolder(path, title, description, matureContent = false, moreInfoUrl = '', hasImages = false) {
         document.getElementById('editPath').value = path;
-        document.getElementById('edit_name').value = title;
-        document.getElementById('edit_description').value = description;
+        document.getElementById('edit_name').value = decodeURIComponent(title);
+        document.getElementById('edit_description').value = decodeURIComponent(description);
         document.getElementById('edit_mature_content').checked = matureContent;
+        document.getElementById('edit_more_info_url').value = decodeURIComponent(moreInfoUrl);
+        
+        // Récupérer le champ URL
+        const moreInfoUrlField = document.getElementById('edit_more_info_url_field');
+        
+        // Convertir hasImages en booléen explicitement
+        const showUrlField = hasImages === true || hasImages === 'true';
+        
+        // Afficher ou masquer le champ URL
+        if (moreInfoUrlField) {
+            console.log('Found field, setting display to:', showUrlField ? 'block' : 'none');
+            moreInfoUrlField.style.display = showUrlField ? 'block' : 'none';
+            
+            // Si le champ est masqué, on vide aussi sa valeur
+            if (!showUrlField) {
+                document.getElementById('edit_more_info_url').value = '';
+            }
+        } else {
+            console.log('Field not found');
+        }
+        
         document.getElementById('editFolderModal').style.display = 'block';
+        
+        // Debug
+        console.log('Edit folder:', {
+            path,
+            hasImages,
+            showUrlField,
+            fieldFound: !!moreInfoUrlField
+        });
     }
 
     function deleteFolder(path) {
