@@ -1,0 +1,40 @@
+# Empêcher l'accès direct à database.sqlite
+<Files "database.sqlite">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Protéger les fichiers .htaccess et les autres fichiers de config
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Protection supplémentaire pour les fichiers sensibles
+<FilesMatch "\.(sqlite|db|sql)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Désactiver l'affichage du contenu des répertoires
+Options -Indexes
+
+# Empêcher l'accès aux fichiers de backup ou temporaires
+<FilesMatch "(\~|\.bak|\.swp|\.old)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Protection contre les injections de fichiers
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_FILENAME} \.sqlite$
+    RewriteRule .* - [F]
+</IfModule>
+
+# Headers de sécurité supplémentaires
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>
