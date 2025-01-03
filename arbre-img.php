@@ -67,7 +67,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $_SESSION['error_message'] = implode("\n", $errors);
                 }
                 break;
-
+            
+                case 'toggle_top':
+                    $image = $_POST['image'] ?? '';
+                    if ($image) {
+                        $imagePath = $currentPath . '/' . basename($image);
+                        if (isSecurePath($imagePath) && file_exists($imagePath)) {
+                            $info = pathinfo($imagePath);
+                            $isTop = strpos($info['filename'], '--top--') !== false;
+                            
+                            if ($isTop) {
+                                // Enlever le tag top
+                                $newName = str_replace('--top--', '', $info['filename']) . '.' . $info['extension'];
+                            } else {
+                                // Ajouter le tag top
+                                $newName = $info['filename'] . '--top--.' . $info['extension'];
+                            }
+                            
+                            $newPath = $currentPath . '/' . $newName;
+                            if (rename($imagePath, $newPath)) {
+                                $_SESSION['success_message'] = $isTop ? "Image retirée des tops." : "Image mise en top.";
+                            } else {
+                                $_SESSION['error_message'] = "Erreur lors de la modification du statut top.";
+                            }
+                        }
+                    }
+                    break;
+            
             case 'delete':
                 $images = $_POST['images'] ?? [];
                 $deleteCount = 0;
@@ -174,27 +200,36 @@ $images = array_map(function($img) {
         <form method="post" id="deleteForm">
             <input type="hidden" name="action" value="delete">
             <div class="images-grid">
-            <?php foreach($images as $image):
-                // Déterminer si nous sommes dans le dossier du carrousel
-                $isCarousel = strpos($currentPath, 'img_carrousel') !== false;
-                
-                if ($isCarousel) {
-                    $imageUrl = getBaseUrl() . '/img_carrousel/' . $image;
-                } else {
-                    $imageUrl = getBaseUrl() . '/liste_albums/' . substr($currentPath, strpos($currentPath, '/liste_albums/') + strlen('/liste_albums/')) . '/' . $image;
-                }
-            ?>
-        <div class="image-item">
-            <input type="checkbox" name="images[]" value="<?php echo htmlspecialchars($image); ?>" 
-                class="image-checkbox" onchange="updateDeleteButton()">
-                <img src="<?php echo htmlspecialchars($imageUrl); ?>" 
-                alt="<?php echo htmlspecialchars($image); ?>" loading="lazy">
-            <div class="image-actions">
-            <button type="button" onclick="deleteImage('<?php echo htmlspecialchars($image); ?>')" 
-                class="tree-button tree-button-danger">🗑️</button>
-        </div>
-</div>
-<?php endforeach; ?>
+                <?php foreach($images as $image): 
+                    $isCarousel = strpos($currentPath, 'img_carrousel') !== false;
+                    
+                    if ($isCarousel) {
+                        $imageUrl = getBaseUrl() . '/img_carrousel/' . $image;
+                    } else {
+                        $imageUrl = getBaseUrl() . '/liste_albums/' . substr($currentPath, strpos($currentPath, '/liste_albums/') + strlen('/liste_albums/')) . '/' . $image;
+                    }
+                ?>
+                    <div class="image-item">
+                        <input type="checkbox" name="images[]" value="<?php echo htmlspecialchars($image); ?>" 
+                            class="image-checkbox" onchange="updateDeleteButton()">
+                        <div class="image-wrapper">
+                            <img src="<?php echo htmlspecialchars($imageUrl); ?>" 
+                                alt="<?php echo htmlspecialchars($image); ?>" loading="lazy">
+                            <div class="image-actions">
+                                <?php 
+                                $isTop = strpos($image, '--top--') !== false;
+                                ?>
+                                <button type="button" onclick="toggleTop('<?php echo htmlspecialchars($image); ?>')" 
+                                    class="tree-button <?php echo $isTop ? 'tree-button-top' : ''; ?>" 
+                                    title="<?php echo $isTop ? 'Retirer des tops' : 'Mettre en top'; ?>">
+                                    ⭐
+                                </button>
+                                <button type="button" onclick="deleteImage('<?php echo htmlspecialchars($image); ?>')" 
+                                    class="tree-button tree-button-danger">🗑️</button>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
             </div>
         </form>
     </div>
@@ -232,6 +267,17 @@ $images = array_map(function($img) {
         uploadForm.submit();
     }
 });
+        // Fonction de mise en top
+        function toggleTop(imageName) {
+            const form = document.createElement('form');
+            form.method = 'post';
+            form.innerHTML = `
+                <input type="hidden" name="action" value="toggle_top">
+                <input type="hidden" name="image" value="${imageName}">
+            `;
+            document.body.appendChild(form);
+            form.submit();
+        }
 
         // Gestion de la suppression
         function deleteImage(imageName) {

@@ -28,10 +28,18 @@ foreach (new DirectoryIterator($currentPath) as $file) {
    }
 }
 
+// Tri modifié pour mettre les images "top" en premier
 usort($images, function($a, $b) {
-   $pathA = realpath('.') . str_replace(getBaseUrl(), '', $a);
-   $pathB = realpath('.') . str_replace(getBaseUrl(), '', $b);
-   return filectime($pathB) - filectime($pathA);
+    $isTopA = strpos(basename($a), '--top--') !== false;
+    $isTopB = strpos(basename($b), '--top--') !== false;
+    
+    if ($isTopA && !$isTopB) return -1; // a est top, pas b
+    if (!$isTopA && $isTopB) return 1;  // b est top, pas a
+    
+    // Si les deux sont top ou aucun n'est top, on garde le tri par date
+    $pathA = realpath('.') . str_replace(getBaseUrl(), '', $a);
+    $pathB = realpath('.') . str_replace(getBaseUrl(), '', $b);
+    return filectime($pathB) - filectime($pathA);
 });
 
 $headerImage = !empty($images) ? $images[0] : null;
@@ -98,8 +106,10 @@ if (!isSecurePath($parentPath)) {
    </div>
 
    <div class="gallery-grid" id="gallery-grid">
-    <?php foreach($images as $image): ?>
-    <div class="gallery-item">
+    <?php foreach($images as $image): 
+        $isTop = strpos(basename($image), '--top--') !== false;
+    ?>
+    <div class="gallery-item<?php echo $isTop ? ' gallery-item-top' : ''; ?>">
         <a href="partage.php?image=<?php echo urlencode($image); ?>" target="_blank">
             <img src="<?php echo htmlspecialchars($image); ?>" 
                  alt="Image de la galerie" 
@@ -108,7 +118,7 @@ if (!isSecurePath($parentPath)) {
         </a>
     </div>
     <?php endforeach; ?>
-    </div>
+   </div>
 
    <script src="https://unpkg.com/masonry-layout@4/dist/masonry.pkgd.min.js"></script>
    <script src="https://unpkg.com/imagesloaded@5/imagesloaded.pkgd.min.js"></script>
