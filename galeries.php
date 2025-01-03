@@ -105,52 +105,30 @@ if (!isSecurePath($parentPath)) {
        <?php endif; ?>
    </div>
 
-   <div class="gallery-grid" id="gallery-grid">
-    <?php foreach($images as $image): 
-        $isTop = strpos(basename($image), '--top--') !== false;
-    ?>
-    <div class="gallery-item<?php echo $isTop ? ' gallery-item-top' : ''; ?>">
-        <a href="partage.php?image=<?php echo urlencode($image); ?>" target="_blank">
-            <img src="<?php echo htmlspecialchars($image); ?>" 
-                 alt="Image de la galerie" 
-                 loading="lazy"
-                 onload="this.parentElement.parentElement.style.opacity = '1'">
-        </a>
+    <div class="gallery-grid">
+        <?php foreach($images as $image): 
+            $isTop = strpos(basename($image), '--top--') !== false;
+            $size = getSecureImageSize(realpath('.') . str_replace(getBaseUrl(), '', $image));
+            $aspectRatio = $size ? $size['width'] / $size['height'] : 1;
+            $spanClass = '';
+            
+            if ($aspectRatio > 1.7) {
+                $spanClass = 'gallery-item-wide';
+            } elseif ($aspectRatio < 0.7) {
+                $spanClass = 'gallery-item-tall';
+            }
+        ?>
+        <div class="gallery-item <?php echo $isTop ? 'gallery-item-top' : ''; ?> <?php echo $spanClass; ?>">
+            <a href="partage.php?image=<?php echo urlencode($image); ?>" target="_blank">
+                <img src="<?php echo htmlspecialchars($image); ?>" 
+                    alt="Image de la galerie"
+                    loading="lazy">
+            </a>
+        </div>
+        <?php endforeach; ?>
     </div>
-    <?php endforeach; ?>
-   </div>
 
-   <script src="https://unpkg.com/masonry-layout@4/dist/masonry.pkgd.min.js"></script>
-   <script src="https://unpkg.com/imagesloaded@5/imagesloaded.pkgd.min.js"></script>
    <script>
-   document.addEventListener('DOMContentLoaded', function() {
-    const grid = document.querySelector('#gallery-grid');
-    const loadingClass = 'is-loading';
-    
-    // Ajouter une classe de chargement
-    grid.classList.add(loadingClass);
-    
-    // Initialiser Masonry avec imagesLoaded
-    imagesLoaded(grid, function() {
-        const masonry = new Masonry(grid, {
-            itemSelector: '.gallery-item',
-            columnWidth: '.gallery-item',
-            gutter: 20,
-            fitWidth: true,
-            transitionDuration: 0 // Désactiver l'animation pour le premier rendu
-        });
-        
-        // Retirer la classe de chargement
-        grid.classList.remove(loadingClass);
-        
-        // Réactiver les animations après le premier rendu
-        setTimeout(() => {
-            masonry.options.transitionDuration = '0.3s';
-            masonry.layout();
-        }, 100);
-    });
-   });
-
    // Gestion du contenu mature
    function acceptMatureContent() {
        document.body.classList.remove('content-blurred');
