@@ -100,7 +100,7 @@ if (!isSecurePath($parentPath)) {
    <div class="gallery-grid" id="gallery-grid">
     <?php foreach($images as $image): ?>
     <div class="gallery-item">
-        <a href="partage.php?image=<?php echo urlencode($image); ?>">
+        <a href="partage.php?image=<?php echo urlencode($image); ?>" target="_blank">
             <img src="<?php echo htmlspecialchars($image); ?>" 
                  alt="Image de la galerie" 
                  loading="lazy"
@@ -108,7 +108,7 @@ if (!isSecurePath($parentPath)) {
         </a>
     </div>
     <?php endforeach; ?>
-   </div>
+    </div>
 
    <script src="https://unpkg.com/masonry-layout@4/dist/masonry.pkgd.min.js"></script>
    <script src="https://unpkg.com/imagesloaded@5/imagesloaded.pkgd.min.js"></script>
