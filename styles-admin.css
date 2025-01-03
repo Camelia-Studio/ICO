@@ -118,6 +118,37 @@ body {
     background-color: #5a6268;
 }
 
+.action-button-warning {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.action-button-warning:hover {
+    background-color: #e0a800;
+}
+
+.form-select {
+    width: 100%;
+    padding: 0.8rem;
+    border: none;
+    border-radius: 0.5rem;
+    background-color: #2a2a2a;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.form-select:focus {
+    outline: 2px solid #2196f3;
+    background-color: #333;
+}
+
+.form-select option {
+    background-color: #2a2a2a;
+    color: white;
+    padding: 0.5rem;
+}
+
 /* Menu administration */
 .admin-menu {
     display: grid;
