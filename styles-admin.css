@@ -57,6 +57,25 @@ body {
     margin: 0;
 }
 
+/* Badge pour les contenus privés */
+.private-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: #6c757d;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.9rem;
+    margin-left: 1rem;
+    font-weight: normal;
+}
+
+.private-badge::before {
+    content: "🔒";
+    font-size: 1.1em;
+}
+
 /* Zone de contenu principale */
 .admin-content {
     width: 100%;

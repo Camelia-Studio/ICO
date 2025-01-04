@@ -13,6 +13,18 @@ function getBaseUrl() {
 }
 
 /**
+ * Vérifie si le chemin est sécurisé (dans le dossier liste_albums_prives)
+ * @param string $path Chemin à vérifier
+ * @return bool True si le chemin est sécurisé
+ */
+function isSecurePrivatePath($path) {
+    $realPath = realpath($path);
+    $privateRootPath = realpath('./liste_albums_prives');
+    
+    return $realPath && (strpos($realPath, $privateRootPath) === 0);
+}
+
+/**
  * Récupère les informations d'un album depuis son fichier infos.txt
  * @param string $albumPath Chemin vers l'album
  * @return array Tableau contenant le titre et la description de l'album
