@@ -319,7 +319,12 @@ function validateShareKey($key) {
     $result = $stmt->execute();
     
     if ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-        return $row;
+        // S'assurer que le chemin est valide et sécurisé
+        $path = realpath($row['path']);
+        if ($path && isSecurePrivatePath($path)) {
+            $row['path'] = $path;
+            return $row;
+        }
     }
     
     return false;
