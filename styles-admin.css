@@ -841,6 +841,32 @@ body {
     }
 }
 
+.share-url-container {
+    margin-top: 0.5rem;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.share-url-input {
+    flex: 1;
+    background: #2a2a2a;
+    border: none;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    color: white;
+    font-size: 0.9rem;
+}
+
+.share-url-input:focus {
+    outline: 2px solid #2196f3;
+    background-color: #333;
+}
+
+.tree-button.copied {
+    background-color: #28a745 !important;
+}
+
 /* Styles spécifiques pour la page de gestion du carrousel */
 body[data-page="carrousel"] .upload-zone {
     border-color: #ff8c00;

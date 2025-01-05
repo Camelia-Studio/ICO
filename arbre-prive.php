@@ -24,6 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             if ($shareKey) {
                 $shareUrl = getBaseUrl() . '/galeries-privees.php?key=' . urlencode($shareKey);
                 $_SESSION['success_message'] = "Lien de partage généré avec succès. URL : " . $shareUrl;
+                $_SESSION['share_url'] = $shareUrl;
             } else {
                 $_SESSION['error_message'] = "Erreur lors de la génération du lien de partage.";
             }
@@ -219,8 +220,18 @@ function generatePrivateTree($path, $currentPath) {
 
     <div class="admin-content">
         <?php if (isset($_SESSION['success_message'])): ?>
-            <div class="message success-message"><?php echo htmlspecialchars($_SESSION['success_message']); ?></div>
-            <?php unset($_SESSION['success_message']); ?>
+        <div class="message success-message">
+            <?php echo htmlspecialchars($_SESSION['success_message']); ?>
+            <?php if (isset($_SESSION['share_url'])): ?>
+                <div class="share-url-container">
+                    <input type="text" value="<?php echo htmlspecialchars($_SESSION['share_url']); ?>" 
+                        class="share-url-input" readonly onclick="this.select()">
+                    <button onclick="copyShareUrl(this)" class="tree-button" title="Copier">📋</button>
+                </div>
+                <?php unset($_SESSION['share_url']); ?>
+            <?php endif; ?>
+        </div>
+        <?php unset($_SESSION['success_message']); ?>
         <?php endif; ?>
 
         <?php if (isset($_SESSION['error_message'])): ?>
@@ -402,6 +413,22 @@ function generatePrivateTree($path, $currentPath) {
     document.getElementById('sharePath').value = path;
     document.getElementById('shareAlbumTitle').textContent = title;
     document.getElementById('shareLinkModal').style.display = 'block';
+    }
+
+    function copyShareUrl(button) {
+    const input = button.previousElementSibling;
+    input.select();
+    document.execCommand('copy');
+    
+    // Feedback visuel
+    const originalText = button.innerHTML;
+    button.innerHTML = '✓';
+    button.classList.add('copied');
+    
+    setTimeout(() => {
+        button.innerHTML = originalText;
+        button.classList.remove('copied');
+    }, 2000);
     }
     </script>
 </body>
