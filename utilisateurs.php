@@ -324,5 +324,6 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
         }
     }
     </script>
+    <?php include 'footer.php'; ?>
 </body>
 </html>

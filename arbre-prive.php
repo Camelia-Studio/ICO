@@ -431,5 +431,6 @@ function generatePrivateTree($path, $currentPath) {
     }, 2000);
     }
     </script>
+    <?php include 'footer.php'; ?>
 </body>
 </html>

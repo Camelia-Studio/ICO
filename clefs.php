@@ -240,5 +240,6 @@ while ($row = $albumsResult->fetchArray(SQLITE3_ASSOC)) {
         window.location.href = url;
     }
     </script>
+    <?php include 'footer.php'; ?>
 </body>
 </html>

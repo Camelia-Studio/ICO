@@ -572,6 +572,48 @@ body {
     }
 }
 
+/* Styles pour le pied de page */
+.site-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.3);
+    text-align: center;
+    z-index: 100;
+    pointer-events: none;
+}
+
+.footer-text {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.8rem;
+    margin: 0;
+}
+
+.footer-link {
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    transition: color 0.3s ease;
+    pointer-events: auto;
+}
+
+.footer-link:hover {
+    color: #2196f3;
+}
+
+.footer-version {
+    margin-left: 0.5rem;
+    opacity: 0.7;
+    font-size: 0.8rem;
+}
+
+.gallery-grid,
+.albums-grid,
+.admin-content {
+    margin-bottom: 3rem;
+}
+
 /* Media Queries */
 @media (min-width: 1400px) {
     .albums-grid {

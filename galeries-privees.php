@@ -168,5 +168,6 @@ if (empty($shareKey)) {
     }
     </script>
     <?php endif; ?>
+    <?php include 'footer.php'; ?>
 </body>
 </html>

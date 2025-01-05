@@ -342,4 +342,16 @@ function cleanExpiredShareKeys() {
     
     return $db->changes();
 }
+
+/**
+ * Récupère la version actuelle du projet
+ * @return string La version du projet
+ */
+function getVersion() {
+    $versionFile = __DIR__ . '/version.txt';
+    if (file_exists($versionFile)) {
+        return trim(file_get_contents($versionFile));
+    }
+    return 'inconnue'; // Version par défaut si le fichier n'existe pas
+}
 ?>

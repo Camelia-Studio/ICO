@@ -1,4 +1,5 @@
 <?php
+require_once 'fonctions.php';
 session_start();
 
 // Vérifier si un utilisateur est connecté
@@ -45,6 +46,7 @@ function showLoginForm($error = null) {
             <button type="submit" class="action-button">Se connecter</button>
         </form>
     </div>
+    <?php include 'footer.php'; ?>
 </body>
 </html>
     <?php
@@ -146,6 +148,7 @@ function showAdminInterface() {
             </a>
         </div>
     </div>
+    <?php include 'footer.php'; ?>
 </body>
 </html>
     <?php
@@ -194,6 +197,7 @@ function showChangePasswordForm() {
             </div>
         </form>
     </div>
+    <?php include 'footer.php'; ?>
 </body>
 </html>
     <?php

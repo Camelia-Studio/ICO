@@ -600,5 +600,6 @@ $images = array_map(function($img) {
             </form>
         </div>
     </div>
+    <?php include 'footer.php'; ?>
 </body>
 </html>

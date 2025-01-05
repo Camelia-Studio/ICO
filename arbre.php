@@ -350,5 +350,6 @@ function generateTree($path, $currentPath) {
         }
     }
     </script>
+    <?php include 'footer.php'; ?>
 </body>
 </html>

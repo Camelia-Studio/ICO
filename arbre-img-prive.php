@@ -301,5 +301,6 @@ $currentAlbumInfo = getAlbumInfo($currentPath);
         // Initialisation : masquer les boutons au chargement
         document.addEventListener('DOMContentLoaded', updateActionButtons);
     </script>
+    <?php include 'footer.php'; ?>
 </body>
 </html>

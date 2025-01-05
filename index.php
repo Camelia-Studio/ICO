@@ -1,4 +1,6 @@
 <?php
+require_once 'fonctions.php';
+
 function getCarouselImages($limit = 5) {
     $images = [];
     $carouselDir = './img_carrousel';
@@ -54,6 +56,8 @@ $carouselImages = getCarouselImages();
         <p>ICO est la galerie d'images de l'association Camélia Studio.</p>
         <a href="albums.php" class="cta-button">Accéder aux galeries</a>
     </div>
+
+    <?php include 'footer.php'; ?>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
