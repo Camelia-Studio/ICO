@@ -10,14 +10,6 @@ $db->exec('CREATE TABLE IF NOT EXISTS admins (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 )');
 
-// Créer la table des albums protégés
-$db->exec('CREATE TABLE IF NOT EXISTS protected_albums (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    path TEXT UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-)');
-
 // Créer la nouvelle table des clés de partage
 $db->exec('CREATE TABLE IF NOT EXISTS share_keys (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
