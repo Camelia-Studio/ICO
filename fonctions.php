@@ -222,4 +222,119 @@ function sanitizeFilename($filename) {
     // Limite la longueur du nom de fichier
     return substr($filename, 0, 255);
 }
+
+/**
+ * Génère une clé cryptographiquement sûre pour le partage
+ * @param int $length Longueur de la clé
+ * @return string Clé générée
+ */
+function generateShareKey($length = 64) {
+    return bin2hex(random_bytes($length / 2));
+}
+
+/**
+ * Génère un identifiant unique pour un album
+ * @param int $length Longueur de l'identifiant
+ * @return string Identifiant généré
+ */
+function generateAlbumIdentifier($length = 32) {
+    return bin2hex(random_bytes($length / 2));
+}
+
+/**
+ * Crée ou récupère l'identifiant unique d'un album
+ * @param string $albumPath Chemin de l'album
+ * @return string|false Identifiant de l'album ou false en cas d'erreur
+ */
+function ensureAlbumIdentifier($albumPath) {
+    $db = new SQLite3('database.sqlite');
+    
+    // Vérifie si l'album a déjà un identifiant
+    $stmt = $db->prepare('SELECT identifier FROM album_identifiers WHERE path = :path');
+    $stmt->bindValue(':path', $albumPath, SQLITE3_TEXT);
+    $result = $stmt->execute();
+    
+    if ($row = $result->fetchArray()) {
+        return $row['identifier'];
+    }
+    
+    // Génère un nouvel identifiant
+    $identifier = generateAlbumIdentifier();
+    
+    // Insère le nouvel identifiant
+    $stmt = $db->prepare('INSERT INTO album_identifiers (identifier, path) VALUES (:identifier, :path)');
+    $stmt->bindValue(':identifier', $identifier, SQLITE3_TEXT);
+    $stmt->bindValue(':path', $albumPath, SQLITE3_TEXT);
+    
+    if ($stmt->execute()) {
+        return $identifier;
+    }
+    
+    return false;
+}
+
+/**
+ * Crée une nouvelle clé de partage
+ * @param string $albumIdentifier Identifiant de l'album
+ * @param int $duration Durée de validité en heures
+ * @param string $comment Commentaire optionnel
+ * @return string|false Clé de partage ou false en cas d'erreur
+ */
+function createShareKey($albumIdentifier, $duration, $comment = '') {
+    $db = new SQLite3('database.sqlite');
+    
+    // Génère une nouvelle clé
+    $key = generateShareKey();
+    $expiresAt = date('Y-m-d H:i:s', strtotime("+{$duration} hours"));
+    
+    // Insère la clé
+    $stmt = $db->prepare('INSERT INTO share_keys (key_value, album_identifier, expires_at, comment) 
+                         VALUES (:key, :identifier, :expires, :comment)');
+    $stmt->bindValue(':key', $key, SQLITE3_TEXT);
+    $stmt->bindValue(':identifier', $albumIdentifier, SQLITE3_TEXT);
+    $stmt->bindValue(':expires', $expiresAt, SQLITE3_TEXT);
+    $stmt->bindValue(':comment', $comment, SQLITE3_TEXT);
+    
+    if ($stmt->execute()) {
+        return $key;
+    }
+    
+    return false;
+}
+
+/**
+ * Vérifie la validité d'une clé de partage
+ * @param string $key Clé de partage
+ * @return array|false Informations sur l'album ou false si clé invalide
+ */
+function validateShareKey($key) {
+    $db = new SQLite3('database.sqlite');
+    
+    $stmt = $db->prepare('SELECT a.path, a.identifier 
+                         FROM share_keys s
+                         JOIN album_identifiers a ON s.album_identifier = a.identifier
+                         WHERE s.key_value = :key 
+                         AND s.expires_at > datetime("now")');
+    $stmt->bindValue(':key', $key, SQLITE3_TEXT);
+    $result = $stmt->execute();
+    
+    if ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+        return $row;
+    }
+    
+    return false;
+}
+
+/**
+ * Nettoie les clés de partage expirées
+ * @return int Nombre de clés supprimées
+ */
+function cleanExpiredShareKeys() {
+    $db = new SQLite3('database.sqlite');
+    
+    $stmt = $db->prepare('DELETE FROM share_keys WHERE expires_at <= datetime("now")');
+    $stmt->execute();
+    
+    return $db->changes();
+}
 ?>

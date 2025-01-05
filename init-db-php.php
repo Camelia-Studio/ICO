@@ -18,6 +18,25 @@ $db->exec('CREATE TABLE IF NOT EXISTS protected_albums (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 )');
 
+// Créer la nouvelle table des clés de partage
+$db->exec('CREATE TABLE IF NOT EXISTS share_keys (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    key_value TEXT UNIQUE NOT NULL,
+    album_identifier TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    expires_at DATETIME NOT NULL,
+    comment TEXT,
+    FOREIGN KEY (album_identifier) REFERENCES album_identifiers(identifier)
+)');
+
+// Créer la table des identifiants d'albums
+$db->exec('CREATE TABLE IF NOT EXISTS album_identifiers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    identifier TEXT UNIQUE NOT NULL,
+    path TEXT UNIQUE NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+)');
+
 // Insérer un admin par défaut si la table est vide
 $result = $db->query('SELECT COUNT(*) as count FROM admins');
 $count = $result->fetchArray()['count'];
@@ -35,6 +54,11 @@ if ($count === 0) {
     
     echo "Admin par défaut créé (username: admin, password: admin). Pensez à changer ces identifiants !";
 }
+
+// Créer les index nécessaires
+$db->exec('CREATE INDEX IF NOT EXISTS idx_share_keys_expires_at ON share_keys(expires_at)');
+$db->exec('CREATE INDEX IF NOT EXISTS idx_share_keys_album_identifier ON share_keys(album_identifier)');
+$db->exec('CREATE INDEX IF NOT EXISTS idx_album_identifiers_identifier ON album_identifiers(identifier)');
 
 $db->close();
 echo "Base de données initialisée avec succès !";
