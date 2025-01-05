@@ -780,6 +780,67 @@ body {
     border-left: 4px solid #2196f3;
 }
 
+/* Styles pour la page de gestion des clefs de partage */
+.filters {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    background: #2a2a2a;
+    padding: 1rem;
+    border-radius: 0.5rem;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.share-url {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.share-url-input {
+    background: #2a2a2a;
+    border: none;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    color: white;
+    width: 300px;
+    font-size: 0.9rem;
+}
+
+.expired-text {
+    color: #dc3545;
+    font-style: italic;
+}
+
+.expired-key {
+    opacity: 0.7;
+}
+
+.no-data {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+}
+
+.tree-button.copied {
+    background-color: #28a745 !important;
+}
+
+@media (max-width: 768px) {
+    .filters {
+        flex-direction: column;
+    }
+
+    .share-url-input {
+        width: 200px;
+    }
+}
+
 /* Styles spécifiques pour la page de gestion du carrousel */
 body[data-page="carrousel"] .upload-zone {
     border-color: #ff8c00;

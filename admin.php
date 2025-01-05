@@ -129,8 +129,19 @@ function showAdminInterface() {
                     </svg>
                 </div>
                 <div class="menu-content">
-                    <h2>Albums privés</h2>
+                    <h2>Gestion des albums privés</h2>
                     <p>Gérez vos albums photos privés et sécurisés.</p>
+                </div>
+            </a>
+            <a href="clefs.php" class="admin-menu-item">
+                <div class="menu-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path>
+                    </svg>
+                </div>
+                <div class="menu-content">
+                    <h2>Clés de partage</h2>
+                    <p>Gérez les accès temporaires à vos albums privés.</p>
                 </div>
             </a>
         </div>
