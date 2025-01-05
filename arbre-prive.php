@@ -7,6 +7,37 @@ if (!isset($_SESSION['admin_id'])) {
     exit;
 }
 
+// Gérer la génération de lien de partage
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'generate_link') {
+    $albumPath = $_POST['path'] ?? '';
+    $duration = intval($_POST['duration'] ?? 24);
+    $comment = $_POST['comment'] ?? '';
+    
+    if ($albumPath && isSecurePrivatePath($albumPath)) {
+        // Récupérer ou créer l'identifiant unique de l'album
+        $albumIdentifier = ensureAlbumIdentifier($albumPath);
+        
+        if ($albumIdentifier) {
+            // Créer la clé de partage
+            $shareKey = createShareKey($albumIdentifier, $duration, $comment);
+            
+            if ($shareKey) {
+                $shareUrl = getBaseUrl() . '/galeries-privees.php?key=' . urlencode($shareKey);
+                $_SESSION['success_message'] = "Lien de partage généré avec succès. URL : " . $shareUrl;
+            } else {
+                $_SESSION['error_message'] = "Erreur lors de la génération du lien de partage.";
+            }
+        } else {
+            $_SESSION['error_message'] = "Erreur lors de la création de l'identifiant de l'album.";
+        }
+    } else {
+        $_SESSION['error_message'] = "Chemin d'album invalide.";
+    }
+    
+    header('Location: arbre-prive.php');
+    exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
     $path = $_POST['path'] ?? '';
@@ -116,6 +147,7 @@ function generatePrivateTree($path, $currentPath) {
             $info = getAlbumInfo($fullPath);
             $isCurrentPath = realpath($fullPath) === $currentPath;
             $hasSubfolders = hasSubfolders($fullPath);
+            $hasImages = hasImages($fullPath);
             
             $output .= '<li class="tree-item' . ($isCurrentPath ? ' active' : '') . '">';
             $output .= '<div class="tree-item-content">';
@@ -128,6 +160,12 @@ function generatePrivateTree($path, $currentPath) {
             $output .= '<div class="tree-actions">';
             if (!$hasSubfolders) {
                 $output .= '<a href="arbre-img-prive.php?path=' . urlencode($fullPath) . '&private=1" class="tree-button" style="text-decoration: none">🖼️</a>';
+                // Ajout du bouton de génération de lien si le dossier contient des images
+                if ($hasImages) {
+                    $output .= '<button onclick="generateShareLink(\'' . htmlspecialchars($fullPath) . '\', \'' 
+                        . htmlspecialchars($info['title']) 
+                        . '\')" class="tree-button tree-button-share" title="Générer un lien de partage">🔗</button>';
+                }
             }
             if (!$hasSubfolders) {
                 $output .= '<button onclick="editFolder(\'' . htmlspecialchars($fullPath) . '\', \'' 
@@ -135,7 +173,7 @@ function generatePrivateTree($path, $currentPath) {
                     . rawurlencode($info['description']) . '\', ' 
                     . ($info['mature_content'] ? 'true' : 'false') . ', \'' 
                     . rawurlencode($info['more_info_url']) . '\', ' 
-                    . (hasImages($fullPath) ? 'true' : 'false') 
+                    . ($hasImages ? 'true' : 'false') 
                     . ')" class="tree-button">✏️</button>';
             } else {
                 $output .= '<button onclick="editFolder(\'' . htmlspecialchars($fullPath) . '\', \'' 
@@ -143,7 +181,7 @@ function generatePrivateTree($path, $currentPath) {
                     . rawurlencode($info['description']) . '\', ' 
                     . ($info['mature_content'] ? 'true' : 'false') . ', \'\', false)" class="tree-button">✏️</button>';
             }
-            if (!hasImages($fullPath)) {
+            if (!$hasImages) {
                 $output .= '<button onclick="createSubfolder(\'' . htmlspecialchars($fullPath) . '\')" class="tree-button">➕</button>';
             }
             if ($fullPath !== './liste_albums_prives') {
@@ -279,6 +317,42 @@ function generatePrivateTree($path, $currentPath) {
         </div>
     </div>
 
+    <!-- Ajouter la nouvelle modale pour la génération de lien -->
+    <div id="shareLinkModal" class="modal">
+        <div class="modal-content">
+            <h2>Générer un lien de partage</h2>
+            <p class="share-info">Générer un lien de partage temporaire pour : <strong id="shareAlbumTitle"></strong></p>
+            
+            <form method="post" action="arbre-prive.php">
+                <input type="hidden" name="action" value="generate_link">
+                <input type="hidden" name="path" id="sharePath">
+                
+                <div class="form-group">
+                    <label for="duration">Durée de validité :</label>
+                    <select name="duration" id="duration" class="form-select" required>
+                        <option value="1">1 heure</option>
+                        <option value="6">6 heures</option>
+                        <option value="12">12 heures</option>
+                        <option value="24" selected>24 heures</option>
+                        <option value="48">48 heures</option>
+                        <option value="72">72 heures</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="comment">Commentaire (optionnel) :</label>
+                    <textarea name="comment" id="comment" rows="3" class="form-textarea" 
+                        placeholder="Ex: Partage avec le client X"></textarea>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" onclick="closeModal()" class="action-button action-button-secondary">Annuler</button>
+                    <button type="submit" class="action-button action-button-share">Générer le lien</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
     function createSubfolder(path) {
         document.getElementById('parentPath').value = path;
@@ -315,12 +389,19 @@ function generatePrivateTree($path, $currentPath) {
         document.getElementById('createFolderModal').style.display = 'none';
         document.getElementById('editFolderModal').style.display = 'none';
         document.getElementById('deleteFolderModal').style.display = 'none';
+        document.getElementById('shareLinkModal').style.display = 'none';
     }
 
     window.onclick = function(event) {
         if (event.target.classList.contains('modal')) {
             closeModal();
         }
+    }
+
+    function generateShareLink(path, title) {
+    document.getElementById('sharePath').value = path;
+    document.getElementById('shareAlbumTitle').textContent = title;
+    document.getElementById('shareLinkModal').style.display = 'block';
     }
     </script>
 </body>

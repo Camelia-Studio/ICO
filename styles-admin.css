@@ -754,6 +754,32 @@ body {
     border-color: #1976d2;
 }
 
+/* Style de la modale des clés de partage */
+.tree-button-share {
+    background-color: rgba(33, 150, 243, 0.2) !important;
+    color: #2196f3 !important;
+}
+
+.tree-button-share:hover {
+    background-color: rgba(33, 150, 243, 0.4) !important;
+}
+
+.action-button-share {
+    background-color: #2196f3 !important;
+}
+
+.action-button-share:hover {
+    background-color: #1976d2 !important;
+}
+
+.share-info {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background-color: rgba(33, 150, 243, 0.1);
+    border-radius: 0.5rem;
+    border-left: 4px solid #2196f3;
+}
+
 /* Styles spécifiques pour la page de gestion du carrousel */
 body[data-page="carrousel"] .upload-zone {
     border-color: #ff8c00;
