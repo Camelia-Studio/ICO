@@ -6,6 +6,7 @@ if (!isset($_SESSION['admin_id'])) {
     header('Location: admin.php?action=login');
     exit;
 }
+checkAdminSession();
 
 // Gérer la génération de lien de partage
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'generate_link') {

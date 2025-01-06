@@ -6,6 +6,7 @@ if (!isset($_SESSION['admin_id'])) {
     header('Location: admin.php?action=login');
     exit;
 }
+checkAdminSession();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';

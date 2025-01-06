@@ -1,13 +1,7 @@
 <?php
 require_once 'fonctions.php';
 session_start();
-$timeout = 86400;
-if (isset($_SESSION['last_activity']) && time() - $_SESSION['last_activity'] > $timeout) {
-    session_destroy();
-    header('Location: admin.php?action=login');
-    exit;
-}
-$_SESSION['last_activity'] = time();
+checkAdminSession();
 
 // Vérifier si un utilisateur est connecté
 function checkAuth() {

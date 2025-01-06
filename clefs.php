@@ -2,6 +2,7 @@
 require_once 'fonctions.php';
 
 session_start();
+checkAdminSession();
 
 // Variables pour stocker les messages
 $successMessage = null;

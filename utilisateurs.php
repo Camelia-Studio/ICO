@@ -6,6 +6,7 @@ if (!isset($_SESSION['admin_id'])) {
     header('Location: admin.php?action=login');
     exit;
 }
+checkAdminSession();
 
 // Vérifier que c'est bien le premier administrateur
 $db = new SQLite3('database.sqlite');

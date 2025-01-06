@@ -6,6 +6,7 @@ if (!isset($_SESSION['admin_id'])) {
     header('Location: admin.php?action=login');
     exit;
 }
+checkAdminSession();
 
 // Gérer les soumissions du formulaire
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

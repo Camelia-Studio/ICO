@@ -3,6 +3,27 @@
 define('PROJECT_ROOT_DIR', 'test-ico');
 define('ALLOWED_EXTENSIONS', ['jpg', 'jpeg', 'png', 'gif']);
 
+// Configuration de la durée de session
+ini_set('session.gc_maxlifetime', 86400);
+session_set_cookie_params(86400);
+
+// Nouvelle fonction de vérification de session
+function checkAdminSession() {
+    // Ne pas vérifier si on est déjà sur la page de login
+    if (basename($_SERVER['PHP_SELF']) === 'admin.php' && isset($_GET['action']) && $_GET['action'] === 'login') {
+        return;
+    }
+    
+    $timeout = 86400;
+    if (!isset($_SESSION['admin_id']) || 
+        (isset($_SESSION['last_activity']) && time() - $_SESSION['last_activity'] > $timeout)) {
+        session_destroy();
+        header('Location: admin.php?action=login');
+        exit;
+    }
+    $_SESSION['last_activity'] = time();
+}
+
 /**
  * Obtient l'URL de base du site
  * @return string L'URL de base du site

@@ -7,6 +7,7 @@ if (!isset($_SESSION['admin_id'])) {
     header('Location: admin.php?action=login');
     exit;
 }
+checkAdminSession();
 
 // Récupérer le chemin courant
 $currentPath = isset($_GET['path']) ? $_GET['path'] : './liste_albums_prives';
