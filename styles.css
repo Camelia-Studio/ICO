@@ -47,6 +47,33 @@ body {
     filter: brightness(0.6);
 }
 
+.carousel-indicators {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    z-index: 10;
+    background-color: rgba(0, 0, 0, 0.3);
+    padding: 8px;
+    border-radius: 12px;
+    backdrop-filter: blur(4px);
+}
+
+.indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.4);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.indicator.active {
+    background-color: #ffffff;
+}
+
 /* Overlay contenu de la page d'accueil */
 .overlay {
     position: fixed;

@@ -52,6 +52,14 @@ $config = getSiteConfig();
         <?php endforeach; ?>
     </div>
 
+    <?php if (count($carouselImages) > 1): ?>
+    <div class="carousel-indicators">
+        <?php foreach($carouselImages as $index => $image): ?>
+            <div class="indicator <?php echo $index === 0 ? 'active' : ''; ?>"></div>
+        <?php endforeach; ?>
+    </div>
+    <?php endif; ?>
+
     <div class="overlay">
         <h1><?php echo htmlspecialchars($config['site_title']); ?></h1>
         <p><?php echo htmlspecialchars($config['site_description']); ?></p>
@@ -79,6 +87,49 @@ $config = getSiteConfig();
                 currentSlide = (currentSlide + 1) % slides.length;
                 showSlide(currentSlide);
             }
+
+            // Initialiser le premier slide
+            showSlide(0);
+            
+            // Changer de slide toutes les 5 secondes seulement s'il y a plus d'une image
+            if (slides.length > 1) {
+                setInterval(nextSlide, 5000);
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            let currentSlide = 0;
+            const slides = document.querySelectorAll('.carousel-slide');
+            const indicators = document.querySelectorAll('.indicator');
+            
+            if (slides.length === 0) return;
+            
+            function showSlide(index) {
+                // Mettre à jour les slides
+                slides.forEach(slide => {
+                    slide.classList.remove('active');
+                });
+                slides[index].classList.add('active');
+                
+                // Mettre à jour les indicateurs
+                indicators.forEach(indicator => {
+                    indicator.classList.remove('active');
+                });
+                indicators[index]?.classList.add('active');
+            }
+
+            function nextSlide() {
+                currentSlide = (currentSlide + 1) % slides.length;
+                showSlide(currentSlide);
+            }
+
+            // Permettre le clic sur les indicateurs
+            indicators.forEach((indicator, index) => {
+                indicator.addEventListener('click', () => {
+                    currentSlide = index;
+                    showSlide(currentSlide);
+                });
+            });
 
             // Initialiser le premier slide
             showSlide(0);
