@@ -106,7 +106,7 @@ function generateTree($path, $currentPath) {
         }
         $output .= '</span>';
         $output .= '<div class="tree-actions">';
-        $output .= '<button onclick="editFolder(\'' . htmlspecialchars($fullPath) . '\', \'' . rawurlencode($info['title']) . '\', \'' . rawurlencode($info['description']) . '\', ' . ($info['mature_content'] ? 'true' : 'false') . ', \'' . rawurlencode($info['more_info_url']) . '\', ' . (hasImages($fullPath) ? 'true' : 'false') . ')" class="tree-button">✏️</button>';
+        $output .= '<button onclick="editFolder(\'' . htmlspecialchars($path) . '\', \'' . rawurlencode($info['title']) . '\', \'' . rawurlencode($info['description']) . '\', ' . ($info['mature_content'] ? 'true' : 'false') . ', \'' . rawurlencode($info['more_info_url']) . '\', ' . (hasImages($path) ? 'true' : 'false') . ')" class="tree-button">✏️</button>';
         $output .= '<button onclick="createSubfolder(\'' . htmlspecialchars($path) . '\')" class="tree-button">➕</button>';
         $output .= '</div></div>';
     }
