@@ -227,80 +227,70 @@ $config = getSiteConfig();
         </form>
     </div>
 
+    <!-- Modale d'indication de téléversement -->
+    <div id="uploadModal" class="modal-upload">
+        <div class="modal-content">
+            <div class="spinner"></div>
+            <p>Téléversement en cours... veuillez patienter...</p>
+        </div>
+    </div>
+
     <script>
-        function updateActionButtons() {
-            const checkboxes = document.querySelectorAll('.image-checkbox:checked');
-            const count = checkboxes.length;
-            const deleteBtn = document.getElementById('deleteSelectedBtn');
-            
-            if (count > 0) {
-                deleteBtn.style.display = 'inline-flex';
-            } else {
-                deleteBtn.style.display = 'none';
-            }
-        }
-
-        function deleteImage(imageName) {
-            if (confirm('Êtes-vous sûr de vouloir supprimer cette image ?')) {
-                const form = document.getElementById('imagesForm');
-                form.innerHTML = `
-                    <input type="hidden" name="action" value="delete">
-                    <input type="hidden" name="images[]" value="${imageName}">
-                `;
-                form.submit();
-            }
-        }
-
-        function deleteSelected() {
-            const checkboxes = document.querySelectorAll('.image-checkbox:checked');
-            if (checkboxes.length > 0 && confirm('Êtes-vous sûr de vouloir supprimer les images sélectionnées ?')) {
-                document.getElementById('formAction').value = 'delete';
-                document.getElementById('imagesForm').submit();
-            }
-        }
-
-        function toggleTop(imageName) {
-            const form = document.createElement('form');
-            form.method = 'post';
-            form.innerHTML = `
-                <input type="hidden" name="action" value="toggle_top">
-                <input type="hidden" name="image" value="${imageName}">
-            `;
-            document.body.appendChild(form);
-            form.submit();
-        }
-
-        // Gestion du drag & drop
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('uploadModal');
         const dropZone = document.getElementById('dropZone');
         const uploadForm = document.getElementById('uploadForm');
         const imageUploadForm = document.getElementById('imageUploadForm');
 
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.classList.add('drag-over');
-        });
-
-        dropZone.addEventListener('dragleave', () => {
-            dropZone.classList.remove('drag-over');
-        });
-
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.classList.remove('drag-over');
-            
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                const dataTransfer = new DataTransfer();
-                for (let file of files) {
-                    dataTransfer.items.add(file);
+        // Gestion du formulaire d'upload
+        if (uploadForm) {
+            uploadForm.addEventListener('submit', function(e) {
+                const fileInput = this.querySelector('input[type="file"]');
+                if (fileInput && fileInput.files && fileInput.files.length > 0) {
+                    modal.style.display = 'block';
                 }
-                imageUploadForm.files = dataTransfer.files;
-                uploadForm.submit();
-            }
-        });
+            });
+        }
 
-        // Initialisation : masquer les boutons au chargement
-        document.addEventListener('DOMContentLoaded', updateActionButtons);
+        // Gestion du drag & drop
+        if (dropZone) {
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('drag-over');
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('drag-over');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('drag-over');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    const dataTransfer = new DataTransfer();
+                    for (let file of files) {
+                        dataTransfer.items.add(file);
+                    }
+                    imageUploadForm.files = dataTransfer.files;
+                    modal.style.display = 'block';  // Afficher la modale avant la soumission
+                    uploadForm.submit();
+                }
+            });
+        }
+
+    // Gestion du click sur "Ajouter des images"
+        const imageUploadInput = document.getElementById('imageUploadForm');
+        if (imageUploadInput) {
+            imageUploadInput.addEventListener('change', function() {
+                if (this.files && this.files.length > 0) {
+                    modal.style.display = 'block';
+                    uploadForm.submit();
+                }
+            });
+        }
+    });
     </script>
     <?php include 'footer.php'; ?>
 </body>

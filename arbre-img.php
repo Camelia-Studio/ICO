@@ -602,6 +602,72 @@ $config = getSiteConfig();
             </form>
         </div>
     </div>
+    <!-- Modale d'indication de téléversement -->
+    <div id="uploadModal" class="modal-upload">
+        <div class="modal-content">
+            <div class="spinner"></div>
+            <p>Téléversement en cours... veuillez patienter...</p>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('uploadModal');
+        const dropZone = document.getElementById('dropZone');
+        const uploadForm = document.getElementById('uploadForm');
+        const imageUploadForm = document.getElementById('imageUploadForm');
+
+        // Gestion du formulaire d'upload
+        if (uploadForm) {
+            uploadForm.addEventListener('submit', function(e) {
+                const fileInput = this.querySelector('input[type="file"]');
+                if (fileInput && fileInput.files && fileInput.files.length > 0) {
+                    modal.style.display = 'block';
+                }
+            });
+        }
+
+        // Gestion du drag & drop
+        if (dropZone) {
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('drag-over');
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('drag-over');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('drag-over');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    const dataTransfer = new DataTransfer();
+                    for (let file of files) {
+                        dataTransfer.items.add(file);
+                    }
+                    imageUploadForm.files = dataTransfer.files;
+                    modal.style.display = 'block';  // Afficher la modale avant la soumission
+                    uploadForm.submit();
+                }
+            });
+        }
+
+    // Gestion du click sur "Ajouter des images"
+        const imageUploadInput = document.getElementById('imageUploadForm');
+        if (imageUploadInput) {
+            imageUploadInput.addEventListener('change', function() {
+                if (this.files && this.files.length > 0) {
+                    modal.style.display = 'block';
+                    uploadForm.submit();
+                }
+            });
+        }
+    });
+    </script>
+
     <?php include 'footer.php'; ?>
 </body>
 </html>
