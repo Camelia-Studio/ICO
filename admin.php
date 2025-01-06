@@ -146,6 +146,17 @@ function showAdminInterface() {
                     <p>Gérez les accès temporaires à vos albums privés.</p>
                 </div>
             </a>
+            <a href="personnalisation.php" class="admin-menu-item">
+                <div class="menu-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 20s8-3 8-10V4l-8-2-8 2v6c0 7 8 10 8 10z"/>
+                    </svg>
+                </div>
+                <div class="menu-content">
+                    <h2>Personnalisation</h2>
+                    <p>Personnalisez le titre et la description de votre galerie.</p>
+                </div>
+            </a>
         </div>
     </div>
     <?php include 'footer.php'; ?>

@@ -12,6 +12,7 @@ if (!$imageUrl) {
 
 // Récupérer le nom du fichier pour le téléchargement
 $filename = basename($imageUrl);
+$config = getSiteConfig();
 ?>
 
 <!DOCTYPE html>
@@ -19,7 +20,7 @@ $filename = basename($imageUrl);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image - ICO</title>
+    <title>Image - <?php echo htmlspecialchars($config['site_title']); ?></title>
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="styles.css">
 </head>

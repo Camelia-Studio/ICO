@@ -301,6 +301,13 @@ body {
     margin-bottom: 1.5rem;
 }
 
+.form-help {
+    display: block;
+    margin-top: 0.5rem;
+    color: #888;
+    font-size: 0.9rem;
+}
+
 /* Toggle pour contenu mature */
 .toggle-label {
     display: flex;

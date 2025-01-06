@@ -185,6 +185,8 @@ usort($tempImages, function($a, $b) {
 $images = array_map(function($img) {
     return $img['name'];
 }, $tempImages);
+
+$config = getSiteConfig();
 ?>
 
 <!DOCTYPE html>
@@ -192,7 +194,7 @@ $images = array_map(function($img) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion des images - ICO</title>
+    <title>Gestion des images - <?php echo htmlspecialchars($config['site_title']); ?></title>
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="styles-admin.css">

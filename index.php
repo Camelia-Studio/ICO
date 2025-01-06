@@ -31,6 +31,7 @@ function getCarouselImages($limit = 5) {
 }
 
 $carouselImages = getCarouselImages();
+$config = getSiteConfig();
 ?>
 
 <!DOCTYPE html>
@@ -38,7 +39,7 @@ $carouselImages = getCarouselImages();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ICO - Galerie d'images</title>
+    <title><?php echo htmlspecialchars($config['site_title']); ?> - <?php echo htmlspecialchars($config['site_description']); ?></title>
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -52,8 +53,8 @@ $carouselImages = getCarouselImages();
     </div>
 
     <div class="overlay">
-        <h1>ICO</h1>
-        <p>ICO est la galerie d'images de l'association Camélia Studio.</p>
+        <h1><?php echo htmlspecialchars($config['site_title']); ?></h1>
+        <p><?php echo htmlspecialchars($config['site_description']); ?></p>
         <a href="albums.php" class="cta-button">Accéder aux galeries</a>
     </div>
 

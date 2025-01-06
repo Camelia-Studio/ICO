@@ -164,6 +164,8 @@ function generateTree($path, $currentPath) {
     $output .= '</ul>';
     return $output;
 }
+
+$config = getSiteConfig();
 ?>
 
 <!DOCTYPE html>
@@ -171,7 +173,7 @@ function generateTree($path, $currentPath) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arborescence - ICO</title>
+    <title>Arborescence - <?php echo htmlspecialchars($config['site_title']); ?></title>
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="styles-admin.css">

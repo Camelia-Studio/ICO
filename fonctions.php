@@ -354,4 +354,21 @@ function getVersion() {
     }
     return 'inconnue'; // Version par défaut si le fichier n'existe pas
 }
+
+function getSiteConfig() {
+    $configFile = './config.txt';
+    $config = [
+        'site_title' => 'ICO',
+        'site_description' => 'ICO est la galerie d\'images de l\'association Camélia Studio.'
+    ];
+    
+    if (file_exists($configFile)) {
+        $content = file_get_contents($configFile);
+        $lines = explode("\n", $content);
+        if (isset($lines[0])) $config['site_title'] = trim($lines[0]);
+        if (isset($lines[1])) $config['site_description'] = trim($lines[1]);
+    }
+    
+    return $config;
+}
 ?>

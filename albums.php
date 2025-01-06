@@ -44,13 +44,15 @@ $parentPath = dirname($currentPath);
 if (!isSecurePath($parentPath)) {
     $parentPath = null;
 }
+
+$config = getSiteConfig();
 ?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars($currentAlbumInfo['title']); ?> - ICO</title>
+    <title><?php echo htmlspecialchars($currentAlbumInfo['title']); ?> - <?php echo htmlspecialchars($config['site_title']); ?></title>
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="styles.css">
 </head>
