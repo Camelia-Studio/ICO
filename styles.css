@@ -614,6 +614,19 @@ body {
     margin-bottom: 3rem;
 }
 
+.share-page .site-footer {
+    background-color: rgba(0, 0, 0, 0.5);
+    position: fixed;
+    bottom: 0;
+    z-index: 1000;
+}
+
+.admin-page .site-footer {
+    position: fixed;
+    bottom: 0;
+    z-index: 1000;
+}
+
 /* Media Queries */
 @media (min-width: 1400px) {
     .albums-grid {
