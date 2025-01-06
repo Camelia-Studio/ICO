@@ -170,6 +170,9 @@ $config = getSiteConfig();
             <button onclick="deleteSelected()" id="deleteSelectedBtn" class="action-button action-button-danger">
                 Supprimer la sélection
             </button>
+            <button onclick="toggleSelectAll()" id="selectAllBtn" class="action-button">
+                Tout sélectionner
+            </button>
             <a href="arbre-prive.php?path=<?php echo urlencode($currentPath); ?>" class="action-button action-button-secondary">
                 Retour
             </a>
@@ -291,6 +294,40 @@ $config = getSiteConfig();
             });
         }
     });
+
+    // Fonction pour basculer la sélection de toutes les images
+    function toggleSelectAll() {
+        const checkboxes = document.querySelectorAll('.image-checkbox');
+        const allChecked = document.querySelectorAll('.image-checkbox:checked').length === checkboxes.length;
+        
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = !allChecked;
+        });
+        
+        updateActionButtons();
+    }
+
+    // Modifier la fonction updateActionButtons existante
+    function updateActionButtons() {
+        const checkboxes = document.querySelectorAll('.image-checkbox');
+        const selectedCheckboxes = document.querySelectorAll('.image-checkbox:checked');
+        const count = selectedCheckboxes.length;
+        
+        const deleteBtn = document.getElementById('deleteSelectedBtn');
+        const selectAllBtn = document.getElementById('selectAllBtn');
+        
+        if (deleteBtn) {
+            deleteBtn.style.display = count > 0 ? 'inline-flex' : 'none';
+        }
+        
+        if (selectAllBtn) {
+            selectAllBtn.textContent = checkboxes.length === selectedCheckboxes.length ? 
+                'Tout désélectionner' : 'Tout sélectionner';
+        }
+    }
+
+    // Ajouter l'initialisation au chargement de la page
+    document.addEventListener('DOMContentLoaded', updateActionButtons);
     </script>
     <button class="scroll-top" title="Retour en haut">↑</button>
     <script>

@@ -221,6 +221,9 @@ $config = getSiteConfig();
             <button onclick="moveSelected()" id="moveSelectedBtn" class="action-button action-button-warning">
                 Déplacer la sélection
             </button>
+            <button onclick="toggleSelectAll()" id="selectAllBtn" class="action-button">
+                Tout sélectionner
+            </button>
             <a href="arbre.php?path=<?php echo urlencode($currentPath); ?>" class="action-button action-button-secondary">
                 Retour
             </a>
@@ -244,6 +247,18 @@ $config = getSiteConfig();
                     deleteBtn.style.display = 'none';
                     moveBtn.style.display = 'none';
                 }
+            }
+
+            // Fonction pour basculer la sélection de toutes les images
+            function toggleSelectAll() {
+                const checkboxes = document.querySelectorAll('.image-checkbox');
+                const allChecked = document.querySelectorAll('.image-checkbox:checked').length === checkboxes.length;
+                
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = !allChecked;
+                });
+                
+                updateActionButtons();
             }
 
             // Fonction de suppression multiple
@@ -432,27 +447,22 @@ $config = getSiteConfig();
         // Gestion des boutons d'action
         console.log("Définition de updateActionButtons");
         function updateActionButtons() {
-            console.log("updateActionButtons appelé");
-            const checkboxes = document.querySelectorAll('.image-checkbox:checked');
-            const count = checkboxes.length;
-            console.log("Nombre d'images sélectionnées:", count);
+            const checkboxes = document.querySelectorAll('.image-checkbox');
+            const selectedCheckboxes = document.querySelectorAll('.image-checkbox:checked');
+            const count = selectedCheckboxes.length;
             
             const deleteBtn = document.getElementById('deleteSelectedBtn');
             const moveBtn = document.getElementById('moveSelectedBtn');
+            const selectAllBtn = document.getElementById('selectAllBtn');
             
-            if (!deleteBtn || !moveBtn) {
-                console.log("Boutons non trouvés");
-                return;
+            if (deleteBtn && moveBtn) {
+                deleteBtn.style.display = count > 0 ? 'inline-flex' : 'none';
+                moveBtn.style.display = count > 0 ? 'inline-flex' : 'none';
             }
-
-            if (count > 0) {
-                deleteBtn.style.display = 'inline-flex';
-                moveBtn.style.display = 'inline-flex';
-                console.log("Affichage des boutons");
-            } else {
-                deleteBtn.style.display = 'none';
-                moveBtn.style.display = 'none';
-                console.log("Masquage des boutons");
+            
+            if (selectAllBtn) {
+                selectAllBtn.textContent = checkboxes.length === selectedCheckboxes.length ? 
+                    'Tout désélectionner' : 'Tout sélectionner';
             }
         }
 
