@@ -1,2 +1,2 @@
-Titre
-Description sur la seconde ligne.
+Liste des albums
+Voici tous les albums de premier niveau.
