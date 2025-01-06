@@ -170,6 +170,16 @@ $config = getSiteConfig();
     }
     </script>
     <?php endif; ?>
+    <button class="scroll-top" title="Retour en haut">↑</button>
+    <script>
+    const scrollBtn = document.querySelector('.scroll-top');
+    window.addEventListener('scroll', () => {
+        scrollBtn.style.display = window.scrollY > 500 ? 'flex' : 'none';
+    });
+    scrollBtn.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    </script>
     <?php include 'footer.php'; ?>
 </body>
 </html>
