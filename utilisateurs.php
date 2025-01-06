@@ -39,6 +39,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 break;
             }
             
+            // Vérification du mot de passe
+            if (strlen($password) < 12) {
+                $_SESSION['error_message'] = "Le mot de passe doit faire au moins 12 caractères.";
+                break;
+            }
+            
+            if (!preg_match('/[a-z]/', $password)) {
+                $_SESSION['error_message'] = "Le mot de passe doit contenir au moins une lettre minuscule.";
+                break;
+            }
+            
+            if (!preg_match('/[A-Z]/', $password)) {
+                $_SESSION['error_message'] = "Le mot de passe doit contenir au moins une lettre majuscule.";
+                break;
+            }
+            
+            if (!preg_match('/[0-9]/', $password)) {
+                $_SESSION['error_message'] = "Le mot de passe doit contenir au moins un chiffre.";
+                break;
+            }
+            
+            if (!preg_match('/[^A-Za-z0-9]/', $password)) {
+                $_SESSION['error_message'] = "Le mot de passe doit contenir au moins un caractère spécial.";
+                break;
+            }
+            
             // Vérifier si l'utilisateur existe déjà
             $stmt = $db->prepare('SELECT COUNT(*) as count FROM admins WHERE username = :username');
             $stmt->bindValue(':username', $username, SQLITE3_TEXT);
@@ -60,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['error_message'] = "Erreur lors de l'ajout de l'utilisateur.";
             }
             break;
-            
+        
         case 'edit':
             $userId = $_POST['user_id'] ?? '';
             $username = $_POST['username'] ?? '';
@@ -71,44 +97,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 break;
             }
             
-            // Vérifier que l'utilisateur existe et n'est pas le premier compte
-            $stmt = $db->prepare('SELECT id FROM admins WHERE id = :id');
-            $stmt->bindValue(':id', $userId, SQLITE3_INTEGER);
-            $user = $stmt->execute()->fetchArray();
-            
-            if (!$user) {
-                $_SESSION['error_message'] = "Utilisateur introuvable.";
-                break;
-            }
-            
-            // Vérifier si le nouveau nom d'utilisateur existe déjà pour un autre utilisateur
-            $stmt = $db->prepare('SELECT id FROM admins WHERE username = :username AND id != :id');
-            $stmt->bindValue(':username', $username, SQLITE3_TEXT);
-            $stmt->bindValue(':id', $userId, SQLITE3_INTEGER);
-            $exists = $stmt->execute()->fetchArray();
-            
-            if ($exists) {
-                $_SESSION['error_message'] = "Cet identifiant est déjà utilisé.";
-                break;
-            }
-            
-            // Mettre à jour l'utilisateur
+            // Si un nouveau mot de passe est fourni
             if (!empty($password)) {
-                $stmt = $db->prepare('UPDATE admins SET username = :username, password_hash = :password_hash WHERE id = :id');
-                $stmt->bindValue(':password_hash', password_hash($password, PASSWORD_DEFAULT), SQLITE3_TEXT);
-            } else {
-                $stmt = $db->prepare('UPDATE admins SET username = :username WHERE id = :id');
+                // Vérification du mot de passe
+                if (strlen($password) < 12) {
+                    $_SESSION['error_message'] = "Le mot de passe doit faire au moins 12 caractères.";
+                    break;
+                }
+                
+                if (!preg_match('/[a-z]/', $password)) {
+                    $_SESSION['error_message'] = "Le mot de passe doit contenir au moins une lettre minuscule.";
+                    break;
+                }
+                
+                if (!preg_match('/[A-Z]/', $password)) {
+                    $_SESSION['error_message'] = "Le mot de passe doit contenir au moins une lettre majuscule.";
+                    break;
+                }
+                
+                if (!preg_match('/[0-9]/', $password)) {
+                    $_SESSION['error_message'] = "Le mot de passe doit contenir au moins un chiffre.";
+                    break;
+                }
+                
+                if (!preg_match('/[^A-Za-z0-9]/', $password)) {
+                    $_SESSION['error_message'] = "Le mot de passe doit contenir au moins un caractère spécial.";
+                    break;
+                }
             }
-            
-            $stmt->bindValue(':username', $username, SQLITE3_TEXT);
-            $stmt->bindValue(':id', $userId, SQLITE3_INTEGER);
-            
-            if ($stmt->execute()) {
-                $_SESSION['success_message'] = "Utilisateur modifié avec succès.";
-            } else {
-                $_SESSION['error_message'] = "Erreur lors de la modification de l'utilisateur.";
-            }
-            break;
             
         case 'delete':
             $userId = $_POST['user_id'] ?? '';
@@ -247,7 +263,17 @@ $config = getSiteConfig();
                 </div>
                 <div class="form-group">
                     <label for="password">Mot de passe :</label>
-                    <input type="password" id="password" name="password" required minlength="8">
+                    <input type="password" id="password" name="password" required minlength="12">
+                    <small class="form-help">
+                        Le mot de passe doit contenir au moins :
+                        <ul>
+                            <li>12 caractères</li>
+                            <li>1 lettre minuscule</li>
+                            <li>1 lettre majuscule</li>
+                            <li>1 chiffre</li>
+                            <li>1 caractère spécial</li>
+                        </ul>
+                    </small>
                 </div>
                 <div class="form-actions">
                     <button type="button" onclick="closeModal('addUserModal')" 
@@ -271,7 +297,17 @@ $config = getSiteConfig();
                 </div>
                 <div class="form-group">
                     <label for="edit_password">Nouveau mot de passe (laisser vide pour ne pas changer) :</label>
-                    <input type="password" id="edit_password" name="password" minlength="8">
+                    <input type="password" id="edit_password" name="password" minlength="12">
+                    <small class="form-help">
+                        Le mot de passe doit contenir au moins :
+                        <ul>
+                            <li>12 caractères</li>
+                            <li>1 lettre minuscule</li>
+                            <li>1 lettre majuscule</li>
+                            <li>1 chiffre</li>
+                            <li>1 caractère spécial</li>
+                        </ul>
+                    </small>
                 </div>
                 <div class="form-actions">
                     <button type="button" onclick="closeModal('editUserModal')" 

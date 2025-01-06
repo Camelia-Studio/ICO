@@ -197,11 +197,21 @@ function showChangePasswordForm() {
             </div>
             <div class="form-group">
                 <label for="new_password">Nouveau mot de passe :</label>
-                <input type="password" id="new_password" name="new_password" required minlength="8">
+                <input type="password" id="new_password" name="new_password" required minlength="12">
+                <small class="form-help">
+                    Le mot de passe doit contenir au moins :
+                    <ul>
+                        <li>12 caractères</li>
+                        <li>1 lettre minuscule</li>
+                        <li>1 lettre majuscule</li>
+                        <li>1 chiffre</li>
+                        <li>1 caractère spécial</li>
+                    </ul>
+                </small>
             </div>
             <div class="form-group">
                 <label for="confirm_password">Confirmer le mot de passe :</label>
-                <input type="password" id="confirm_password" name="confirm_password" required minlength="8">
+                <input type="password" id="confirm_password" name="confirm_password" required minlength="12">
             </div>
             <div class="form-actions">
                 <button type="submit" class="action-button">Changer le mot de passe</button>
@@ -253,16 +263,34 @@ function handlePasswordChange() {
     $newPassword = $_POST['new_password'] ?? '';
     $confirmPassword = $_POST['confirm_password'] ?? '';
     
-    // Vérifier que les nouveaux mots de passe correspondent
-    if ($newPassword !== $confirmPassword) {
-        $_SESSION['error_message'] = "Les nouveaux mots de passe ne correspondent pas.";
+    // Vérifier que le nouveau mot de passe respecte les critères
+    if (strlen($newPassword) < 12) {
+        $_SESSION['error_message'] = "Le mot de passe doit faire au moins 12 caractères.";
         header('Location: admin.php?action=show_change_password');
         return;
     }
 
-    // Vérifier que le nouveau mot de passe est assez long
-    if (strlen($newPassword) < 8) {
-        $_SESSION['error_message'] = "Le nouveau mot de passe doit faire au moins 8 caractères.";
+    // Vérifier les critères avec des expressions régulières
+    if (!preg_match('/[a-z]/', $newPassword)) {
+        $_SESSION['error_message'] = "Le mot de passe doit contenir au moins une lettre minuscule.";
+        header('Location: admin.php?action=show_change_password');
+        return;
+    }
+
+    if (!preg_match('/[A-Z]/', $newPassword)) {
+        $_SESSION['error_message'] = "Le mot de passe doit contenir au moins une lettre majuscule.";
+        header('Location: admin.php?action=show_change_password');
+        return;
+    }
+
+    if (!preg_match('/[0-9]/', $newPassword)) {
+        $_SESSION['error_message'] = "Le mot de passe doit contenir au moins un chiffre.";
+        header('Location: admin.php?action=show_change_password');
+        return;
+    }
+
+    if (!preg_match('/[^A-Za-z0-9]/', $newPassword)) {
+        $_SESSION['error_message'] = "Le mot de passe doit contenir au moins un caractère spécial.";
         header('Location: admin.php?action=show_change_password');
         return;
     }

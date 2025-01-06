@@ -368,7 +368,7 @@ body {
     padding: 0.8rem;
     border: none;
     border-radius: 0.5rem;
-    background-color: #2a2a2a;
+    background-color: #6c757d;
     color: white;
     font-size: 1rem;
 }
@@ -783,6 +783,10 @@ body {
     border-radius: 5px;
     text-align: center;
     border: 1px solid #3a3a3a;
+}
+
+.modal-content {
+    text-align: left;
 }
 
 .spinner {
