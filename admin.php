@@ -173,12 +173,12 @@ function showAdminInterface() {
                 <div class="<?php echo $menuItemClass; ?>">
             <?php endif; ?>
                 <div class="menu-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21.5 14.5v-2.9a1.6 1.6 0 0 0-1.6-1.6H16"></path>
-                        <path d="M16 7V3.6a1.6 1.6 0 0 0-1.6-1.6H3.6A1.6 1.6 0 0 0 2 3.6v16.8a1.6 1.6 0 0 0 1.6 1.6h10.8a1.6 1.6 0 0 0 1.6-1.6V17"></path>
-                        <path d="M17.8 9.2 15 12l2.8 2.8"></path>
-                        <path d="M15 12h6.5"></path>
-                    </svg>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path 
+                        d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" rx="4" />
+                    <path
+                        d="M7 14l5-5 5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
                 </div>
                 <div class="menu-content">
                     <h2>Mise à jour</h2>
