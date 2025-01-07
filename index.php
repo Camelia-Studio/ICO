@@ -44,6 +44,7 @@ $config = getSiteConfig();
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <a href="admin.php" class="admin-button" title="Administration">⚙️</a>
     <div class="carousel">
         <?php foreach($carouselImages as $index => $image): ?>
             <div class="carousel-slide <?php echo $index === 0 ? 'active' : ''; ?>">
