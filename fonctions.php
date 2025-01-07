@@ -184,7 +184,7 @@ function isSecurePath($path) {
     
     return $realPath && (
         (strpos($realPath, $rootPath) === 0) || 
-        ($carouselPath && $realPath === $carouselPath)
+        ($carouselPath && strpos($realPath, $carouselPath) === 0)
     );
 }
 
