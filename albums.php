@@ -17,6 +17,7 @@ $currentAlbumInfo = getAlbumInfo($currentPath);
 
 // Récupérer tous les sous-dossiers
 $albums = [];
+$tempAlbums = [];
 foreach (new DirectoryIterator($currentPath) as $item) {
     if ($item->isDot()) continue;
     if ($item->isDir()) {
@@ -27,7 +28,7 @@ foreach (new DirectoryIterator($currentPath) as $item) {
                  getImagesRecursively($albumPath) : 
                  getLatestImages($albumPath);
         
-        $albums[] = [
+        $tempAlbums[] = [
             'path' => str_replace('\\', '/', $albumPath),
             'title' => $info['title'],
             'description' => $info['description'],
@@ -38,6 +39,13 @@ foreach (new DirectoryIterator($currentPath) as $item) {
         ];
     }
 }
+
+// Tri alphabétique des albums par titre
+usort($tempAlbums, function($a, $b) {
+    return strcasecmp($a['title'], $b['title']);
+});
+
+$albums = $tempAlbums;
 
 // Déterminer le chemin parent pour le bouton retour
 $parentPath = dirname($currentPath);

@@ -141,59 +141,68 @@ function generatePrivateTree($path, $currentPath) {
         $output .= '</div></div>';
     }
     
-    // Parcourir tous les sous-dossiers
+    // Récupérer et trier les sous-dossiers
+    $dirs = array();
     foreach (new DirectoryIterator($path) as $item) {
         if ($item->isDot()) continue;
         if ($item->isDir()) {
             $fullPath = $item->getPathname();
             $info = getAlbumInfo($fullPath);
-            $isCurrentPath = realpath($fullPath) === $currentPath;
-            $hasSubfolders = hasSubfolders($fullPath);
-            $hasImages = hasImages($fullPath);
-            
-            $output .= '<li class="tree-item' . ($isCurrentPath ? ' active' : '') . '">';
-            $output .= '<div class="tree-item-content">';
-            $output .= '<span class="tree-link">';
-            $output .= '<span class="folder-icon">🔒</span> ' . htmlspecialchars($info['title']);
-            if ($info['mature_content']) {
-                $output .= ' <span class="mature-warning">🔞</span>';
-            }
-            $output .= '</span>';
-            $output .= '<div class="tree-actions">';
-            if (!$hasSubfolders) {
-                $output .= '<a href="arbre-img-prive.php?path=' . urlencode($fullPath) . '&private=1" class="tree-button" style="text-decoration: none">🖼️</a>';
-                // Ajout du bouton de génération de lien si le dossier contient des images
-                if ($hasImages) {
-                    $output .= '<button onclick="generateShareLink(\'' . htmlspecialchars($fullPath) . '\', \'' 
-                        . htmlspecialchars($info['title']) 
-                        . '\')" class="tree-button tree-button-share" title="Générer un lien de partage">🔗</button>';
-                }
-            }
-            if (!$hasSubfolders) {
-                $output .= '<button onclick="editFolder(\'' . htmlspecialchars($fullPath) . '\', \'' 
-                    . rawurlencode($info['title']) . '\', \'' 
-                    . rawurlencode($info['description']) . '\', ' 
-                    . ($info['mature_content'] ? 'true' : 'false') . ', \'' 
-                    . rawurlencode($info['more_info_url']) . '\', ' 
-                    . ($hasImages ? 'true' : 'false') 
-                    . ')" class="tree-button">✏️</button>';
-            } else {
-                $output .= '<button onclick="editFolder(\'' . htmlspecialchars($fullPath) . '\', \'' 
-                    . rawurlencode($info['title']) . '\', \'' 
-                    . rawurlencode($info['description']) . '\', ' 
-                    . ($info['mature_content'] ? 'true' : 'false') . ', \'\', false)" class="tree-button">✏️</button>';
-            }
-            if (!$hasImages) {
-                $output .= '<button onclick="createSubfolder(\'' . htmlspecialchars($fullPath) . '\')" class="tree-button">➕</button>';
-            }
-            if ($fullPath !== './liste_albums_prives') {
-                $output .= '<button onclick="deleteFolder(\'' . htmlspecialchars($fullPath) . '\')" class="tree-button tree-button-danger">🗑️</button>';
-            }
-            $output .= '</div></div>';
-            
-            $output .= generatePrivateTree($fullPath, $currentPath);
-            $output .= '</li>';
+            $dirs[$info['title']] = $fullPath;
         }
+    }
+
+    // Tri alphabétique par titre
+    ksort($dirs, SORT_STRING | SORT_FLAG_CASE);
+
+    // Parcourir les dossiers triés
+    foreach ($dirs as $title => $fullPath) {
+        $info = getAlbumInfo($fullPath);
+        $isCurrentPath = realpath($fullPath) === $currentPath;
+        $hasSubfolders = hasSubfolders($fullPath);
+        $hasImages = hasImages($fullPath);
+        
+        $output .= '<li class="tree-item' . ($isCurrentPath ? ' active' : '') . '">';
+        $output .= '<div class="tree-item-content">';
+        $output .= '<span class="tree-link">';
+        $output .= '<span class="folder-icon">🔒</span> ' . htmlspecialchars($info['title']);
+        if ($info['mature_content']) {
+            $output .= ' <span class="mature-warning">🔞</span>';
+        }
+        $output .= '</span>';
+        $output .= '<div class="tree-actions">';
+        if (!$hasSubfolders) {
+            $output .= '<a href="arbre-img-prive.php?path=' . urlencode($fullPath) . '&private=1" class="tree-button" style="text-decoration: none">🖼️</a>';
+            if ($hasImages) {
+                $output .= '<button onclick="generateShareLink(\'' . htmlspecialchars($fullPath) . '\', \'' 
+                    . htmlspecialchars($info['title']) 
+                    . '\')" class="tree-button tree-button-share" title="Générer un lien de partage">🔗</button>';
+            }
+        }
+        if (!$hasSubfolders) {
+            $output .= '<button onclick="editFolder(\'' . htmlspecialchars($fullPath) . '\', \'' 
+                . rawurlencode($info['title']) . '\', \'' 
+                . rawurlencode($info['description']) . '\', ' 
+                . ($info['mature_content'] ? 'true' : 'false') . ', \'' 
+                . rawurlencode($info['more_info_url']) . '\', ' 
+                . ($hasImages ? 'true' : 'false') 
+                . ')" class="tree-button">✏️</button>';
+        } else {
+            $output .= '<button onclick="editFolder(\'' . htmlspecialchars($fullPath) . '\', \'' 
+                . rawurlencode($info['title']) . '\', \'' 
+                . rawurlencode($info['description']) . '\', ' 
+                . ($info['mature_content'] ? 'true' : 'false') . ', \'\', false)" class="tree-button">✏️</button>';
+        }
+        if (!$hasImages) {
+            $output .= '<button onclick="createSubfolder(\'' . htmlspecialchars($fullPath) . '\')" class="tree-button">➕</button>';
+        }
+        if ($fullPath !== './liste_albums_prives') {
+            $output .= '<button onclick="deleteFolder(\'' . htmlspecialchars($fullPath) . '\')" class="tree-button tree-button-danger">🗑️</button>';
+        }
+        $output .= '</div></div>';
+        
+        $output .= generatePrivateTree($fullPath, $currentPath);
+        $output .= '</li>';
     }
     
     $output .= '</ul>';
