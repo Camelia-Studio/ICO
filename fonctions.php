@@ -1,6 +1,21 @@
 <?php
 // Configuration
-define('PROJECT_ROOT_DIR', 'test-ico');
+function getProjectRootDir() {
+    $configFile = __DIR__ . '/config.txt';
+    if (file_exists($configFile)) {
+        $content = file_get_contents($configFile);
+        $lines = explode("\n", $content);
+        if (isset($lines[2])) {
+            $path = trim($lines[2]);
+            if (!empty($path)) {
+                return $path;
+            }
+        }
+    }
+    return 'test-ico'; // Valeur par défaut
+}
+
+define('PROJECT_ROOT_DIR', getProjectRootDir());
 define('ALLOWED_EXTENSIONS', ['jpg', 'jpeg', 'png', 'gif']);
 
 // Configuration de la durée de session
@@ -380,7 +395,8 @@ function getSiteConfig() {
     $configFile = './config.txt';
     $config = [
         'site_title' => 'ICO',
-        'site_description' => 'ICO est la galerie d\'images de l\'association Camélia Studio.'
+        'site_description' => 'ICO est la galerie d\'images de l\'association Camélia Studio.',
+        'project_path' => PROJECT_ROOT_DIR
     ];
     
     if (file_exists($configFile)) {
@@ -388,6 +404,7 @@ function getSiteConfig() {
         $lines = explode("\n", $content);
         if (isset($lines[0])) $config['site_title'] = trim($lines[0]);
         if (isset($lines[1])) $config['site_description'] = trim($lines[1]);
+        if (isset($lines[2])) $config['project_path'] = trim($lines[2]);
     }
     
     return $config;

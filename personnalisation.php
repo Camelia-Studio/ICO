@@ -12,13 +12,14 @@ checkAdminSession();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $siteTitle = $_POST['site_title'] ?? '';
     $siteDescription = $_POST['site_description'] ?? '';
+    $projectPath = $_POST['project_path'] ?? '';
     
     // Vérifications basiques
     if (empty($siteTitle)) {
         $_SESSION['error_message'] = "Le titre du site est requis.";
     } else {
         // Sauvegarder la configuration
-        $configContent = $siteTitle . "\n" . $siteDescription;
+        $configContent = $siteTitle . "\n" . $siteDescription . "\n" . $projectPath;
         
         if (file_put_contents('./config.txt', $configContent) !== false) {
             $_SESSION['success_message'] = "Configuration mise à jour avec succès.";
@@ -71,12 +72,18 @@ $config = getSiteConfig();
                        value="<?php echo htmlspecialchars($config['site_title']); ?>">
                 <small class="form-help">Ce titre apparaîtra dans l'en-tête des pages et la barre de titre du navigateur.</small>
             </div>
-
             <div class="form-group">
                 <label for="site_description">Description du site :</label>
                 <textarea id="site_description" name="site_description" rows="4" 
                           class="form-textarea"><?php echo htmlspecialchars($config['site_description']); ?></textarea>
                 <small class="form-help">Cette description apparaît sur la page d'accueil du site.</small>
+            </div>
+            <div class="form-group">
+                <label for="project_path">Chemin d'installation :</label>
+                <input type="text" id="project_path" name="project_path" 
+                    value="<?php echo htmlspecialchars($config['project_path']); ?>" required>
+                <small class="form-help">Ce chemin correspond au dossier dans lequel ICO est installé sur votre serveur web. 
+                    Par exemple, si ICO est accessible via "www.monsite.com/ico", le chemin sera "ico".</small>
             </div>
 
             <div class="form-actions">
