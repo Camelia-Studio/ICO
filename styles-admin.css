@@ -407,6 +407,86 @@ body {
     background-color: #333;
 }
 
+/* Styles spécifiques pour l'onglet de mise à jour */
+.admin-menu-item.update-available {
+    position: relative;
+    overflow: visible;
+}
+
+.admin-menu-item.update-available::after {
+    content: "";
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 16px;
+    height: 16px;
+    background-color: #ff8c00;
+    border-radius: 50%;
+    border: 2px solid #1e1e1e;
+    animation: pulse 2s infinite;
+}
+
+.admin-menu-item.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.admin-menu-item.disabled .menu-icon svg {
+    stroke: #666;
+}
+
+.admin-menu-item.disabled:hover {
+    transform: none;
+    border-color: #333;
+    box-shadow: none;
+}
+
+/* Styles pour le contenu spécifique à la mise à jour */
+.admin-menu-item .update-status {
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    background-color: rgba(255, 140, 0, 0.1);
+    border: 1px solid rgba(255, 140, 0, 0.3);
+}
+
+.admin-menu-item .update-status.no-update {
+    background-color: rgba(40, 167, 69, 0.1);
+    border-color: rgba(40, 167, 69, 0.3);
+}
+
+.admin-menu-item .update-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.admin-menu-item .version-label {
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.9rem;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 140, 0, 0.7);
+    }
+    
+    70% {
+        transform: scale(1.1);
+        box-shadow: 0 0 0 10px rgba(255, 140, 0, 0);
+    }
+    
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 140, 0, 0);
+    }
+}
+
 /* Messages */
 .message {
     padding: 1rem;

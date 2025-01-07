@@ -159,6 +159,41 @@ function showAdminInterface() {
                     <p>Personnalisez le titre et la description de votre galerie.</p>
                 </div>
             </a>
+            <?php
+            $updateStatus = checkUpdate();
+            $updateAvailable = $updateStatus && $updateStatus['available'];
+            $menuItemClass = 'admin-menu-item' . ($updateAvailable ? ' update-available' : ' disabled');
+            ?>
+            <?php if ($updateAvailable): ?>
+                <a href="https://git.crystalyx.net/camelia-studio/ICO/releases/tag/<?php echo htmlspecialchars($updateStatus['latest']); ?>"
+                class="<?php echo $menuItemClass; ?>"
+                target="_blank" 
+                rel="noopener noreferrer">
+            <?php else: ?>
+                <div class="<?php echo $menuItemClass; ?>">
+            <?php endif; ?>
+                <div class="menu-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21.5 14.5v-2.9a1.6 1.6 0 0 0-1.6-1.6H16"></path>
+                        <path d="M16 7V3.6a1.6 1.6 0 0 0-1.6-1.6H3.6A1.6 1.6 0 0 0 2 3.6v16.8a1.6 1.6 0 0 0 1.6 1.6h10.8a1.6 1.6 0 0 0 1.6-1.6V17"></path>
+                        <path d="M17.8 9.2 15 12l2.8 2.8"></path>
+                        <path d="M15 12h6.5"></path>
+                    </svg>
+                </div>
+                <div class="menu-content">
+                    <h2>Mise à jour</h2>
+                    <?php if ($updateAvailable): ?>
+                        <div class="update-status">
+                            Version actuelle : <?php echo htmlspecialchars($updateStatus['current']); ?>
+                            Dernière version : <?php echo htmlspecialchars($updateStatus['latest']); ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            <?php if ($updateAvailable): ?>
+                </a>
+            <?php else: ?>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
     <?php include 'footer.php'; ?>

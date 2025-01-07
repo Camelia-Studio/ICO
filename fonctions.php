@@ -392,4 +392,90 @@ function getSiteConfig() {
     
     return $config;
 }
+
+/**
+ * Récupère la dernière version disponible depuis Gitea
+ * @return array|false Tableau contenant ['version' => 'x.x.x', 'url' => 'url'] ou false en cas d'erreur
+ */
+function getLatestVersion() {
+    $ch = curl_init('https://git.crystalyx.net/api/v1/repos/camelia-studio/ICO/tags');
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_USERAGENT, 'ICO Gallery Update Checker');
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+    
+    $response = curl_exec($ch);
+    $error = curl_error($ch);
+    curl_close($ch);
+    
+    if (!$response) {
+        error_log("Erreur lors de la vérification des mises à jour : " . $error);
+        return false;
+    }
+    
+    $tags = json_decode($response, true);
+    if (!$tags || !is_array($tags)) {
+        return false;
+    }
+    
+    // Trier les tags par date de création (le plus récent en premier)
+    usort($tags, function($a, $b) {
+        return strtotime($b['created_at']) - strtotime($a['created_at']);
+    });
+    
+    if (empty($tags)) {
+        return false;
+    }
+    
+    // Récupérer le dernier tag
+    $latestTag = $tags[0];
+    
+    // Construction de l'URL directe vers le tag sur Gitea
+    $tagUrl = 'https://git.crystalyx.net/camelia-studio/ICO/releases/tag/' . $latestTag['name'];
+    
+    return [
+        'version' => ltrim($latestTag['name'], 'v'), // Enlever le 'v' potentiel du numéro de version
+        'url' => $tagUrl // Utiliser l'URL construite manuellement
+    ];
+}
+
+/**
+ * Compare deux numéros de version
+ * @param string $version1 Premier numéro de version
+ * @param string $version2 Second numéro de version
+ * @return int Retourne 1 si version1 > version2, -1 si version1 < version2, 0 si égales
+ */
+function compareVersions($version1, $version2) {
+    $v1 = array_map('intval', explode('.', $version1));
+    $v2 = array_map('intval', explode('.', $version2));
+    
+    for ($i = 0; $i < 3; $i++) {
+        $v1[$i] = $v1[$i] ?? 0;
+        $v2[$i] = $v2[$i] ?? 0;
+        
+        if ($v1[$i] > $v2[$i]) return 1;
+        if ($v1[$i] < $v2[$i]) return -1;
+    }
+    
+    return 0;
+}
+
+/**
+ * Vérifie si une mise à jour est disponible
+ * @return array|false ['available' => bool, 'current' => string, 'latest' => string, 'url' => string] ou false
+ */
+function checkUpdate() {
+    $currentVersion = trim(file_get_contents(__DIR__ . '/version.txt'));
+    $latest = getLatestVersion();
+    
+    if (!$latest) {
+        return false;
+    }
+    
+    return [
+        'available' => compareVersions($latest['version'], $currentVersion) > 0,
+        'current' => $currentVersion,
+        'latest' => $latest['version'],
+        'url' => $latest['url']
+    ];
+}
 ?>
