@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $newPath = $path . '/' . sanitizeFilename($newName);
                 if (!file_exists($newPath)) {
                     $moreInfoUrl = $_POST['more_info_url'] ?? '';
-                    mkdir($newPath, 0755, true);
+                    mkdir($newPath, 0775, true);
                     $infoContent = $newName . "\n" . $description . "\n" . $matureContent . "\n" . $moreInfoUrl;
                     file_put_contents($newPath . '/infos.txt', $infoContent);
                     $_SESSION['success_message'] = "Dossier privé créé avec succès.";
@@ -137,7 +137,7 @@ if (!isSecurePrivatePath($currentPath)) {
 
 // Créer le dossier racine s'il n'existe pas
 if (!file_exists('./liste_albums_prives')) {
-    mkdir('./liste_albums_prives', 0755, true);
+    mkdir('./liste_albums_prives', 0775, true);
     // Créer le fichier infos.txt pour le dossier racine
     $infoContent = "Albums privés\nVos albums photos privés\n18-\n";
     file_put_contents('./liste_albums_prives/infos.txt', $infoContent);

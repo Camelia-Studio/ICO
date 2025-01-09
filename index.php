@@ -8,7 +8,7 @@ function getCarouselImages($limit = 5) {
     // Vérifier si le dossier existe
     if (!is_dir($carouselDir)) {
         // Créer le dossier s'il n'existe pas
-        mkdir($carouselDir, 0755, true);
+        mkdir($carouselDir, 0775, true);
         return $images;
     }
     

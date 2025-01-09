@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $newPath = $path . '/' . sanitizeFilename($newName);
                 if (!file_exists($newPath)) {
                     $moreInfoUrl = $_POST['more_info_url'] ?? '';
-                    mkdir($newPath, 0755, true);
+                    mkdir($newPath, 0775, true);
                     $infoContent = $newName . "\n" . $description . "\n" . $matureContent . "\n" . $moreInfoUrl;
                     file_put_contents($newPath . '/infos.txt', $infoContent);
                     $_SESSION['success_message'] = "Dossier créé avec succès.";
