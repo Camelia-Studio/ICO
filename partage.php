@@ -3,6 +3,11 @@ require_once 'fonctions.php';
 
 // Vérifier que nous avons une URL d'image
 $imageUrl = isset($_GET['image']) ? $_GET['image'] : null;
+$imagePath = realpath('.') . str_replace(getBaseUrl(), '', $imageUrl);
+if (!$imageUrl || !file_exists($imagePath)) {
+    header('Location: index.php');
+    exit;
+}
 
 // Si pas d'image, redirection
 if (!$imageUrl) {
