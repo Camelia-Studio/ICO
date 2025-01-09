@@ -30,7 +30,7 @@ $config = getSiteConfig();
     <link rel="stylesheet" href="styles.css">
 </head>
 <body class="share-page">
-    <button onclick="window.close();" class="back-button">Retour à la galerie</button>
+    <button onclick="var referrer = document.referrer; if (referrer.includes('galeries.php')) { window.close(); } else { window.location.href='index.php'; }" class="back-button">Retour</button>
 
     <div class="share-container">
         <div class="share-image">
