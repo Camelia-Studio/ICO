@@ -198,9 +198,9 @@ function generatePrivateTree($path, $currentPath) {
         if (!$hasSubfolders) {
             $output .= '<a href="arbre-img-prive.php?path=' . urlencode($fullPath) . '&private=1" class="tree-button" style="text-decoration: none">🖼️</a>';
             if ($hasImages) {
-                $output .= '<button onclick="generateShareLink(\'' . htmlspecialchars($fullPath) . '\', \'' 
-                    . htmlspecialchars($info['title']) 
-                    . '\')" class="tree-button tree-button-share" title="Générer un lien de partage">🔗</button>';
+                $encodedPath = htmlspecialchars(addslashes($fullPath));
+                $encodedTitle = htmlspecialchars(addslashes($info['title']));
+                $output .= '<button onclick="generateShareLink(\'' . $encodedPath . '\', \'' . $encodedTitle . '\')" class="tree-button tree-button-share" title="Générer un lien de partage">🔗</button>';
             }
         }
         if (!$hasSubfolders) {
