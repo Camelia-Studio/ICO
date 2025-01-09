@@ -114,7 +114,7 @@ $config = getSiteConfig();
         <div class="filters">
             <form method="get" class="filter-form">
                 <div class="filter-group">
-                    <label for="action_type">Type d'action :</label>
+                    <label for="action_type">Type d'action&nbsp;:</label>
                     <select name="action_type" id="action_type" class="form-select">
                         <option value="">Toutes les actions</option>
                         <?php foreach($actionTypes as $type): ?>
@@ -127,7 +127,7 @@ $config = getSiteConfig();
                 </div>
 
                 <div class="filter-group">
-                    <label for="admin">Administrateur :</label>
+                    <label for="admin">Administrateur&nbsp;:</label>
                     <select name="admin" id="admin" class="form-select">
                         <option value="">Tous les administrateurs</option>
                         <?php foreach($admins as $admin): ?>
