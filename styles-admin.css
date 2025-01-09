@@ -1054,6 +1054,23 @@ body[data-page="carrousel"] .admin-header {
     margin-top: 2rem;
 }
 
+/* Styles pour les différents types d'actions */
+.admin-table tr td:nth-child(3) {
+    font-weight: 500;
+}
+
+.admin-table tr .log-action-create {
+    color: #4CAF50;
+}
+
+.admin-table tr .log-action-edit {
+    color: #FFA726;
+}
+
+.admin-table tr .log-action-delete {
+    color: #EF5350;
+}
+
 /* Media Queries */
 @media (max-width: 768px) {
     .admin-page {

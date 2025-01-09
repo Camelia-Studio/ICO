@@ -19,6 +19,31 @@ if ($_SESSION['admin_id'] != $firstId) {
     exit;
 }
 
+// Supprimer les logs de plus d'un mois
+$db->exec('DELETE FROM admin_logs WHERE created_at < datetime("now", "-1 month")');
+
+// Tableau de traduction des actions
+$actionTranslations = [
+    'ADD_USER' => 'Ajouter un utilisateur',
+    'EDIT_USER' => 'Modifier un utilisateur',
+    'DELETE_USER' => 'Supprimer un utilisateur',
+    'CREATE_FOLDER' => 'Créer un dossier',
+    'EDIT_FOLDER' => 'Modifier un dossier',
+    'DELETE_FOLDER' => 'Supprimer un dossier',
+    'CREATE_PRIVATE_FOLDER' => 'Créer un dossier privé',
+    'EDIT_PRIVATE_FOLDER' => 'Modifier un dossier privé',
+    'DELETE_PRIVATE_FOLDER' => 'Supprimer un dossier privé',
+    'UPLOAD_IMAGES' => 'Téléverser des images',
+    'DELETE_IMAGES' => 'Supprimer des images',
+    'MOVE_IMAGES' => 'Déplacer des images',
+    'UPLOAD_PRIVATE_IMAGES' => 'Téléverser des images privées',
+    'DELETE_PRIVATE_IMAGES' => 'Supprimer des images privées',
+    'GENERATE_SHARE_LINK' => 'Générer un lien de partage',
+    'CLEAN_EXPIRED_KEYS' => 'Nettoyer les clés expirées',
+    'DELETE_SHARE_KEY' => 'Supprimer une clé de partage',
+    'UPDATE_SETTINGS' => 'Modifier les paramètres'
+];
+
 // Pagination
 $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
 $perPage = 50;
@@ -27,6 +52,7 @@ $offset = ($page - 1) * $perPage;
 // Filtres
 $actionType = isset($_GET['action_type']) ? $_GET['action_type'] : '';
 $adminFilter = isset($_GET['admin']) ? intval($_GET['admin']) : 0;
+$dateRange = isset($_GET['date_range']) ? $_GET['date_range'] : '';
 
 // Construction de la requête
 $whereClause = [];
@@ -40,6 +66,23 @@ if ($actionType) {
 if ($adminFilter) {
     $whereClause[] = 'admin_id = :admin_id';
     $params[':admin_id'] = $adminFilter;
+}
+
+if ($dateRange) {
+    switch ($dateRange) {
+        case '24h':
+            $whereClause[] = 'created_at >= datetime("now", "-1 day")';
+            break;
+        case '48h':
+            $whereClause[] = 'created_at >= datetime("now", "-2 days")';
+            break;
+        case '72h':
+            $whereClause[] = 'created_at >= datetime("now", "-3 days")';
+            break;
+        case '1week':
+            $whereClause[] = 'created_at >= datetime("now", "-7 days")';
+            break;
+    }
 }
 
 $whereSQL = !empty($whereClause) ? 'WHERE ' . implode(' AND ', $whereClause) : '';
@@ -72,6 +115,30 @@ $logs = [];
 $result = $stmt->execute();
 while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
     $logs[] = $row;
+}
+
+function getLogActionClass($actionType) {
+    if (strpos(strtolower($actionType), 'create') !== false || 
+        strpos(strtolower($actionType), 'add') !== false || 
+        strpos(strtolower($actionType), 'upload') !== false || 
+        strpos(strtolower($actionType), 'generate') !== false) {
+        return 'log-action-create';
+    }
+    
+    if (strpos(strtolower($actionType), 'edit') !== false || 
+        strpos(strtolower($actionType), 'update') !== false || 
+        strpos(strtolower($actionType), 'modify') !== false || 
+        strpos(strtolower($actionType), 'move') !== false) {
+        return 'log-action-edit';
+    }
+    
+    if (strpos(strtolower($actionType), 'delete') !== false || 
+        strpos(strtolower($actionType), 'remove') !== false || 
+        strpos(strtolower($actionType), 'clean') !== false) {
+        return 'log-action-delete';
+    }
+    
+    return '';
 }
 
 // Récupérer la liste des admins pour le filtre
@@ -120,7 +187,7 @@ $config = getSiteConfig();
                         <?php foreach($actionTypes as $type): ?>
                             <option value="<?php echo htmlspecialchars($type); ?>"
                                     <?php echo $actionType === $type ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($type); ?>
+                                <?php echo htmlspecialchars($actionTranslations[$type] ?? $type); ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
@@ -136,6 +203,17 @@ $config = getSiteConfig();
                                 <?php echo htmlspecialchars($admin['username']); ?>
                             </option>
                         <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="date_range">Période&nbsp;:</label>
+                    <select name="date_range" id="date_range" class="form-select">
+                        <option value="">Toutes les dates</option>
+                        <option value="24h" <?php echo $dateRange === '24h' ? 'selected' : ''; ?>>Dernières 24h</option>
+                        <option value="48h" <?php echo $dateRange === '48h' ? 'selected' : ''; ?>>Dernières 48h</option>
+                        <option value="72h" <?php echo $dateRange === '72h' ? 'selected' : ''; ?>>Dernières 72h</option>
+                        <option value="1week" <?php echo $dateRange === '1week' ? 'selected' : ''; ?>>Dernière semaine</option>
                     </select>
                 </div>
 
@@ -156,11 +234,13 @@ $config = getSiteConfig();
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach($logs as $log): ?>
+                    <?php foreach($logs as $log): 
+                        $actionClass = getLogActionClass($log['action_type']);
+                    ?>
                     <tr>
                         <td><?php echo date('d/m/Y H:i:s', strtotime($log['created_at'])); ?></td>
                         <td><?php echo htmlspecialchars($log['username']); ?></td>
-                        <td><?php echo htmlspecialchars($log['action_type']); ?></td>
+                        <td class="<?php echo $actionClass; ?>"><?php echo htmlspecialchars($actionTranslations[$log['action_type']] ?? $log['action_type']); ?></td>
                         <td><?php echo htmlspecialchars($log['action_description']); ?></td>
                         <td><?php echo htmlspecialchars($log['target_path'] ?? ''); ?></td>
                     </tr>
@@ -173,7 +253,7 @@ $config = getSiteConfig();
         <?php if ($totalPages > 1): ?>
         <div class="pagination">
             <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-                <a href="?page=<?php echo $i; ?>&action_type=<?php echo urlencode($actionType); ?>&admin=<?php echo $adminFilter; ?>" 
+                <a href="?page=<?php echo $i; ?>&action_type=<?php echo urlencode($actionType); ?>&admin=<?php echo $adminFilter; ?>&date_range=<?php echo urlencode($dateRange); ?>" 
                    class="pagination-link <?php echo $page === $i ? 'active' : ''; ?>">
                     <?php echo $i; ?>
                 </a>
@@ -181,7 +261,16 @@ $config = getSiteConfig();
         </div>
         <?php endif; ?>
     </div>
-
+    <button class="scroll-top" title="Retour en haut">↑</button>
+    <script>
+    const scrollBtn = document.querySelector('.scroll-top');
+    window.addEventListener('scroll', () => {
+        scrollBtn.style.display = window.scrollY > 500 ? 'flex' : 'none';
+    });
+    scrollBtn.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    </script>
     <?php include 'footer.php'; ?>
 </body>
 </html>
