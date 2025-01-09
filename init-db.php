@@ -47,10 +47,23 @@ if ($count === 0) {
     echo "Admin par défaut créé (username: admin, password: admin). Pensez à changer ces identifiants !";
 }
 
+// Après la création des tables existantes, ajouter :
+$db->exec('CREATE TABLE IF NOT EXISTS admin_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    admin_id INTEGER NOT NULL,
+    action_type TEXT NOT NULL,
+    action_description TEXT NOT NULL,
+    target_path TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (admin_id) REFERENCES admins(id)
+)');
+
 // Créer les index nécessaires
 $db->exec('CREATE INDEX IF NOT EXISTS idx_share_keys_expires_at ON share_keys(expires_at)');
 $db->exec('CREATE INDEX IF NOT EXISTS idx_share_keys_album_identifier ON share_keys(album_identifier)');
 $db->exec('CREATE INDEX IF NOT EXISTS idx_album_identifiers_identifier ON album_identifiers(identifier)');
+$db->exec('CREATE INDEX IF NOT EXISTS idx_admin_logs_admin_id ON admin_logs(admin_id)');
+$db->exec('CREATE INDEX IF NOT EXISTS idx_admin_logs_created_at ON admin_logs(created_at)');
 
 $db->close();
 echo "Base de données initialisée avec succès !";
