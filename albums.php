@@ -22,6 +22,10 @@ foreach (new DirectoryIterator($currentPath) as $item) {
     if ($item->isDot()) continue;
     if ($item->isDir()) {
         $albumPath = $item->getPathname();
+        
+        // Ajout de la vérification de sécurité
+        if (!isSecurePath($albumPath)) continue;
+        
         $info = getAlbumInfo($albumPath);
         
         $images = hasSubfolders($albumPath) ? 
@@ -77,7 +81,7 @@ $config = getSiteConfig();
             <p><?php echo nl2br(htmlspecialchars($currentAlbumInfo['description'])); ?></p>
         <?php endif; ?>
     </div>
-
+    
     <div class="albums-grid">
         <?php foreach ($albums as $album): ?>
         <a href="<?php echo $album['hasSubfolders'] ? 'albums.php' : 'galeries.php'; ?>?path=<?php echo urlencode($album['path']); ?>" 
