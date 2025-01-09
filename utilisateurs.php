@@ -93,52 +93,77 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             break;
         
-        case 'edit':
-            $userId = $_POST['user_id'] ?? '';
-            $username = $_POST['username'] ?? '';
-            $password = $_POST['password'] ?? '';
-
-            if ($stmt->execute()) {
-                logAdminAction(
-                    $_SESSION['admin_id'],
-                    'EDIT_USER',
-                    "Modification du compte administrateur : " . $username
-                );
-            }
+            case 'edit':
+                $userId = $_POST['user_id'] ?? '';
+                $username = $_POST['username'] ?? '';
+                $password = $_POST['password'] ?? '';
+                
+                if (empty($userId) || empty($username)) {
+                    $_SESSION['error_message'] = "Des informations sont manquantes.";
+                    break;
+                }
             
-            if (empty($userId) || empty($username)) {
-                $_SESSION['error_message'] = "Des informations sont manquantes.";
+                // Vérifier que le nouvel identifiant n'existe pas déjà (sauf pour l'utilisateur actuel)
+                $stmt = $db->prepare('SELECT COUNT(*) as count FROM admins WHERE username = :username AND id != :id');
+                $stmt->bindValue(':username', $username, SQLITE3_TEXT);
+                $stmt->bindValue(':id', $userId, SQLITE3_INTEGER);
+                $result = $stmt->execute()->fetchArray();
+                
+                if ($result['count'] > 0) {
+                    $_SESSION['error_message'] = "Cet identifiant existe déjà.";
+                    break;
+                }
+                
+                // Si un nouveau mot de passe est fourni
+                if (!empty($password)) {
+                    // Vérification du mot de passe
+                    if (strlen($password) < 12) {
+                        $_SESSION['error_message'] = "Le mot de passe doit faire au moins 12 caractères.";
+                        break;
+                    }
+                    
+                    if (!preg_match('/[a-z]/', $password)) {
+                        $_SESSION['error_message'] = "Le mot de passe doit contenir au moins une lettre minuscule.";
+                        break;
+                    }
+                    
+                    if (!preg_match('/[A-Z]/', $password)) {
+                        $_SESSION['error_message'] = "Le mot de passe doit contenir au moins une lettre majuscule.";
+                        break;
+                    }
+                    
+                    if (!preg_match('/[0-9]/', $password)) {
+                        $_SESSION['error_message'] = "Le mot de passe doit contenir au moins un chiffre.";
+                        break;
+                    }
+                    
+                    if (!preg_match('/[^A-Za-z0-9]/', $password)) {
+                        $_SESSION['error_message'] = "Le mot de passe doit contenir au moins un caractère spécial.";
+                        break;
+                    }
+            
+                    // Construction de la requête avec nouveau mot de passe
+                    $stmt = $db->prepare('UPDATE admins SET username = :username, password_hash = :password_hash WHERE id = :id');
+                    $stmt->bindValue(':password_hash', password_hash($password, PASSWORD_DEFAULT), SQLITE3_TEXT);
+                } else {
+                    // Construction de la requête sans nouveau mot de passe
+                    $stmt = $db->prepare('UPDATE admins SET username = :username WHERE id = :id');
+                }
+                
+                $stmt->bindValue(':username', $username, SQLITE3_TEXT);
+                $stmt->bindValue(':id', $userId, SQLITE3_INTEGER);
+                
+                if ($stmt->execute()) {
+                    $_SESSION['success_message'] = "Utilisateur modifié avec succès.";
+                    logAdminAction(
+                        $_SESSION['admin_id'],
+                        'EDIT_USER',
+                        "Modification du compte administrateur : " . $username
+                    );
+                } else {
+                    $_SESSION['error_message'] = "Erreur lors de la modification de l'utilisateur.";
+                }
                 break;
-            }
-            
-            // Si un nouveau mot de passe est fourni
-            if (!empty($password)) {
-                // Vérification du mot de passe
-                if (strlen($password) < 12) {
-                    $_SESSION['error_message'] = "Le mot de passe doit faire au moins 12 caractères.";
-                    break;
-                }
-                
-                if (!preg_match('/[a-z]/', $password)) {
-                    $_SESSION['error_message'] = "Le mot de passe doit contenir au moins une lettre minuscule.";
-                    break;
-                }
-                
-                if (!preg_match('/[A-Z]/', $password)) {
-                    $_SESSION['error_message'] = "Le mot de passe doit contenir au moins une lettre majuscule.";
-                    break;
-                }
-                
-                if (!preg_match('/[0-9]/', $password)) {
-                    $_SESSION['error_message'] = "Le mot de passe doit contenir au moins un chiffre.";
-                    break;
-                }
-                
-                if (!preg_match('/[^A-Za-z0-9]/', $password)) {
-                    $_SESSION['error_message'] = "Le mot de passe doit contenir au moins un caractère spécial.";
-                    break;
-                }
-            }
             
         case 'delete':
             $userId = $_POST['user_id'] ?? '';
