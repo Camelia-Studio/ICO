@@ -23,6 +23,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if (file_put_contents('./config.txt', $configContent) !== false) {
             $_SESSION['success_message'] = "Configuration mise à jour avec succès.";
+            logAdminAction(
+                $_SESSION['admin_id'],
+                'UPDATE_SETTINGS',
+                "Modification des paramètres du site"
+            );
         } else {
             $_SESSION['error_message'] = "Erreur lors de la sauvegarde de la configuration.";
         }

@@ -25,16 +25,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         switch ($_POST['action']) {
             case 'upload':
                 $uploadedFiles = $_FILES['images'] ?? [];
-                $successCount = 0;
+                $successCount = 0;  // Initialiser le compteur
                 $errors = [];
-
+            
                 // Gérer les uploads multiples
                 for ($i = 0; $i < count($uploadedFiles['name']); $i++) {
                     if ($uploadedFiles['error'][$i] === UPLOAD_ERR_OK) {
                         $tmpName = $uploadedFiles['tmp_name'][$i];
                         $fileName = sanitizeFilename($uploadedFiles['name'][$i]);
                         $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
-
+            
                         // Vérifier l'extension
                         if (in_array($extension, ALLOWED_EXTENSIONS)) {
                             $destination = $currentPath . '/' . $fileName;
@@ -49,9 +49,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     $counter++;
                                 }
                             }
-
+            
                             if (move_uploaded_file($tmpName, $destination)) {
-                                $successCount++;
+                                $successCount++;  // Incrémenter le compteur en cas de succès
                             } else {
                                 $errors[] = "Erreur lors du déplacement de $fileName";
                             }
@@ -60,7 +60,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         }
                     }
                 }
-
+            
+                // Loguer l'action une fois que tous les uploads sont terminés
+                if ($successCount > 0) {
+                    logAdminAction(
+                        $_SESSION['admin_id'],
+                        'UPLOAD_IMAGES',
+                        "Téléversement de $successCount image(s)",
+                        $currentPath
+                    );
+                }
+            
                 if ($successCount > 0) {
                     $_SESSION['success_message'] = "$successCount image(s) téléversée(s) avec succès.";
                 }
@@ -95,28 +105,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                     break;
             
-            case 'delete':
-                $images = $_POST['images'] ?? [];
-                $deleteCount = 0;
-
-                foreach ($images as $image) {
-                    $imagePath = $currentPath . '/' . basename($image);
-                    if (isSecurePath($imagePath) && file_exists($imagePath)) {
-                        if (unlink($imagePath)) {
-                            $deleteCount++;
+                    case 'delete':
+                        $images = $_POST['images'] ?? [];
+                        $deleteCount = 0;  // Initialiser le compteur
+                        $errors = [];
+                     
+                        foreach ($images as $image) {
+                            $imagePath = $currentPath . '/' . basename($image);
+                            if (isSecurePath($imagePath) && file_exists($imagePath)) {
+                                if (unlink($imagePath)) {
+                                    $deleteCount++;  // Incrémenter le compteur en cas de succès
+                                } else {
+                                    $errors[] = "Erreur lors de la suppression de " . basename($image);
+                                }
+                            }
                         }
-                    }
-                }
-
-                if ($deleteCount > 0) {
-                    $_SESSION['success_message'] = "$deleteCount image(s) supprimée(s).";
-                }
-                break;
+                     
+                        // Loguer l'action une fois que toutes les suppressions sont terminées
+                        if ($deleteCount > 0) {
+                            logAdminAction(
+                                $_SESSION['admin_id'],
+                                'DELETE_IMAGES',
+                                "Suppression de $deleteCount image(s)",
+                                $currentPath
+                            );
+                            $_SESSION['success_message'] = "$deleteCount image(s) supprimée(s).";
+                        }
+                     
+                        if (!empty($errors)) {
+                            $_SESSION['error_message'] = implode("\n", $errors);
+                        }
+                        break;
 
                 case 'move':
                     $images = $_POST['images'] ?? [];
                     $destinationPath = $_POST['destination_path'] ?? '';
-                    $moveCount = 0;
+                    if ($moveCount > 0) {
+                        logAdminAction(
+                            $_SESSION['admin_id'],
+                            'MOVE_IMAGES',
+                            "Déplacement de $moveCount image(s) vers " . basename($_POST['destination_path']),
+                            $currentPath . ' -> ' . $_POST['destination_path']
+                        );
+                    }
                     $errors = [];
     
                     // Vérifier que le dossier de destination existe et est valide

@@ -24,6 +24,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             
             if ($shareKey) {
                 $shareUrl = getBaseUrl() . '/galeries-privees.php?key=' . urlencode($shareKey);
+                logAdminAction(
+                    $_SESSION['admin_id'],
+                    'GENERATE_SHARE_LINK',
+                    "Création d'un lien de partage valide " . $duration . " heures",
+                    $albumPath
+                );
                 $_SESSION['success_message'] = "Lien de partage généré avec succès. URL : " . $shareUrl;
                 $_SESSION['share_url'] = $shareUrl;
             } else {
@@ -60,6 +66,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     $_SESSION['error_message'] = "Ce dossier existe déjà.";
                 }
+                logAdminAction(
+                    $_SESSION['admin_id'],
+                    'CREATE_PRIVATE_FOLDER',
+                    "Création du dossier privé : " . $newName,
+                    $newPath
+                );
             }
             break;
                 
@@ -73,6 +85,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     $_SESSION['error_message'] = "Erreur lors de la modification du dossier.";
                 }
+                logAdminAction(
+                    $_SESSION['admin_id'],
+                    'EDIT_PRIVATE_FOLDER',
+                    "Modification du dossier privé : " . $newName,
+                    $path
+                );
             }
             break;
             
@@ -93,6 +111,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         rmdir($dir);
                     }
                 }
+                logAdminAction(
+                    $_SESSION['admin_id'],
+                    'DELETE_PRIVATE_FOLDER',
+                    "Suppression du dossier privé",
+                    $path
+                );
                 rrmdir($path);
                 $_SESSION['success_message'] = "Dossier privé supprimé avec succès.";
             }

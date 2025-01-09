@@ -34,6 +34,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 if ($stmt->execute()) {
                     $successMessage = "Clé supprimée avec succès.";
+                    logAdminAction(
+                        $_SESSION['admin_id'],
+                        'DELETE_SHARE_KEY',
+                        "Suppression d'une clé de partage",
+                        "ID: " . $keyId
+                    );
                 } else {
                     $errorMessage = "Erreur lors de la suppression de la clé.";
                 }
@@ -44,6 +50,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $deletedCount = cleanExpiredShareKeys();
             if ($deletedCount > 0) {
                 $successMessage = "$deletedCount clé(s) expirée(s) supprimée(s).";
+                logAdminAction(
+                    $_SESSION['admin_id'],
+                    'CLEAN_EXPIRED_KEYS',
+                    "Nettoyage de $deletedCount clé(s) de partage expirée(s)"
+                );
             } else {
                 $successMessage = "Aucune clé expirée à supprimer.";
             }

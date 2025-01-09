@@ -25,16 +25,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         switch ($_POST['action']) {
             case 'upload':
                 $uploadedFiles = $_FILES['images'] ?? [];
-                $successCount = 0;
+                $successCount = 0;  // Initialiser le compteur
                 $errors = [];
-
+            
                 // Gérer les uploads multiples
                 for ($i = 0; $i < count($uploadedFiles['name']); $i++) {
                     if ($uploadedFiles['error'][$i] === UPLOAD_ERR_OK) {
                         $tmpName = $uploadedFiles['tmp_name'][$i];
                         $fileName = sanitizeFilename($uploadedFiles['name'][$i]);
                         $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
-
+            
                         // Vérifier l'extension
                         if (in_array($extension, ALLOWED_EXTENSIONS)) {
                             $destination = $currentPath . '/' . $fileName;
@@ -49,9 +49,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     $counter++;
                                 }
                             }
-
+            
                             if (move_uploaded_file($tmpName, $destination)) {
-                                $successCount++;
+                                $successCount++;  // Incrémenter le compteur en cas de succès
                             } else {
                                 $errors[] = "Erreur lors du déplacement de $fileName";
                             }
@@ -60,7 +60,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         }
                     }
                 }
-
+            
+                // Loguer l'action une fois que tous les uploads sont terminés
+                if ($successCount > 0) {
+                    logAdminAction(
+                        $_SESSION['admin_id'],
+                        'UPLOAD_PRIVATE_IMAGES',  // Notez le changement ici pour les images privées
+                        "Téléversement de $successCount image(s) privée(s)",  // Message adapté pour les images privées
+                        $currentPath
+                    );
+                }
+            
                 if ($successCount > 0) {
                     $_SESSION['success_message'] = "$successCount image(s) téléversée(s) avec succès.";
                 }
@@ -97,19 +107,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             case 'delete':
                 $images = $_POST['images'] ?? [];
-                $deleteCount = 0;
+                $deleteCount = 0;  // Initialiser le compteur
+                $errors = [];
 
                 foreach ($images as $image) {
                     $imagePath = $currentPath . '/' . basename($image);
-                    if (isSecurePrivatePath($imagePath) && file_exists($imagePath)) {
+                    if (isSecurePrivatePath($imagePath) && file_exists($imagePath)) {  // Notez l'utilisation de isSecurePrivatePath
                         if (unlink($imagePath)) {
-                            $deleteCount++;
+                            $deleteCount++;  // Incrémenter le compteur en cas de succès
+                        } else {
+                            $errors[] = "Erreur lors de la suppression de " . basename($image);
                         }
                     }
                 }
 
+                // Loguer l'action une fois que toutes les suppressions sont terminées
                 if ($deleteCount > 0) {
+                    logAdminAction(
+                        $_SESSION['admin_id'],
+                        'DELETE_PRIVATE_IMAGES',  // Notez le changement ici pour les images privées
+                        "Suppression de $deleteCount image(s) privée(s)",  // Message adapté pour les images privées
+                        $currentPath
+                    );
                     $_SESSION['success_message'] = "$deleteCount image(s) supprimée(s).";
+                }
+
+                if (!empty($errors)) {
+                    $_SESSION['error_message'] = implode("\n", $errors);
                 }
                 break;
         }

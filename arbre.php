@@ -28,6 +28,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     $_SESSION['error_message'] = "Ce dossier existe déjà.";
                 }
+                logAdminAction(
+                    $_SESSION['admin_id'],
+                    'CREATE_FOLDER',
+                    "Création du dossier : " . $newName,
+                    $newPath
+                );
             }
             break;
                 
@@ -41,6 +47,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     $_SESSION['error_message'] = "Erreur lors de la modification du dossier.";
                 }
+                logAdminAction(
+                    $_SESSION['admin_id'],
+                    'EDIT_FOLDER',
+                    "Modification du dossier : " . $newName,
+                    $path
+                );
             }
             break;
             
@@ -61,6 +73,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         rmdir($dir);
                     }
                 }
+                logAdminAction(
+                    $_SESSION['admin_id'],
+                    'DELETE_FOLDER',
+                    "Suppression du dossier",
+                    $path
+                );
                 rrmdir($path);
                 $_SESSION['success_message'] = "Dossier supprimé avec succès.";
             }

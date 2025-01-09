@@ -83,6 +83,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             if ($stmt->execute()) {
                 $_SESSION['success_message'] = "Utilisateur ajouté avec succès.";
+                logAdminAction(
+                    $_SESSION['admin_id'],
+                    'ADD_USER',
+                    "Création du compte administrateur : " . $username
+                );
             } else {
                 $_SESSION['error_message'] = "Erreur lors de l'ajout de l'utilisateur.";
             }
@@ -92,6 +97,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $userId = $_POST['user_id'] ?? '';
             $username = $_POST['username'] ?? '';
             $password = $_POST['password'] ?? '';
+
+            if ($stmt->execute()) {
+                logAdminAction(
+                    $_SESSION['admin_id'],
+                    'EDIT_USER',
+                    "Modification du compte administrateur : " . $username
+                );
+            }
             
             if (empty($userId) || empty($username)) {
                 $_SESSION['error_message'] = "Des informations sont manquantes.";
@@ -150,6 +163,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             if ($stmt->execute()) {
                 $_SESSION['success_message'] = "Utilisateur supprimé avec succès.";
+                logAdminAction(
+                    $_SESSION['admin_id'],
+                    'DELETE_USER',
+                    "Suppression d'un compte administrateur",
+                    "ID: " . $userId
+                );
             } else {
                 $_SESSION['error_message'] = "Erreur lors de la suppression de l'utilisateur.";
             }
