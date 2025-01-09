@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     "Création d'un lien de partage valide " . $duration . " heures",
                     $albumPath
                 );
-                $_SESSION['success_message'] = "Lien de partage généré avec succès. URL : " . $shareUrl;
+                $_SESSION['success_message'] = "Lien de partage généré avec succès.";
                 $_SESSION['share_url'] = $shareUrl;
             } else {
                 $_SESSION['error_message'] = "Erreur lors de la génération du lien de partage.";
