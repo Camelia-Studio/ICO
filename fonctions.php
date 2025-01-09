@@ -380,6 +380,34 @@ function cleanExpiredShareKeys() {
 }
 
 /**
+ * Enregistre une action d'administrateur dans les logs
+ */
+function logAdminAction($adminId, $actionType, $description, $targetPath = null) {
+    $db = new SQLite3('database.sqlite');
+    $stmt = $db->prepare('INSERT INTO admin_logs (admin_id, action_type, action_description, target_path) 
+                         VALUES (:admin_id, :action_type, :description, :target_path)');
+    $stmt->bindValue(':admin_id', $adminId, SQLITE3_INTEGER);
+    $stmt->bindValue(':action_type', $actionType, SQLITE3_TEXT);
+    $stmt->bindValue(':description', $description, SQLITE3_TEXT);
+    $stmt->bindValue(':target_path', $targetPath, SQLITE3_TEXT);
+    return $stmt->execute();
+}
+
+/**
+ * Récupère le nom d'utilisateur d'un admin
+ */
+function getAdminUsername($adminId) {
+    $db = new SQLite3('database.sqlite');
+    $stmt = $db->prepare('SELECT username FROM admins WHERE id = :id');
+    $stmt->bindValue(':id', $adminId, SQLITE3_INTEGER);
+    $result = $stmt->execute();
+    if ($row = $result->fetchArray()) {
+        return $row['username'];
+    }
+    return 'Inconnu';
+}
+
+/**
  * Récupère la version actuelle du projet
  * @return string La version du projet
  */

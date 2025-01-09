@@ -159,6 +159,23 @@ function showAdminInterface() {
                     <p>Personnalisez le titre et la description de votre galerie.</p>
                 </div>
             </a>
+            <?php if ($_SESSION['admin_id'] == $firstId): ?>
+            <a href="logs.php" class="admin-menu-item">
+                <div class="menu-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                </div>
+                <div class="menu-content">
+                    <h2>Logs système</h2>
+                    <p>Consultez l'historique des actions des administrateurs.</p>
+                </div>
+            </a>
+            <?php endif; ?>
             <?php
             $updateStatus = checkUpdate();
             $updateAvailable = $updateStatus && $updateStatus['available'];

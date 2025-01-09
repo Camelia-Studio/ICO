@@ -1019,6 +1019,41 @@ body[data-page="carrousel"] .admin-header {
     display: none;
 }
 
+/* Styles pour les logs */
+.filter-form {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+}
+
+.pagination {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.pagination-link {
+    padding: 0.5rem 1rem;
+    background-color: #2a2a2a;
+    color: white;
+    text-decoration: none;
+    border-radius: 0.25rem;
+    transition: all 0.3s ease;
+}
+
+.pagination-link:hover {
+    background-color: #3a3a3a;
+}
+
+.pagination-link.active {
+    background-color: #2196f3;
+}
+
+.logs-list {
+    margin-top: 2rem;
+}
+
 /* Media Queries */
 @media (max-width: 768px) {
     .admin-page {
