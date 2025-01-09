@@ -363,6 +363,61 @@ $config = getSiteConfig();
     scrollBtn.addEventListener('click', () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
+
+    // Fonction pour basculer la sélection de toutes les images
+    function toggleSelectAll() {
+        const checkboxes = document.querySelectorAll('.image-checkbox');
+        const allChecked = document.querySelectorAll('.image-checkbox:checked').length === checkboxes.length;
+        
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = !allChecked;
+        });
+        
+        updateActionButtons();
+    }
+
+    // Fonction de suppression d'une seule image
+    function deleteImage(imageName) {
+        if (confirm('Êtes-vous sûr de vouloir supprimer cette image ?')) {
+            const form = document.getElementById('imagesForm');
+            form.innerHTML = `
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="images[]" value="${imageName}">
+            `;
+            form.submit();
+        }
+    }
+
+    // Fonction de suppression multiple
+    function deleteSelected() {
+        const checkboxes = document.querySelectorAll('.image-checkbox:checked');
+        if (checkboxes.length > 0 && confirm('Êtes-vous sûr de vouloir supprimer les images sélectionnées ?')) {
+            document.getElementById('formAction').value = 'delete';
+            document.getElementById('imagesForm').submit();
+        }
+    }
+
+    // Fonction de mise à jour de l'état des boutons d'action
+    function updateActionButtons() {
+        const checkboxes = document.querySelectorAll('.image-checkbox');
+        const selectedCheckboxes = document.querySelectorAll('.image-checkbox:checked');
+        const count = selectedCheckboxes.length;
+        
+        const deleteBtn = document.getElementById('deleteSelectedBtn');
+        const selectAllBtn = document.getElementById('selectAllBtn');
+        
+        if (deleteBtn) {
+            deleteBtn.style.display = count > 0 ? 'inline-flex' : 'none';
+        }
+        
+        if (selectAllBtn) {
+            selectAllBtn.textContent = checkboxes.length === selectedCheckboxes.length ? 
+                'Tout désélectionner' : 'Tout sélectionner';
+        }
+    }
+
+    // Initialisation des boutons au chargement
+    document.addEventListener('DOMContentLoaded', updateActionButtons);
     </script>
     <?php include 'footer.php'; ?>
 </body>
