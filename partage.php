@@ -3,11 +3,35 @@ require_once 'fonctions.php';
 
 // Vérifier que nous avons une URL d'image
 $imageUrl = isset($_GET['image']) ? $_GET['image'] : null;
-$imagePath = realpath('.') . str_replace(getBaseUrl(), '', $imageUrl);
-if (!$imageUrl || !file_exists($imagePath)) {
+
+if (!$imageUrl) {
     header('Location: index.php');
     exit;
 }
+
+// Si c'est une image privée
+if (strpos($imageUrl, 'images.php') !== false) {
+    // On récupère les paramètres de l'URL de l'image
+    parse_str(parse_url($imageUrl, PHP_URL_QUERY), $params);
+    $path = $params['path'] ?? '';
+    $key = $params['key'] ?? '';
+    
+    if (strpos($path, 'liste_albums_prives') !== false) {
+        $isPrivateImage = true;
+        if (!isset($_SESSION['admin_id'])) {
+            if (!$key || !validateShareKey($key)) {
+                header('Location: index.php');
+                exit;
+            }
+        } elseif (isset($_SESSION['admin_id'])) {
+            // Pour les admins, on remplace la clé par la session admin
+            $imageUrl = preg_replace('/&key=[^&]*/', '', $imageUrl) . '&admin_session=' . session_id();
+        }
+    }
+}
+
+// Récupérer le nom du fichier pour le téléchargement
+$filename = basename(parse_url($imageUrl, PHP_URL_PATH));
 
 // Si pas d'image, redirection
 if (!$imageUrl) {
@@ -30,7 +54,7 @@ $config = getSiteConfig();
     <link rel="stylesheet" href="styles.css">
 </head>
 <body class="share-page">
-    <button onclick="var referrer = document.referrer; if (referrer.includes('galeries.php')) { window.close(); } else { window.location.href='index.php'; }" class="back-button">Retour</button>
+    <button onclick="var referrer = document.referrer; if (referrer.includes('galeries.php') || referrer.includes('galeries-privees.php')) { window.close(); } else { window.location.href='index.php'; }" class="back-button">Retour</button>
 
     <div class="share-container">
         <div class="share-image">
@@ -47,6 +71,7 @@ $config = getSiteConfig();
                 Partager
             </button>
 
+            <?php if (!$isPrivateImage): ?>
             <button class="action-button" onclick="embedImage()">
                 <svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="16 18 22 12 16 6"></polyline>
@@ -54,6 +79,7 @@ $config = getSiteConfig();
                 </svg>
                 Intégrer
             </button>
+            <?php endif; ?>
 
             <a href="<?php echo htmlspecialchars($imageUrl); ?>" 
                download="<?php echo htmlspecialchars($filename); ?>" 

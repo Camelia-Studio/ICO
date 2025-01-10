@@ -34,7 +34,7 @@ if (empty($shareKey)) {
                     if (in_array($extension, ALLOWED_EXTENSIONS)) {
                         // Obtenir le chemin relatif depuis la racine du projet
                         $relativePath = str_replace('\\', '/', substr($file->getPathname(), strlen(realpath('./'))));
-                        $url = $baseUrl . '/' . ltrim($relativePath, '/');
+                        $url = $baseUrl . '/images.php?path=' . urlencode($file->getPathname()) . '&key=' . urlencode($shareKey);
                         // Vérifier que le fichier existe et est accessible
                         if (file_exists($file->getPathname())) {
                             $images[] = $url;
@@ -148,7 +148,7 @@ $config = getSiteConfig();
             }
         ?>
         <div class="gallery-item <?php echo $isTop ? 'gallery-item-top' : ''; ?> <?php echo $spanClass; ?>">
-            <a href="partage.php?image=<?php echo urlencode($image); ?>" target="_blank">
+            <a href="partage.php?image=<?php echo urlencode($image); ?>&key=<?php echo urlencode($shareKey); ?>" target="_blank">
                 <img src="<?php echo htmlspecialchars($image); ?>" 
                      alt="Image de la galerie"
                      loading="lazy">

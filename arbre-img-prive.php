@@ -228,7 +228,10 @@ $config = getSiteConfig();
             <div class="images-grid">
                 <?php foreach($images as $image):
                     $imagePath = str_replace('\\', '/', substr($currentPath, strpos($currentPath, '/liste_albums_prives/') + strlen('/liste_albums_prives/')));
-                    $imageUrl = getBaseUrl() . '/liste_albums_prives/' . ($imagePath ? $imagePath . '/' : '') . $image;
+                    $imageUrl = getBaseUrl() . '/images.php?path=' . urlencode($currentPath . '/' . $image);
+                        if (isset($_SESSION['admin_id'])) {
+                            $imageUrl .= '&admin_session=' . session_id();
+                        }
                 ?>
                     <div class="image-item">
                         <input type="checkbox" name="images[]" value="<?php echo htmlspecialchars($image); ?>" 

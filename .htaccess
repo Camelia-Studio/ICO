@@ -38,3 +38,9 @@ Options -Indexes
     Header set X-Frame-Options "SAMEORIGIN"
     Header set X-XSS-Protection "1; mode=block"
 </IfModule>
+
+# Bloquer l'accès direct aux images privées
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^liste_albums_prives/.+\.(jpg|jpeg|png|gif)$ - [F]
+</IfModule>
