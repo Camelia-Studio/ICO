@@ -133,7 +133,7 @@ $config = getSiteConfig();
 
         <div class="filters">
             <div class="filter-group">
-                <label for="status-filter">Statut :</label>
+                <label for="status-filter">Statut&nbsp;:</label>
                 <select id="status-filter" class="form-select" onchange="updateFilters()">
                     <option value="active" <?php echo $filter === 'active' ? 'selected' : ''; ?>>Clés actives</option>
                     <option value="expired" <?php echo $filter === 'expired' ? 'selected' : ''; ?>>Clés expirées</option>
@@ -142,7 +142,7 @@ $config = getSiteConfig();
             </div>
 
             <div class="filter-group">
-                <label for="album-filter">Album :</label>
+                <label for="album-filter">Album&nbsp;:</label>
                 <select id="album-filter" class="form-select" onchange="updateFilters()">
                     <option value="">Tous les albums</option>
                     <?php foreach ($albums as $album): ?>
