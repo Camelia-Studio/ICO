@@ -92,7 +92,14 @@ $config = getSiteConfig();
                     <div class="empty-album"></div>
                 <?php else: ?>
                     <?php foreach ($album['images'] as $index => $image): ?>
-                        <div class="album-image" style="background-image: url('<?php echo htmlspecialchars($image); ?>')"></div>
+                        <div class="album-image">
+                            <div class="image-background <?php echo is_array($image) && $image['is_mature'] ? 'mature-preview' : ''; ?>" 
+                                style="background-image: url('<?php echo htmlspecialchars(is_array($image) ? $image['url'] : $image); ?>')">
+                            </div>
+                            <?php if (is_array($image) && $image['is_mature']): ?>
+                                <div class="mature-preview-indicator">🔞</div>
+                            <?php endif; ?>
+                        </div>
                     <?php endforeach; ?>
                     <?php for ($i = count($album['images']); $i < 4; $i++): ?>
                         <div class="empty-image"></div>

@@ -139,15 +139,22 @@ function getImagesRecursively($albumPath, $limit = 4) {
         if ($file->isFile()) {
             $extension = strtolower($file->getExtension());
             if (in_array($extension, ALLOWED_EXTENSIONS)) {
+                // Récupérer les infos du dossier parent de l'image
+                $parentDir = dirname($file->getPathname());
+                $parentInfo = getAlbumInfo($parentDir);
+                
                 $relativePath = str_replace('\\', '/', substr($file->getPathname(), strlen(realpath('./'))));
-                $images[] = $baseUrl . '/' . ltrim($relativePath, '/');
+                $images[] = [
+                    'url' => $baseUrl . '/' . ltrim($relativePath, '/'),
+                    'is_mature' => $parentInfo['mature_content']
+                ];
             }
         }
     }
 
     usort($images, function($a, $b) {
-        $pathA = realpath('.') . str_replace(getBaseUrl(), '', $a);
-        $pathB = realpath('.') . str_replace(getBaseUrl(), '', $b);
+        $pathA = realpath('.') . str_replace(getBaseUrl(), '', $a['url']);
+        $pathB = realpath('.') . str_replace(getBaseUrl(), '', $b['url']);
         return filectime($pathB) - filectime($pathA);
     });
 
