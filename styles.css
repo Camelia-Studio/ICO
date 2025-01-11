@@ -186,9 +186,12 @@ body {
 }
 
 /* Styles pour le contenu mature dans les albums */
+.album-card-mature {
+    position: relative;
+}
+
 .album-card-mature .album-images {
     filter: blur(10px);
-    transition: filter 0.3s ease;
 }
 
 .album-card-mature::before {
@@ -203,8 +206,12 @@ body {
     border-radius: 0.5rem;
     z-index: 2;
     white-space: nowrap;
-    opacity: 1;
-    transition: opacity 0.3s ease;
+    transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+.album-card-mature:hover::before {
+    transform: translate(-50%, -50%) scale(1.1);
+    background-color: rgba(220, 53, 69, 1);
 }
 
 .album-card-mature::after {
@@ -214,14 +221,6 @@ body {
     right: 1rem;
     font-size: 1.5rem;
     z-index: 2;
-}
-
-.album-card-mature:hover .album-images {
-    filter: blur(0);
-}
-
-.album-card-mature:hover::before {
-    opacity: 0;
 }
 
 .album-card {
