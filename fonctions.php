@@ -1,4 +1,7 @@
 <?php
+// Configuration du fuseau horaire pour Europe/Paris
+date_default_timezone_set('Europe/Paris');
+
 // Configuration
 function getProjectRootDir() {
     $configFile = __DIR__ . '/config.txt';
