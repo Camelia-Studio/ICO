@@ -8,6 +8,7 @@ use ICO\Config\Config;
 use ICO\Repository\LogRepository;
 use ICO\Service\AlbumService;
 use ICO\Service\AuthService;
+use ICO\View\ViewRenderer;
 
 /**
  * Gère la gestion des images au sein d'un album.
@@ -24,6 +25,7 @@ class TreeImageController
         private readonly AuthService  $auth,
         private readonly AlbumService $albumService,
         private readonly LogRepository $logRepo,
+        private readonly ViewRenderer  $view,
     ) {}
 
     // -------------------------------------------------------------------------
@@ -435,123 +437,24 @@ class TreeImageController
             ? 'Images du carrousel'
             : 'Images de : ' . htmlspecialchars($this->albumService->getAlbumInfo($currentPath)['title']);
 
-        $folderOptions = $this->generateFolderOptions('./liste_albums', $currentPath);
-        ?>
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion des images - <?php echo htmlspecialchars($siteTitle); ?></title>
-    <link rel="icon" type="image/png" href="favicon.png">
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="styles-admin.css">
-</head>
-<body class="admin-page" data-page="<?php echo $isCarousel ? 'carrousel' : 'default'; ?>">
-    <div class="admin-header">
-        <h1><?php echo $pageTitle; ?></h1>
-        <div class="admin-actions">
-            <button onclick="document.getElementById('imageUploadForm').click()" class="action-button action-button-success">
-                Ajouter des images
-            </button>
-            <button onclick="deleteSelected()" id="deleteSelectedBtn" class="action-button action-button-danger" style="display:none">
-                Supprimer la sélection
-            </button>
-            <button onclick="moveSelected()" id="moveSelectedBtn" class="action-button action-button-warning" style="display:none">
-                Déplacer la sélection
-            </button>
-            <button onclick="toggleSelectAll()" id="selectAllBtn" class="action-button">
-                Tout sélectionner
-            </button>
-            <a href="arbre.php?path=<?php echo urlencode($currentPath); ?>" class="action-button action-button-secondary">
-                Retour
-            </a>
-        </div>
-    </div>
+        $imageData = array_map(function (string $image) use ($currentPath): array {
+            return [
+                'name'  => $image,
+                'url'   => $this->buildPublicImageUrl($currentPath, $image),
+                'isTop' => strpos($image, '--top--') !== false,
+            ];
+        }, $images);
 
-    <div class="admin-content">
-        <?php if (isset($_SESSION['success_message'])): ?>
-            <div class="message success-message"><?php echo nl2br(htmlspecialchars($_SESSION['success_message'])); ?></div>
-            <?php unset($_SESSION['success_message']); ?>
-        <?php endif; ?>
-        <?php if (isset($_SESSION['error_message'])): ?>
-            <div class="message error-message"><?php echo nl2br(htmlspecialchars($_SESSION['error_message'])); ?></div>
-            <?php unset($_SESSION['error_message']); ?>
-        <?php endif; ?>
-
-        <div class="upload-zone" id="dropZone">
-            <p>Glissez-déposez vos images ici ou cliquez sur "Ajouter des images"</p>
-            <form method="post" enctype="multipart/form-data" id="uploadForm">
-                <input type="hidden" name="action" value="upload">
-                <input type="file" name="images[]" id="imageUploadForm" multiple accept=".jpg,.jpeg,.png,.gif">
-            </form>
-        </div>
-
-        <form method="post" id="imagesForm">
-            <input type="hidden" name="action" id="formAction" value="">
-            <div class="images-grid">
-                <?php foreach ($images as $image):
-                    $imageUrl = $this->buildPublicImageUrl($currentPath, $image);
-                    $isTop    = strpos($image, '--top--') !== false;
-                ?>
-                    <div class="image-item">
-                        <input type="checkbox" name="images[]" value="<?php echo htmlspecialchars($image); ?>"
-                               class="image-checkbox" onchange="updateActionButtons()">
-                        <div class="image-wrapper">
-                            <img src="<?php echo htmlspecialchars($imageUrl); ?>"
-                                 alt="<?php echo htmlspecialchars($image); ?>" loading="lazy">
-                            <div class="image-actions">
-                                <button type="button" onclick="toggleTop('<?php echo htmlspecialchars($image); ?>')"
-                                    class="tree-button <?php echo $isTop ? 'tree-button-top' : ''; ?>"
-                                    title="<?php echo $isTop ? 'Retirer des tops' : 'Mettre en top'; ?>">
-                                    ⭐
-                                </button>
-                                <button type="button" onclick="deleteImage('<?php echo htmlspecialchars($image); ?>')"
-                                    class="tree-button tree-button-danger">🗑️</button>
-                            </div>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-            </div>
-        </form>
-    </div>
-
-    <!-- Modal de déplacement -->
-    <div id="moveFolderModal" class="modal">
-        <div class="modal-content">
-            <h2>Déplacer les images</h2>
-            <form method="post" id="moveForm">
-                <input type="hidden" name="action" value="move">
-                <div class="form-group">
-                    <label for="destination_path">Choisir le dossier de destination :</label>
-                    <select name="destination_path" id="destination_path" class="form-select" required>
-                        <option value="">Sélectionner un dossier...</option>
-                        <?php echo $folderOptions; ?>
-                    </select>
-                </div>
-                <div id="selected-images-container"></div>
-                <div class="form-actions">
-                    <button type="button" onclick="closeModal('moveFolderModal')"
-                            class="action-button action-button-secondary">Annuler</button>
-                    <button type="submit" class="action-button action-button-warning">Déplacer</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modale de téléversement -->
-    <div id="uploadModal" class="modal-upload">
-        <div class="modal-content">
-            <div class="spinner"></div>
-            <p>Téléversement en cours... veuillez patienter...</p>
-        </div>
-    </div>
-
-    <?php echo $this->renderImageScripts(true); ?>
-    <?php include 'footer.php'; ?>
-</body>
-</html>
-        <?php
+        $this->view->render('pages/tree-image-public', [
+            'siteTitle'     => $siteTitle,
+            'currentPath'   => $currentPath,
+            'imageData'     => $imageData,
+            'pageTitle'     => $pageTitle,
+            'folderOptions' => $this->generateFolderOptions('./liste_albums', $currentPath),
+            'imageScripts'  => $this->renderImageScripts(true),
+            'isCarousel'    => $isCarousel,
+            'version'       => $this->config->getVersion(),
+        ]);
     }
 
     /**
@@ -560,99 +463,22 @@ class TreeImageController
      */
     private function renderPrivate(string $siteTitle, string $currentPath, array $images, array $albumInfo): void
     {
-        ?>
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion des images privées - <?php echo htmlspecialchars($siteTitle); ?></title>
-    <link rel="icon" type="image/png" href="favicon.png">
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="styles-admin.css">
-</head>
-<body class="admin-page">
-    <div class="admin-header">
-        <h1>
-            Images de : <?php echo htmlspecialchars($albumInfo['title']); ?>
-            <span class="private-badge">Privé</span>
-        </h1>
-        <div class="admin-actions">
-            <button onclick="document.getElementById('imageUploadForm').click()" class="action-button action-button-success">
-                Ajouter des images
-            </button>
-            <button onclick="deleteSelected()" id="deleteSelectedBtn" class="action-button action-button-danger" style="display:none">
-                Supprimer la sélection
-            </button>
-            <button onclick="toggleSelectAll()" id="selectAllBtn" class="action-button">
-                Tout sélectionner
-            </button>
-            <a href="arbre-prive.php?path=<?php echo urlencode($currentPath); ?>" class="action-button action-button-secondary">
-                Retour
-            </a>
-        </div>
-    </div>
+        $imageData = array_map(function (string $image) use ($currentPath): array {
+            return [
+                'name'  => $image,
+                'url'   => $this->buildPrivateImageUrl($currentPath, $image),
+                'isTop' => strpos($image, '--top--') !== false,
+            ];
+        }, $images);
 
-    <div class="admin-content">
-        <?php if (isset($_SESSION['success_message'])): ?>
-            <div class="message success-message"><?php echo nl2br(htmlspecialchars($_SESSION['success_message'])); ?></div>
-            <?php unset($_SESSION['success_message']); ?>
-        <?php endif; ?>
-        <?php if (isset($_SESSION['error_message'])): ?>
-            <div class="message error-message"><?php echo nl2br(htmlspecialchars($_SESSION['error_message'])); ?></div>
-            <?php unset($_SESSION['error_message']); ?>
-        <?php endif; ?>
-
-        <div class="upload-zone" id="dropZone">
-            <p>Glissez-déposez vos images ici ou cliquez sur "Ajouter des images"</p>
-            <form method="post" enctype="multipart/form-data" id="uploadForm">
-                <input type="hidden" name="action" value="upload">
-                <input type="file" name="images[]" id="imageUploadForm" multiple accept=".jpg,.jpeg,.png,.gif">
-            </form>
-        </div>
-
-        <form method="post" id="imagesForm">
-            <input type="hidden" name="action" id="formAction" value="">
-            <div class="images-grid">
-                <?php foreach ($images as $image):
-                    $imageUrl = $this->buildPrivateImageUrl($currentPath, $image);
-                    $isTop    = strpos($image, '--top--') !== false;
-                ?>
-                    <div class="image-item">
-                        <input type="checkbox" name="images[]" value="<?php echo htmlspecialchars($image); ?>"
-                               class="image-checkbox" onchange="updateActionButtons()">
-                        <div class="image-wrapper">
-                            <img src="<?php echo htmlspecialchars($imageUrl); ?>"
-                                 alt="<?php echo htmlspecialchars($image); ?>" loading="lazy">
-                            <div class="image-actions">
-                                <button type="button" onclick="toggleTop('<?php echo htmlspecialchars($image); ?>')"
-                                    class="tree-button <?php echo $isTop ? 'tree-button-top' : ''; ?>"
-                                    title="<?php echo $isTop ? 'Retirer des tops' : 'Mettre en top'; ?>">
-                                    ⭐
-                                </button>
-                                <button type="button" onclick="deleteImage('<?php echo htmlspecialchars($image); ?>')"
-                                    class="tree-button tree-button-danger">🗑️</button>
-                            </div>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-            </div>
-        </form>
-    </div>
-
-    <!-- Modale de téléversement -->
-    <div id="uploadModal" class="modal-upload">
-        <div class="modal-content">
-            <div class="spinner"></div>
-            <p>Téléversement en cours... veuillez patienter...</p>
-        </div>
-    </div>
-
-    <?php echo $this->renderImageScripts(false); ?>
-    <?php include 'footer.php'; ?>
-</body>
-</html>
-        <?php
+        $this->view->render('pages/tree-image-private', [
+            'siteTitle'    => $siteTitle,
+            'currentPath'  => $currentPath,
+            'albumInfo'    => $albumInfo,
+            'imageData'    => $imageData,
+            'imageScripts' => $this->renderImageScripts(false),
+            'version'      => $this->config->getVersion(),
+        ]);
     }
 
     /**
