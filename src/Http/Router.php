@@ -9,9 +9,11 @@ namespace ICO\Http;
  *
  * Garantit la transparence totale des URLs (les `.php` restent identiques).
  * Le dispatch effectif (require du fichier) est fait par le front controller.
+ * Les routes sont enregistrées via routes/web.php au démarrage.
  *
  * Exemple :
- *   $router  = new Router('/var/www/ico', 'mon-ico');
+ *   $router = new Router('/var/www/ico', 'mon-ico');
+ *   $router->get('/albums.php', 'albums.php');
  *   $handler = $router->resolve(new Request('GET', '/mon-ico/albums.php'));
  *   // $handler === '/var/www/ico/albums.php'
  */
@@ -32,16 +34,14 @@ class Router
     public function __construct(
         private readonly string $projectRoot,
         private readonly string $basePath = '',
-    ) {
-        $this->registerDefaultRoutes();
-    }
+    ) {}
 
     // -------------------------------------------------------------------------
     // Enregistrement des routes
     // -------------------------------------------------------------------------
 
     /**
-     * Enregistre une route.
+     * Enregistre une route (toute méthode HTTP).
      *
      * @param string $path     Chemin URI normalisé, ex "/albums.php"
      * @param string $handler  Chemin relatif du fichier PHP racine, ex "albums.php"
@@ -52,32 +52,25 @@ class Router
     }
 
     /**
-     * Enregistre toutes les routes correspondant aux fichiers PHP racine existants.
+     * Enregistre une route GET.
+     *
+     * @param string $path     Chemin URI normalisé, ex "/albums.php"
+     * @param string $handler  Chemin relatif du fichier PHP racine, ex "albums.php"
      */
-    private function registerDefaultRoutes(): void
+    public function get(string $path, string $handler): void
     {
-        $pages = [
-            '/index.php'          => 'index.php',
-            '/'                   => 'index.php',
-            '/albums.php'         => 'albums.php',
-            '/galeries.php'       => 'galeries.php',
-            '/galeries-privees.php' => 'galeries-privees.php',
-            '/images.php'         => 'images.php',
-            '/partage.php'        => 'partage.php',
-            '/arbre.php'          => 'arbre.php',
-            '/arbre-prive.php'    => 'arbre-prive.php',
-            '/arbre-img.php'      => 'arbre-img.php',
-            '/arbre-img-prive.php' => 'arbre-img-prive.php',
-            '/admin.php'          => 'admin.php',
-            '/utilisateurs.php'   => 'utilisateurs.php',
-            '/clefs.php'          => 'clefs.php',
-            '/logs.php'           => 'logs.php',
-            '/personnalisation.php' => 'personnalisation.php',
-        ];
+        $this->add($path, $handler);
+    }
 
-        foreach ($pages as $path => $handler) {
-            $this->add($path, $handler);
-        }
+    /**
+     * Enregistre une route POST.
+     *
+     * @param string $path     Chemin URI normalisé, ex "/admin.php"
+     * @param string $handler  Chemin relatif du fichier PHP racine, ex "admin.php"
+     */
+    public function post(string $path, string $handler): void
+    {
+        $this->add($path, $handler);
     }
 
     // -------------------------------------------------------------------------

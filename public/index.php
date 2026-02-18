@@ -38,6 +38,9 @@ $router = new Router(
     basePath:    $config->getBasePath(),
 );
 
+$routes = require dirname(__DIR__) . '/routes/web.php';
+$routes($router);
+
 $handler = $router->resolve($request);
 
 // --- Dispatch ----------------------------------------------------------------

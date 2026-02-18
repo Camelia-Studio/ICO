@@ -137,9 +137,21 @@ class HttpTest extends TestCase
     // Router
     // =========================================================================
 
+    /**
+     * Instancie un Router avec toutes les routes de routes/web.php chargées.
+     */
+    private function makeRouter(string $basePath = ''): Router
+    {
+        $router = new Router('/var/www/ico', $basePath);
+        $routes = require dirname(__DIR__, 3) . '/routes/web.php';
+        $routes($router);
+
+        return $router;
+    }
+
     public function testRouterResolvesKnownRoute(): void
     {
-        $router = new Router('/var/www/ico', '');
+        $router = $this->makeRouter();
         $req    = new Request('GET', '/albums.php');
 
         $this->assertSame('/var/www/ico/albums.php', $router->resolve($req));
@@ -147,7 +159,7 @@ class HttpTest extends TestCase
 
     public function testRouterResolvesRootToIndex(): void
     {
-        $router = new Router('/var/www/ico', '');
+        $router = $this->makeRouter();
         $req    = new Request('GET', '/');
 
         $this->assertSame('/var/www/ico/index.php', $router->resolve($req));
@@ -155,7 +167,7 @@ class HttpTest extends TestCase
 
     public function testRouterResolvesIndexPhpExplicitly(): void
     {
-        $router = new Router('/var/www/ico', '');
+        $router = $this->makeRouter();
         $req    = new Request('GET', '/index.php');
 
         $this->assertSame('/var/www/ico/index.php', $router->resolve($req));
@@ -171,7 +183,7 @@ class HttpTest extends TestCase
 
     public function testRouterStripsBasePath(): void
     {
-        $router = new Router('/var/www/ico', 'mon-ico');
+        $router = $this->makeRouter('mon-ico');
         $req    = new Request('GET', '/mon-ico/albums.php');
 
         $this->assertSame('/var/www/ico/albums.php', $router->resolve($req));
@@ -179,7 +191,7 @@ class HttpTest extends TestCase
 
     public function testRouterStripsBasePathForRoot(): void
     {
-        $router = new Router('/var/www/ico', 'mon-ico');
+        $router = $this->makeRouter('mon-ico');
         $req    = new Request('GET', '/mon-ico');
 
         $this->assertSame('/var/www/ico/index.php', $router->resolve($req));
@@ -187,7 +199,7 @@ class HttpTest extends TestCase
 
     public function testRouterStripsBasePathWithSlash(): void
     {
-        $router = new Router('/var/www/ico', 'mon-ico');
+        $router = $this->makeRouter('mon-ico');
         $req    = new Request('GET', '/mon-ico/');
 
         // "/mon-ico/" → strip prefix → "/" → index.php
@@ -205,7 +217,7 @@ class HttpTest extends TestCase
 
     public function testRouterGetRoutesContainsDefaults(): void
     {
-        $router = new Router('/var/www/ico', '');
+        $router = $this->makeRouter();
         $routes = $router->getRoutes();
 
         $this->assertArrayHasKey('/albums.php', $routes);
@@ -215,7 +227,7 @@ class HttpTest extends TestCase
 
     public function testRouterResolvesAllAdminPages(): void
     {
-        $router = new Router('/var/www/ico', '');
+        $router = $this->makeRouter();
 
         $pages = [
             '/admin.php', '/utilisateurs.php', '/clefs.php', '/logs.php',
