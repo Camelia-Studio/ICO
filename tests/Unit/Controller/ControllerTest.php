@@ -75,7 +75,7 @@ class ControllerTest extends TestCase
 
         $authMock->method('isLoggedIn')->willReturn(true);
         $viewMock->expects($this->once())->method('render')
-            ->with('pages/settings', $this->callback(fn (array $data) => isset($data['site_title'], $data['site_description'], $data['project_path'])));
+            ->with('pages/settings', $this->callback(fn (array $data): bool => isset($data['site_title'], $data['site_description'], $data['project_path'])));
 
         $controller = new SettingsController(
             $authMock,
@@ -100,7 +100,7 @@ class ControllerTest extends TestCase
 
         $authMock->method('isLoggedIn')->willReturn(true);
         $viewMock->expects($this->once())->method('render')
-            ->with('pages/settings', $this->callback(fn (array $data) => $data['error_message'] === 'Le titre du site est requis.'));
+            ->with('pages/settings', $this->callback(fn (array $data): bool => $data['error_message'] === 'Le titre du site est requis.'));
 
         $controller = new SettingsController(
             $authMock,
@@ -142,7 +142,7 @@ class ControllerTest extends TestCase
         $logMock->method('findDistinctActionTypes')->willReturn([]);
 
         $viewMock->expects($this->once())->method('render')
-            ->with('pages/logs', $this->callback(fn (array $data) => isset($data['logs'], $data['admins'], $data['filters'], $data['total'])));
+            ->with('pages/logs', $this->callback(fn (array $data): bool => isset($data['logs'], $data['admins'], $data['filters'], $data['total'])));
 
         $controller = new LogController($config, $authMock, $logMock, $adminMock, $viewMock);
         $req = new Request('GET', '/logs.php');
@@ -162,7 +162,7 @@ class ControllerTest extends TestCase
         $viewMock     = $this->createMock(ViewRenderer::class);
 
         $viewMock->expects($this->once())->method('render')
-            ->with('pages/share', $this->callback(fn (array $data) => $data['is_private_image'] === false
+            ->with('pages/share', $this->callback(fn (array $data): bool => $data['is_private_image'] === false
                 && $data['filename'] === 'photo.jpg'));
 
         $controller = new ShareController($config, $shareKeyMock, $viewMock);
@@ -182,7 +182,7 @@ class ControllerTest extends TestCase
         ]);
 
         $viewMock->expects($this->once())->method('render')
-            ->with('pages/share', $this->callback(fn (array $data) => $data['is_private_image'] === true));
+            ->with('pages/share', $this->callback(fn (array $data): bool => $data['is_private_image'] === true));
 
         // Simuler une session admin inexistante
         unset($_SESSION['admin_id']);

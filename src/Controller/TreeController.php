@@ -358,6 +358,7 @@ class TreeController
             $output .= $this->generatePublicTree($fullPath, $currentPath);
             $output .= '</li>';
         }
+
         return $output . '</ul>';
     }
 
@@ -438,6 +439,7 @@ class TreeController
             $output .= $this->generatePrivateTree($fullPath, $currentPath);
             $output .= '</li>';
         }
+
         return $output . '</ul>';
     }
 
