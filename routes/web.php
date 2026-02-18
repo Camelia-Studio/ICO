@@ -2,42 +2,55 @@
 
 declare(strict_types=1);
 
+use ICO\Controller\AdminController;
+use ICO\Controller\AlbumController;
+use ICO\Controller\GalleryController;
+use ICO\Controller\HomeController;
+use ICO\Controller\ImageController;
+use ICO\Controller\LogController;
+use ICO\Controller\SettingsController;
+use ICO\Controller\ShareController;
+use ICO\Controller\ShareKeyController;
+use ICO\Controller\TreeController;
+use ICO\Controller\TreeImageController;
+use ICO\Controller\UserController;
 use ICO\Http\Router;
 
 /**
  * Table des routes de l'application.
  *
- * Reçoit le Router en paramètre et enregistre toutes les routes publiques
- * et d'administration. Chargé par le front controller (public/index.php).
+ * Chaque route est associée à un callable [ControllerClass::class, 'method'].
+ * Le front controller résout la route, récupère le controller depuis le container
+ * et invoque la méthode.
  */
 return static function (Router $router): void {
     // --- Public ------------------------------------------------------------------
-    $router->get('/',                       'index.php');
-    $router->get('/index.php',              'index.php');
-    $router->get('/albums.php',             'albums.php');
-    $router->get('/galeries.php',           'galeries.php');
-    $router->get('/galeries-privees.php',   'galeries-privees.php');
-    $router->get('/images.php',             'images.php');
-    $router->get('/partage.php',            'partage.php');
+    $router->get('/',                       [HomeController::class,     'index']);
+    $router->get('/index.php',              [HomeController::class,     'index']);
+    $router->get('/albums.php',             [AlbumController::class,    'index']);
+    $router->get('/galeries.php',           [GalleryController::class,  'show']);
+    $router->get('/galeries-privees.php',   [GalleryController::class,  'showPrivate']);
+    $router->get('/images.php',             [ImageController::class,    'serve']);
+    $router->get('/partage.php',            [ShareController::class,    'show']);
 
     // --- Admin — arbre -----------------------------------------------------------
-    $router->get('/arbre.php',              'arbre.php');
-    $router->post('/arbre.php',             'arbre.php');
-    $router->get('/arbre-prive.php',        'arbre-prive.php');
-    $router->post('/arbre-prive.php',       'arbre-prive.php');
-    $router->get('/arbre-img.php',          'arbre-img.php');
-    $router->post('/arbre-img.php',         'arbre-img.php');
-    $router->get('/arbre-img-prive.php',    'arbre-img-prive.php');
-    $router->post('/arbre-img-prive.php',   'arbre-img-prive.php');
+    $router->get('/arbre.php',              [TreeController::class,      'handlePublic']);
+    $router->post('/arbre.php',             [TreeController::class,      'handlePublic']);
+    $router->get('/arbre-prive.php',        [TreeController::class,      'handlePrivate']);
+    $router->post('/arbre-prive.php',       [TreeController::class,      'handlePrivate']);
+    $router->get('/arbre-img.php',          [TreeImageController::class, 'handlePublic']);
+    $router->post('/arbre-img.php',         [TreeImageController::class, 'handlePublic']);
+    $router->get('/arbre-img-prive.php',    [TreeImageController::class, 'handlePrivate']);
+    $router->post('/arbre-img-prive.php',   [TreeImageController::class, 'handlePrivate']);
 
     // --- Admin — gestion ---------------------------------------------------------
-    $router->get('/admin.php',              'admin.php');
-    $router->post('/admin.php',             'admin.php');
-    $router->get('/utilisateurs.php',       'utilisateurs.php');
-    $router->post('/utilisateurs.php',      'utilisateurs.php');
-    $router->get('/clefs.php',              'clefs.php');
-    $router->post('/clefs.php',             'clefs.php');
-    $router->get('/logs.php',               'logs.php');
-    $router->get('/personnalisation.php',   'personnalisation.php');
-    $router->post('/personnalisation.php',  'personnalisation.php');
+    $router->get('/admin.php',              [AdminController::class,     'handle']);
+    $router->post('/admin.php',             [AdminController::class,     'handle']);
+    $router->get('/utilisateurs.php',       [UserController::class,      'handle']);
+    $router->post('/utilisateurs.php',      [UserController::class,      'handle']);
+    $router->get('/clefs.php',              [ShareKeyController::class,  'index']);
+    $router->post('/clefs.php',             [ShareKeyController::class,  'index']);
+    $router->get('/logs.php',               [LogController::class,       'index']);
+    $router->get('/personnalisation.php',   [SettingsController::class,  'index']);
+    $router->post('/personnalisation.php',  [SettingsController::class,  'index']);
 };

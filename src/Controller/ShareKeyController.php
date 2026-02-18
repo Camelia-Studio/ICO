@@ -12,6 +12,7 @@ use ICO\Repository\LogRepository;
 use ICO\Repository\ShareKeyRepository;
 use ICO\Service\AlbumService;
 use ICO\Service\AuthService;
+use ICO\View\ViewRenderer;
 
 /**
  * Contrôleur de gestion des clés de partage.
@@ -29,6 +30,7 @@ class ShareKeyController
         private readonly AlbumService              $albumService,
         private readonly LogRepository             $logRepo,
         private readonly string                    $baseUrl,
+        private readonly ViewRenderer              $view,
     ) {}
 
     // -------------------------------------------------------------------------
@@ -36,25 +38,14 @@ class ShareKeyController
     // -------------------------------------------------------------------------
 
     /**
-     * Prépare les données pour la vue de gestion des clés de partage.
-     *
-     * Retourne null si l'admin n'est pas connecté (= redirection vers login).
-     *
-     * @return array{
-     *   keys: list<array<string, mixed>>,
-     *   albums: list<array<string, mixed>>,
-     *   filter: string,
-     *   album_filter: string,
-     *   success_message: string,
-     *   error_message: string,
-     *   site_title: string,
-     *   base_url: string,
-     * }|null
+     * Rend la vue de gestion des clés de partage.
+     * Redirige vers login si l'admin n'est pas connecté.
      */
-    public function index(Request $request): ?array
+    public function index(Request $request): void
     {
         if (!$this->authService->isLoggedIn()) {
-            return null;
+            Response::redirect('admin.php?action=login')->send();
+            exit;
         }
 
         $successMessage = '';
@@ -82,7 +73,7 @@ class ShareKeyController
             ]);
         }
 
-        return [
+        $this->view->render('pages/share-keys', [
             'keys'            => $enrichedKeys,
             'albums'          => $albums,
             'filter'          => $filter,
@@ -91,7 +82,7 @@ class ShareKeyController
             'error_message'   => $errorMessage,
             'site_title'      => $this->config->getSiteTitle(),
             'base_url'        => $this->baseUrl,
-        ];
+        ]);
     }
 
     // -------------------------------------------------------------------------

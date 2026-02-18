@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace ICO\Tests\Unit\Http;
 
+use ICO\Controller\AlbumController;
+use ICO\Controller\AdminController;
+use ICO\Controller\HomeController;
 use ICO\Http\Request;
 use ICO\Http\Response;
 use ICO\Http\Router;
@@ -154,7 +157,7 @@ class HttpTest extends TestCase
         $router = $this->makeRouter();
         $req    = new Request('GET', '/albums.php');
 
-        $this->assertSame('/var/www/ico/albums.php', $router->resolve($req));
+        $this->assertSame([AlbumController::class, 'index'], $router->resolve($req));
     }
 
     public function testRouterResolvesRootToIndex(): void
@@ -162,7 +165,7 @@ class HttpTest extends TestCase
         $router = $this->makeRouter();
         $req    = new Request('GET', '/');
 
-        $this->assertSame('/var/www/ico/index.php', $router->resolve($req));
+        $this->assertSame([HomeController::class, 'index'], $router->resolve($req));
     }
 
     public function testRouterResolvesIndexPhpExplicitly(): void
@@ -170,7 +173,7 @@ class HttpTest extends TestCase
         $router = $this->makeRouter();
         $req    = new Request('GET', '/index.php');
 
-        $this->assertSame('/var/www/ico/index.php', $router->resolve($req));
+        $this->assertSame([HomeController::class, 'index'], $router->resolve($req));
     }
 
     public function testRouterReturnsNullForUnknownRoute(): void
@@ -186,7 +189,7 @@ class HttpTest extends TestCase
         $router = $this->makeRouter('mon-ico');
         $req    = new Request('GET', '/mon-ico/albums.php');
 
-        $this->assertSame('/var/www/ico/albums.php', $router->resolve($req));
+        $this->assertSame([AlbumController::class, 'index'], $router->resolve($req));
     }
 
     public function testRouterStripsBasePathForRoot(): void
@@ -194,7 +197,7 @@ class HttpTest extends TestCase
         $router = $this->makeRouter('mon-ico');
         $req    = new Request('GET', '/mon-ico');
 
-        $this->assertSame('/var/www/ico/index.php', $router->resolve($req));
+        $this->assertSame([HomeController::class, 'index'], $router->resolve($req));
     }
 
     public function testRouterStripsBasePathWithSlash(): void
@@ -202,8 +205,8 @@ class HttpTest extends TestCase
         $router = $this->makeRouter('mon-ico');
         $req    = new Request('GET', '/mon-ico/');
 
-        // "/mon-ico/" → strip prefix → "/" → index.php
-        $this->assertSame('/var/www/ico/index.php', $router->resolve($req));
+        // "/mon-ico/" → strip prefix → "/" → HomeController::index
+        $this->assertSame([HomeController::class, 'index'], $router->resolve($req));
     }
 
     public function testRouterAddCustomRoute(): void
@@ -242,5 +245,15 @@ class HttpTest extends TestCase
                 "La route $page devrait être résolue"
             );
         }
+    }
+
+    public function testRouterHandlerIsCallableArray(): void
+    {
+        $router  = $this->makeRouter();
+        $req     = new Request('GET', '/admin.php');
+        $handler = $router->resolve($req);
+
+        $this->assertIsArray($handler);
+        $this->assertSame([AdminController::class, 'handle'], $handler);
     }
 }

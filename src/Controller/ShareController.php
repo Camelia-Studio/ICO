@@ -8,6 +8,7 @@ use ICO\Config\Config;
 use ICO\Http\Request;
 use ICO\Http\Response;
 use ICO\Repository\ShareKeyRepository;
+use ICO\View\ViewRenderer;
 
 /**
  * Contrôleur de la page de partage d'image.
@@ -21,6 +22,7 @@ class ShareController
     public function __construct(
         private readonly Config             $config,
         private readonly ShareKeyRepository $shareKeyRepo,
+        private readonly ViewRenderer       $view,
     ) {}
 
     // -------------------------------------------------------------------------
@@ -28,23 +30,16 @@ class ShareController
     // -------------------------------------------------------------------------
 
     /**
-     * Prépare les données pour la vue de partage.
-     *
-     * Retourne null si l'URL d'image est absente/invalide (= redirection vers index).
-     *
-     * @return array{
-     *   image_url: string,
-     *   filename: string,
-     *   is_private_image: bool,
-     *   site_title: string,
-     * }|null
+     * Rend la vue de partage.
+     * Redirige vers index.php si l'URL d'image est absente/invalide.
      */
-    public function show(Request $request): ?array
+    public function show(Request $request): void
     {
         $imageUrl = (string) $request->query('image', '');
 
         if ($imageUrl === '') {
-            return null;
+            Response::redirect('index.php')->send();
+            exit;
         }
 
         $isPrivateImage = false;
@@ -61,7 +56,8 @@ class ShareController
                 if (!isset($_SESSION['admin_id'])) {
                     // Vérification de la clé de partage
                     if ($key === '' || $this->shareKeyRepo->findValidByKey($key) === null) {
-                        return null; // pas d'accès → redirection
+                        Response::redirect('index.php')->send();
+                        exit;
                     }
                 } else {
                     // Admin : on substitue la clé par la session admin dans l'URL
@@ -73,11 +69,11 @@ class ShareController
 
         $filename = basename((string) parse_url($imageUrl, PHP_URL_PATH));
 
-        return [
+        $this->view->render('pages/share', [
             'image_url'        => $imageUrl,
             'filename'         => $filename,
             'is_private_image' => $isPrivateImage,
             'site_title'       => $this->config->getSiteTitle(),
-        ];
+        ]);
     }
 }

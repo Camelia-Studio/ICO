@@ -6,6 +6,7 @@ namespace ICO\Controller;
 
 use ICO\Config\Config;
 use ICO\Http\Request;
+use ICO\View\ViewRenderer;
 
 /**
  * Contrôleur de la page d'accueil.
@@ -18,8 +19,9 @@ class HomeController
     private const CAROUSEL_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif'];
 
     public function __construct(
-        private readonly Config $config,
-        private readonly string $projectRoot,
+        private readonly Config       $config,
+        private readonly string       $projectRoot,
+        private readonly ViewRenderer $view,
     ) {}
 
     // -------------------------------------------------------------------------
@@ -27,21 +29,15 @@ class HomeController
     // -------------------------------------------------------------------------
 
     /**
-     * Prépare les données pour la vue d'accueil et les retourne sous forme de tableau.
-     *
-     * @return array{
-     *   carousel_images: string[],
-     *   site_title: string,
-     *   site_description: string,
-     * }
+     * Rend la vue d'accueil.
      */
-    public function index(Request $request): array
+    public function index(Request $request): void
     {
-        return [
+        $this->view->render('pages/home', [
             'carousel_images'  => $this->getCarouselImages(),
             'site_title'       => $this->config->getSiteTitle(),
             'site_description' => $this->config->getSiteDescription(),
-        ];
+        ]);
     }
 
     // -------------------------------------------------------------------------

@@ -8,7 +8,8 @@
         "source": "https://git.crystalyx.net/camelia-studio/ICO"
     },
     "require": {
-        "php": "^8.1"
+        "php": "^8.1",
+        "symfony/dependency-injection": "^6.4"
     },
     "require-dev": {
         "phpunit/phpunit": "^10.0"

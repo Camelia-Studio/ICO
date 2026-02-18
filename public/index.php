@@ -7,51 +7,76 @@ declare(strict_types=1);
  *
  * Fonctionnement :
  *   1. Autoload Composer
- *   2. Construction de la Request depuis les superglobales
- *   3. Résolution via le Router → chemin absolu du fichier PHP racine
- *   4. Dispatch par require
- *   5. 404 si aucune route ne correspond
+ *   2. Construction de la Config et de la Request
+ *   3. Session (configureSession + session_start)
+ *   4. Construction du container Symfony DI
+ *   5. Résolution via le Router → handler [ControllerClass, 'method']
+ *   6. Récupération du controller depuis le container + invocation
+ *   7. 404 si aucune route ne correspond
  */
 
 require_once dirname(__DIR__) . '/vendor/autoload.php';
 
 use ICO\Config\Config;
+use ICO\Container;
 use ICO\Http\Request;
 use ICO\Http\Response;
 use ICO\Http\Router;
 
 // --- Configuration -----------------------------------------------------------
 
+$projectRoot = dirname(__DIR__);
+
 $config = Config::fromFile(
-    dirname(__DIR__) . '/config.txt',
-    dirname(__DIR__) . '/version.txt',
+    $projectRoot . '/config.txt',
+    $projectRoot . '/version.txt',
 );
+
+// --- Session -----------------------------------------------------------------
+
+$config->configureSession();
+session_start();
 
 // --- Requête -----------------------------------------------------------------
 
 $request = Request::fromGlobals();
 
+// --- Container ---------------------------------------------------------------
+
+$container = Container::build($projectRoot, $config);
+
 // --- Routeur -----------------------------------------------------------------
 
 $router = new Router(
-    projectRoot: dirname(__DIR__),
+    projectRoot: $projectRoot,
     basePath:    $config->getBasePath(),
 );
 
-$routes = require dirname(__DIR__) . '/routes/web.php';
+$routes = require $projectRoot . '/routes/web.php';
 $routes($router);
 
 $handler = $router->resolve($request);
 
 // --- Dispatch ----------------------------------------------------------------
 
-if ($handler === null || !file_exists($handler)) {
+if ($handler === null) {
     Response::html('<h1>404 — Page introuvable</h1>', 404)->send();
     exit;
 }
 
-// Les fichiers racine utilisent des chemins relatifs depuis la racine du projet.
-// On s'assure que le CWD est bien la racine.
-chdir(dirname(__DIR__));
+// Handler callable [ControllerClass::class, 'method']
+if (is_array($handler)) {
+    [$controllerClass, $method] = $handler;
+    $controller = $container->get($controllerClass);
+    $controller->$method($request);
+    exit;
+}
 
-require $handler;
+// Handler fichier (compatibilité rétrograde — ne devrait plus être utilisé)
+if (file_exists($handler)) {
+    chdir($projectRoot);
+    require $handler;
+    exit;
+}
+
+Response::html('<h1>404 — Page introuvable</h1>', 404)->send();

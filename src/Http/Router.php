@@ -5,25 +5,32 @@ declare(strict_types=1);
 namespace ICO\Http;
 
 /**
- * Routeur : résout une URI entrante vers le chemin absolu du fichier PHP racine.
+ * Routeur : résout une URI entrante vers un handler (fichier PHP ou callable controller).
  *
  * Garantit la transparence totale des URLs (les `.php` restent identiques).
- * Le dispatch effectif (require du fichier) est fait par le front controller.
+ * Le dispatch effectif est fait par le front controller.
  * Les routes sont enregistrées via routes/web.php au démarrage.
  *
- * Exemple :
+ * Exemple (callable) :
  *   $router = new Router('/var/www/ico', 'mon-ico');
- *   $router->get('/albums.php', 'albums.php');
+ *   $router->get('/albums.php', [AlbumController::class, 'index']);
  *   $handler = $router->resolve(new Request('GET', '/mon-ico/albums.php'));
- *   // $handler === '/var/www/ico/albums.php'
+ *   // $handler === [AlbumController::class, 'index']
+ *
+ * Exemple (fichier) :
+ *   $router->add('/custom.php', 'custom.php');
+ *   $handler = $router->resolve(new Request('GET', '/custom.php'));
+ *   // $handler === '/var/www/ico/custom.php'
  */
 class Router
 {
     /**
-     * Table de routage : chemin URI (sans base path ni query string) → fichier PHP relatif.
+     * Table de routage : chemin URI (sans base path ni query string) → handler.
+     * Le handler est soit un chemin de fichier PHP relatif (string), soit un callable
+     * sous forme de tableau [ClassName::class, 'method'].
      * La clé est normalisée : commence par "/" et ne contient pas le sous-dossier.
      *
-     * @var array<string, string>
+     * @var array<string, string|array{0: class-string, 1: string}>
      */
     private array $routes = [];
 
@@ -43,10 +50,10 @@ class Router
     /**
      * Enregistre une route (toute méthode HTTP).
      *
-     * @param string $path     Chemin URI normalisé, ex "/albums.php"
-     * @param string $handler  Chemin relatif du fichier PHP racine, ex "albums.php"
+     * @param string                               $path     Chemin URI normalisé, ex "/albums.php"
+     * @param string|array{0: class-string, 1: string} $handler  Fichier PHP relatif ou [ControllerClass::class, 'method']
      */
-    public function add(string $path, string $handler): void
+    public function add(string $path, string|array $handler): void
     {
         $this->routes['/' . ltrim($path, '/')] = $handler;
     }
@@ -54,10 +61,10 @@ class Router
     /**
      * Enregistre une route GET.
      *
-     * @param string $path     Chemin URI normalisé, ex "/albums.php"
-     * @param string $handler  Chemin relatif du fichier PHP racine, ex "albums.php"
+     * @param string                               $path     Chemin URI normalisé, ex "/albums.php"
+     * @param string|array{0: class-string, 1: string} $handler  Fichier PHP relatif ou [ControllerClass::class, 'method']
      */
-    public function get(string $path, string $handler): void
+    public function get(string $path, string|array $handler): void
     {
         $this->add($path, $handler);
     }
@@ -65,10 +72,10 @@ class Router
     /**
      * Enregistre une route POST.
      *
-     * @param string $path     Chemin URI normalisé, ex "/admin.php"
-     * @param string $handler  Chemin relatif du fichier PHP racine, ex "admin.php"
+     * @param string                               $path     Chemin URI normalisé, ex "/admin.php"
+     * @param string|array{0: class-string, 1: string} $handler  Fichier PHP relatif ou [ControllerClass::class, 'method']
      */
-    public function post(string $path, string $handler): void
+    public function post(string $path, string|array $handler): void
     {
         $this->add($path, $handler);
     }
@@ -78,27 +85,36 @@ class Router
     // -------------------------------------------------------------------------
 
     /**
-     * Résout une requête vers le chemin absolu du fichier PHP à exécuter.
+     * Résout une requête vers son handler.
      *
-     * Retire le sous-dossier (basePath) du début de l'URI avant la résolution.
-     * Retourne null si aucune route ne correspond.
+     * - Si le handler enregistré est un tableau [ClassName::class, 'method'], le retourne tel quel.
+     * - Si le handler est une string (fichier relatif), retourne le chemin absolu.
+     * - Retourne null si aucune route ne correspond.
+     *
+     * @return string|array{0: class-string, 1: string}|null
      */
-    public function resolve(Request $request): ?string
+    public function resolve(Request $request): string|array|null
     {
         $uri = $this->stripBasePath($request->getUri());
 
         // Correspondance exacte
         if (isset($this->routes[$uri])) {
-            return $this->projectRoot . '/' . $this->routes[$uri];
+            $handler = $this->routes[$uri];
+
+            if (is_array($handler)) {
+                return $handler;
+            }
+
+            return $this->projectRoot . '/' . $handler;
         }
 
         return null;
     }
 
     /**
-     * Retourne la liste des routes enregistrées (chemin → handler relatif).
+     * Retourne la liste des routes enregistrées (chemin → handler).
      *
-     * @return array<string, string>
+     * @return array<string, string|array{0: class-string, 1: string}>
      */
     public function getRoutes(): array
     {

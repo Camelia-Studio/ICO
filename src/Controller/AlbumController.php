@@ -8,6 +8,7 @@ use ICO\Config\Config;
 use ICO\Http\Request;
 use ICO\Http\Response;
 use ICO\Service\AlbumService;
+use ICO\View\ViewRenderer;
 
 /**
  * Contrôleur de navigation dans les albums (dossiers).
@@ -17,8 +18,9 @@ use ICO\Service\AlbumService;
 class AlbumController
 {
     public function __construct(
-        private readonly Config      $config,
+        private readonly Config       $config,
         private readonly AlbumService $albumService,
+        private readonly ViewRenderer $view,
     ) {}
 
     // -------------------------------------------------------------------------
@@ -26,32 +28,17 @@ class AlbumController
     // -------------------------------------------------------------------------
 
     /**
-     * Prépare les données pour la vue de navigation dans les albums.
-     *
-     * Retourne null si le chemin est invalide (= redirection vers index).
-     *
-     * @return array{
-     *   albums: list<array{
-     *     path: string,
-     *     title: string,
-     *     description: string,
-     *     images: array<mixed>,
-     *     hasSubfolders: bool,
-     *     hasImages: bool,
-     *     mature_content: bool,
-     *   }>,
-     *   current_album_info: array{title: string, description: string, mature_content: bool, more_info_url: string},
-     *   parent_path: string|null,
-     *   site_title: string,
-     * }|null
+     * Rend la vue de navigation dans les albums.
+     * Redirige vers index.php si le chemin est invalide.
      */
-    public function index(Request $request): ?array
+    public function index(Request $request): void
     {
         $rawPath     = (string) $request->query('path', './liste_albums');
         $currentPath = realpath($rawPath);
 
         if ($currentPath === false || !$this->albumService->isSecurePath($currentPath)) {
-            return null;
+            Response::redirect('index.php')->send();
+            exit;
         }
 
         $currentAlbumInfo = $this->albumService->getAlbumInfo($currentPath);
@@ -95,11 +82,11 @@ class AlbumController
             $parentPath = null;
         }
 
-        return [
+        $this->view->render('pages/albums', [
             'albums'             => $tempAlbums,
             'current_album_info' => $currentAlbumInfo,
             'parent_path'        => $parentPath,
             'site_title'         => $this->config->getSiteTitle(),
-        ];
+        ]);
     }
 }

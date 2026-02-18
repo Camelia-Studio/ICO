@@ -9,6 +9,7 @@ use ICO\Http\Request;
 use ICO\Http\Response;
 use ICO\Repository\LogRepository;
 use ICO\Service\AuthService;
+use ICO\View\ViewRenderer;
 
 /**
  * Contrôleur de la page de personnalisation du site.
@@ -20,10 +21,11 @@ use ICO\Service\AuthService;
 class SettingsController
 {
     public function __construct(
-        private readonly Config         $config,
-        private readonly AuthService    $authService,
-        private readonly LogRepository  $logRepo,
-        private readonly string         $configFile,
+        private readonly Config        $config,
+        private readonly AuthService   $authService,
+        private readonly LogRepository $logRepo,
+        private readonly string        $configFile,
+        private readonly ViewRenderer  $view,
     ) {}
 
     // -------------------------------------------------------------------------
@@ -32,21 +34,13 @@ class SettingsController
 
     /**
      * Gère l'affichage et la soumission du formulaire de personnalisation.
-     *
-     * Retourne null si l'admin n'est pas connecté (= redirection vers login).
-     *
-     * @return array{
-     *   site_title: string,
-     *   site_description: string,
-     *   project_path: string,
-     *   success_message: string,
-     *   error_message: string,
-     * }|null
+     * Redirige vers login si l'admin n'est pas connecté.
      */
-    public function index(Request $request): ?array
+    public function index(Request $request): void
     {
         if (!$this->authService->isLoggedIn()) {
-            return null;
+            Response::redirect('admin.php?action=login')->send();
+            exit;
         }
 
         $successMessage = '';
@@ -76,13 +70,13 @@ class SettingsController
         // Relecture de la config courante (peut avoir été mise à jour)
         $currentConfig = $this->readCurrentConfig();
 
-        return [
-            'site_title'      => $currentConfig['title'],
+        $this->view->render('pages/settings', [
+            'site_title'       => $currentConfig['title'],
             'site_description' => $currentConfig['description'],
-            'project_path'    => $currentConfig['path'],
-            'success_message' => $successMessage,
-            'error_message'   => $errorMessage,
-        ];
+            'project_path'     => $currentConfig['path'],
+            'success_message'  => $successMessage,
+            'error_message'    => $errorMessage,
+        ]);
     }
 
     // -------------------------------------------------------------------------

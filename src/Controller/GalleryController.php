@@ -6,9 +6,11 @@ namespace ICO\Controller;
 
 use ICO\Config\Config;
 use ICO\Http\Request;
+use ICO\Http\Response;
 use ICO\Repository\ShareKeyRepository;
 use ICO\Service\AlbumService;
 use ICO\Service\FileService;
+use ICO\View\ViewRenderer;
 
 /**
  * Contrôleur des galeries d'images.
@@ -28,6 +30,7 @@ class GalleryController
         private readonly ShareKeyRepository  $shareKeyRepo,
         private readonly string              $projectRoot,
         private readonly string              $baseUrl,
+        private readonly ViewRenderer        $view,
     ) {}
 
     // -------------------------------------------------------------------------
@@ -35,25 +38,17 @@ class GalleryController
     // -------------------------------------------------------------------------
 
     /**
-     * Prépare les données pour la vue galerie publique.
-     *
-     * Retourne null si le chemin est invalide (= redirection vers index).
-     *
-     * @return array{
-     *   album_info: array{title: string, description: string, mature_content: bool, more_info_url: string},
-     *   images: list<array{url: string, is_top: bool, aspect_ratio: float}>,
-     *   header_image: string|null,
-     *   parent_path: string,
-     *   site_title: string,
-     * }|null
+     * Rend la vue galerie publique.
+     * Redirige vers index.php si le chemin est invalide.
      */
-    public function show(Request $request): ?array
+    public function show(Request $request): void
     {
         $rawPath     = (string) $request->query('path', './liste_albums');
         $currentPath = realpath($rawPath);
 
         if ($currentPath === false || !$this->albumService->isSecurePath($currentPath)) {
-            return null;
+            Response::redirect('index.php')->send();
+            exit;
         }
 
         $albumInfo = $this->albumService->getAlbumInfo($currentPath);
@@ -64,13 +59,13 @@ class GalleryController
             $parentPath = './liste_albums';
         }
 
-        return [
+        $this->view->render('pages/gallery-public', [
             'album_info'   => $albumInfo,
             'images'       => $images,
             'header_image' => !empty($images) ? $images[0]['url'] : null,
             'parent_path'  => (string) $parentPath,
             'site_title'   => $this->config->getSiteTitle(),
-        ];
+        ]);
     }
 
     // -------------------------------------------------------------------------
@@ -78,43 +73,34 @@ class GalleryController
     // -------------------------------------------------------------------------
 
     /**
-     * Prépare les données pour la vue galerie privée.
-     *
-     * Retourne toujours un tableau ; si la clé est invalide, error_title est non-null.
-     *
-     * @return array{
-     *   error_title: string|null,
-     *   error_message: string|null,
-     *   album_data: array{title: string, description: string, mature_content: bool, more_info_url: string}|null,
-     *   images: list<array{url: string, is_top: bool, aspect_ratio: float}>,
-     *   header_image: string|null,
-     *   share_key: string,
-     *   site_title: string,
-     * }
+     * Rend la vue galerie privée.
+     * Rend une vue d'erreur si la clé est invalide.
      */
-    public function showPrivate(Request $request): array
+    public function showPrivate(Request $request): void
     {
         $shareKey = (string) $request->query('key', '');
 
         if ($shareKey === '') {
-            return $this->errorResponse('Accès refusé', 'Aucune clé de partage fournie.', $shareKey);
+            $this->view->render('pages/gallery-private', $this->errorData('Accès refusé', 'Aucune clé de partage fournie.', $shareKey));
+            return;
         }
 
         $albumInfo = $this->shareKeyRepo->findValidByKey($shareKey);
 
         if ($albumInfo === null) {
-            return $this->errorResponse(
+            $this->view->render('pages/gallery-private', $this->errorData(
                 'Lien de partage invalide',
                 'Ce lien de partage a expiré ou n\'existe pas.',
                 $shareKey,
-            );
+            ));
+            return;
         }
 
         $currentPath = $albumInfo['path'];
         $albumData   = $this->albumService->getAlbumInfo($currentPath);
         $images      = $this->buildPrivateImageList($currentPath, $shareKey);
 
-        return [
+        $this->view->render('pages/gallery-private', [
             'error_title'   => null,
             'error_message' => null,
             'album_data'    => $albumData,
@@ -122,7 +108,7 @@ class GalleryController
             'header_image'  => !empty($images) ? $images[0]['url'] : null,
             'share_key'     => $shareKey,
             'site_title'    => $this->config->getSiteTitle(),
-        ];
+        ]);
     }
 
     // -------------------------------------------------------------------------
@@ -223,7 +209,7 @@ class GalleryController
      *   site_title: string,
      * }
      */
-    private function errorResponse(string $title, string $message, string $shareKey): array
+    private function errorData(string $title, string $message, string $shareKey): array
     {
         return [
             'error_title'   => $title,

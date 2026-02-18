@@ -10,6 +10,7 @@ use ICO\Http\Response;
 use ICO\Repository\AdminRepository;
 use ICO\Repository\LogRepository;
 use ICO\Service\AuthService;
+use ICO\View\ViewRenderer;
 
 /**
  * Contrôleur des logs administrateurs.
@@ -49,6 +50,7 @@ class LogController
         private readonly AuthService     $authService,
         private readonly LogRepository   $logRepo,
         private readonly AdminRepository $adminRepo,
+        private readonly ViewRenderer    $view,
     ) {}
 
     // -------------------------------------------------------------------------
@@ -56,35 +58,24 @@ class LogController
     // -------------------------------------------------------------------------
 
     /**
-     * Prépare les données pour la vue des logs.
-     *
-     * Retourne null si l'accès est refusé (non connecté ou non premier admin).
-     *
-     * @return array{
-     *   logs: list<array<string, mixed>>,
-     *   admins: list<array<string, mixed>>,
-     *   action_types: string[],
-     *   action_translations: array<string, string>,
-     *   filters: array{action_type: string, admin_id: int, date_range: string},
-     *   page: int,
-     *   total_pages: int,
-     *   total: int,
-     *   site_title: string,
-     * }|null
+     * Rend la vue des logs.
+     * Redirige si l'accès est refusé (non connecté ou non premier admin).
      */
-    public function index(Request $request): ?array
+    public function index(Request $request): void
     {
         if (!$this->authService->isLoggedIn()) {
-            return null;
+            Response::redirect('admin.php?action=login')->send();
+            exit;
         }
 
         // Seul le premier admin peut consulter les logs
-        $adminId     = $this->authService->getLoggedInAdminId();
+        $adminId      = $this->authService->getLoggedInAdminId();
         $firstAdminId = $this->adminRepo->findFirstAdminId();
 
         if ($adminId !== $firstAdminId) {
             $_SESSION['error_message'] = 'Accès non autorisé. Seul le premier administrateur peut consulter les logs.';
-            return null; // le fichier racine redirigera vers admin.php
+            Response::redirect('admin.php')->send();
+            exit;
         }
 
         // Purge automatique des logs > 1 mois
@@ -106,7 +97,7 @@ class LogController
 
         $logs = $this->logRepo->findAll($filters, self::PER_PAGE, $offset);
 
-        return [
+        $this->view->render('pages/logs', [
             'logs'               => $logs,
             'admins'             => $this->adminRepo->findAll(),
             'action_types'       => $this->logRepo->findDistinctActionTypes(),
@@ -116,7 +107,7 @@ class LogController
             'total_pages'        => $totalPages,
             'total'              => $total,
             'site_title'         => $this->config->getSiteTitle(),
-        ];
+        ]);
     }
 
     // -------------------------------------------------------------------------
