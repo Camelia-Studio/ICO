@@ -1,102 +1,36 @@
 <?php
-require_once 'fonctions.php';
 
+declare(strict_types=1);
+
+require_once __DIR__ . '/vendor/autoload.php';
+
+use ICO\Config\Config;
+use ICO\Controller\SettingsController;
+use ICO\Database\Database;
+use ICO\Http\Request;
+use ICO\Repository\AdminRepository;
+use ICO\Repository\LogRepository;
+use ICO\Service\AuthService;
+use ICO\View\ViewRenderer;
+
+$config = Config::fromFile(__DIR__ . '/config.txt', __DIR__ . '/version.txt');
+$config->configureSession();
 session_start();
-if (!isset($_SESSION['admin_id'])) {
+
+$pdo  = Database::getInstance(__DIR__ . '/database.sqlite')->getPdo();
+
+$adminRepo = new AdminRepository($pdo);
+$logRepo   = new LogRepository($pdo);
+$authService = new AuthService($adminRepo);
+
+$controller = new SettingsController($config, $authService, $logRepo, __DIR__ . '/config.txt');
+$request    = Request::fromGlobals();
+$data       = $controller->index($request);
+
+if ($data === null) {
     header('Location: admin.php?action=login');
     exit;
 }
-checkAdminSession();
 
-// Gérer les soumissions du formulaire
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $siteTitle = $_POST['site_title'] ?? '';
-    $siteDescription = $_POST['site_description'] ?? '';
-    $projectPath = $_POST['project_path'] ?? '';
-    
-    // Vérifications basiques
-    if (empty($siteTitle)) {
-        $_SESSION['error_message'] = "Le titre du site est requis.";
-    } else {
-        // Sauvegarder la configuration
-        $configContent = $siteTitle . "\n" . $siteDescription . "\n" . $projectPath;
-        
-        if (file_put_contents('./config.txt', $configContent) !== false) {
-            $_SESSION['success_message'] = "Configuration mise à jour avec succès.";
-            logAdminAction(
-                $_SESSION['admin_id'],
-                'UPDATE_SETTINGS',
-                "Modification des paramètres du site"
-            );
-        } else {
-            $_SESSION['error_message'] = "Erreur lors de la sauvegarde de la configuration.";
-        }
-    }
-    
-    header('Location: personnalisation.php');
-    exit;
-}
-
-// Récupérer la configuration actuelle
-$config = getSiteConfig();
-?>
-
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Personnalisation - <?php echo htmlspecialchars($config['site_title']); ?></title>
-    <link rel="icon" type="image/png" href="favicon.png">
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="styles-admin.css">
-</head>
-<body class="admin-page">
-    <div class="admin-header">
-        <h1>Personnalisation du site</h1>
-        <div class="admin-actions">
-            <a href="admin.php" class="action-button action-button-secondary">Retour</a>
-        </div>
-    </div>
-
-    <div class="admin-content">
-        <?php if (isset($_SESSION['success_message'])): ?>
-            <div class="message success-message"><?php echo htmlspecialchars($_SESSION['success_message']); ?></div>
-            <?php unset($_SESSION['success_message']); ?>
-        <?php endif; ?>
-
-        <?php if (isset($_SESSION['error_message'])): ?>
-            <div class="message error-message"><?php echo htmlspecialchars($_SESSION['error_message']); ?></div>
-            <?php unset($_SESSION['error_message']); ?>
-        <?php endif; ?>
-
-        <form method="post" action="personnalisation.php" class="form-container">
-            <div class="form-group">
-                <label for="site_title">Titre du site :</label>
-                <input type="text" id="site_title" name="site_title" required 
-                       value="<?php echo htmlspecialchars($config['site_title']); ?>">
-                <small class="form-help">Ce titre apparaîtra dans l'en-tête des pages et la barre de titre du navigateur.</small>
-            </div>
-            <div class="form-group">
-                <label for="site_description">Description du site :</label>
-                <textarea id="site_description" name="site_description" rows="4" 
-                          class="form-textarea"><?php echo htmlspecialchars($config['site_description']); ?></textarea>
-                <small class="form-help">Cette description apparaît sur la page d'accueil du site.</small>
-            </div>
-            <div class="form-group">
-                <label for="project_path">Chemin d'installation :</label>
-                <input type="text" id="project_path" name="project_path" 
-                    value="<?php echo htmlspecialchars($config['project_path']); ?>" required>
-                <small class="form-help">Ce chemin correspond au dossier dans lequel ICO est installé sur votre serveur web. 
-                    Par exemple, si ICO est accessible via "www.monsite.com/ico", le chemin sera "ico".</small>
-            </div>
-
-            <div class="form-actions">
-                <button type="submit" class="action-button">Enregistrer les modifications</button>
-            </div>
-        </form>
-    </div>
-
-    <?php include 'footer.php'; ?>
-</body>
-</html>
+$view = new ViewRenderer(__DIR__ . '/src/View');
+$view->render('pages/settings', array_merge($data, ['version' => $config->getVersion()]));

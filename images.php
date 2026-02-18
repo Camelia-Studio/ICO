@@ -1,34 +1,29 @@
 <?php
-// images.php
-require_once 'fonctions.php';
+
+declare(strict_types=1);
+
+require_once __DIR__ . '/vendor/autoload.php';
+
+use ICO\Config\Config;
+use ICO\Controller\ImageController;
+use ICO\Database\Database;
+use ICO\Http\Request;
+use ICO\Repository\ShareKeyRepository;
+use ICO\Service\AlbumService;
+
+$config = Config::fromFile(__DIR__ . '/config.txt', __DIR__ . '/version.txt');
+$config->configureSession();
 session_start();
 
-$path = $_GET['path'] ?? '';
-$key = $_GET['key'] ?? '';
-$adminSession = $_GET['admin_session'] ?? '';
+$pdo  = Database::getInstance(__DIR__ . '/database.sqlite')->getPdo();
 
-// Vérifier que le chemin est valide et dans un album privé
-if (!isSecurePrivatePath($path) || !file_exists($path)) {
-    header("HTTP/1.0 404 Not Found");
-    exit;
-}
+$albumService = new AlbumService(
+    __DIR__ . '/liste_albums',
+    __DIR__ . '/liste_albums_prives',
+    $config->getAllowedExtensions(),
+);
+$shareKeyRepo = new ShareKeyRepository($pdo);
 
-// Vérifier l'authentification (admin ou clé de partage valide)
-if ($adminSession) {
-    session_id($adminSession);
-    session_start();
-    if (!isset($_SESSION['admin_id'])) {
-        header("HTTP/1.0 403 Forbidden");
-        exit;
-    }
-} else {
-    if (!$key || !validateShareKey($key)) {
-        header("HTTP/1.0 403 Forbidden");
-        exit;
-    }
-}
-
-// Servir l'image avec le bon Content-Type
-$mime = mime_content_type($path);
-header("Content-Type: $mime");
-readfile($path);
+$controller = new ImageController($albumService, $shareKeyRepo);
+$request    = Request::fromGlobals();
+$controller->serve($request);

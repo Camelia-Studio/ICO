@@ -1,145 +1,19 @@
 <?php
-require_once 'fonctions.php';
 
-function getCarouselImages($limit = 5) {
-    $images = [];
-    $carouselDir = './img_carrousel';
-    
-    // Vérifier si le dossier existe
-    if (!is_dir($carouselDir)) {
-        // Créer le dossier s'il n'existe pas
-        mkdir($carouselDir, 0775, true);
-        return $images;
-    }
-    
-    foreach (new DirectoryIterator($carouselDir) as $file) {
-        if ($file->isDot()) continue;
-        if ($file->isFile()) {
-            $extension = strtolower($file->getExtension());
-            if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif'])) {
-                $images[] = str_replace('\\', '/', $file->getPathname());
-            }
-        }
-    }
+declare(strict_types=1);
 
-    // Trier par date de création décroissante
-    usort($images, function($a, $b) {
-        return filectime($b) - filectime($a);
-    });
+require_once __DIR__ . '/vendor/autoload.php';
 
-    return array_slice($images, 0, $limit);
-}
+use ICO\Config\Config;
+use ICO\Controller\HomeController;
+use ICO\Http\Request;
+use ICO\View\ViewRenderer;
 
-$carouselImages = getCarouselImages();
-$config = getSiteConfig();
-?>
+$config = Config::fromFile(__DIR__ . '/config.txt', __DIR__ . '/version.txt');
 
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars($config['site_title']); ?> - <?php echo htmlspecialchars($config['site_description']); ?></title>
-    <link rel="icon" type="image/png" href="favicon.png">
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-    <a href="admin.php" class="admin-button" title="Administration">⚙️</a>
-    <div class="carousel">
-        <?php foreach($carouselImages as $index => $image): ?>
-            <div class="carousel-slide <?php echo $index === 0 ? 'active' : ''; ?>">
-                <img src="<?php echo htmlspecialchars($image); ?>" alt="Image du carrousel">
-            </div>
-        <?php endforeach; ?>
-    </div>
+$controller = new HomeController($config, __DIR__);
+$request    = Request::fromGlobals();
+$data       = $controller->index($request);
 
-    <?php if (count($carouselImages) > 1): ?>
-    <div class="carousel-indicators">
-        <?php foreach($carouselImages as $index => $image): ?>
-            <div class="indicator <?php echo $index === 0 ? 'active' : ''; ?>"></div>
-        <?php endforeach; ?>
-    </div>
-    <?php endif; ?>
-
-    <div class="overlay">
-        <h1><?php echo htmlspecialchars($config['site_title']); ?></h1>
-        <p><?php echo htmlspecialchars($config['site_description']); ?></p>
-        <a href="albums.php" class="cta-button">Accéder aux galeries</a>
-    </div>
-
-    <?php include 'footer.php'; ?>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            let currentSlide = 0;
-            const slides = document.querySelectorAll('.carousel-slide');
-            
-            if (slides.length === 0) return; // Sortir si aucune image
-            
-            function showSlide(index) {
-                slides.forEach(slide => {
-                    slide.classList.remove('active');
-                });
-                
-                slides[index].classList.add('active');
-            }
-
-            function nextSlide() {
-                currentSlide = (currentSlide + 1) % slides.length;
-                showSlide(currentSlide);
-            }
-
-            // Initialiser le premier slide
-            showSlide(0);
-            
-            // Changer de slide toutes les 5 secondes seulement s'il y a plus d'une image
-            if (slides.length > 1) {
-                setInterval(nextSlide, 5000);
-            }
-        });
-
-        document.addEventListener('DOMContentLoaded', function() {
-            let currentSlide = 0;
-            const slides = document.querySelectorAll('.carousel-slide');
-            const indicators = document.querySelectorAll('.indicator');
-            
-            if (slides.length === 0) return;
-            
-            function showSlide(index) {
-                // Mettre à jour les slides
-                slides.forEach(slide => {
-                    slide.classList.remove('active');
-                });
-                slides[index].classList.add('active');
-                
-                // Mettre à jour les indicateurs
-                indicators.forEach(indicator => {
-                    indicator.classList.remove('active');
-                });
-                indicators[index]?.classList.add('active');
-            }
-
-            function nextSlide() {
-                currentSlide = (currentSlide + 1) % slides.length;
-                showSlide(currentSlide);
-            }
-
-            // Permettre le clic sur les indicateurs
-            indicators.forEach((indicator, index) => {
-                indicator.addEventListener('click', () => {
-                    currentSlide = index;
-                    showSlide(currentSlide);
-                });
-            });
-
-            // Initialiser le premier slide
-            showSlide(0);
-            
-            // Changer de slide toutes les 5 secondes seulement s'il y a plus d'une image
-            if (slides.length > 1) {
-                setInterval(nextSlide, 5000);
-            }
-        });
-    </script>
-</body>
-</html>
+$view = new ViewRenderer(__DIR__ . '/src/View');
+$view->render('pages/home', array_merge($data, ['version' => $config->getVersion()]));
