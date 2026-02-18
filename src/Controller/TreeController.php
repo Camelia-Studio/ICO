@@ -14,10 +14,7 @@ use ICO\Service\FileService;
 use ICO\View\ViewRenderer;
 
 /**
- * Gère l'arborescence des albums publics (arbre.php)
- * et privés (arbre-prive.php).
- *
- * Sources : arbre.php (393 lignes), arbre-prive.php (482 lignes).
+ * Gère l'arborescence des albums publics et privés (avec upload, suppression, déplacement).
  */
 class TreeController
 {

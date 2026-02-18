@@ -6,9 +6,6 @@ namespace ICO\Service;
 
 /**
  * Vérifie la disponibilité de mises à jour depuis Gitea.
- *
- * Remplace getLatestVersion(), compareVersions() et checkUpdate()
- * de fonctions.php.
  */
 class UpdateService
 {

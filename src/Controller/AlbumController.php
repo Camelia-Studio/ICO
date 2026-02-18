@@ -12,8 +12,7 @@ use ICO\Service\AlbumService;
 /**
  * Contrôleur de navigation dans les albums (dossiers).
  *
- * Remplace albums.php : affiche la grille des sous-albums d'un dossier.
- * Navigue dans liste_albums/ et ses sous-dossiers.
+ * Affiche la grille des sous-albums d'un dossier dans liste_albums/.
  */
 class AlbumController
 {

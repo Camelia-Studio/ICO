@@ -7,9 +7,6 @@ namespace ICO\Config;
 /**
  * Centralise la lecture et l'accès à la configuration du projet.
  *
- * Remplace les fonctions globales getProjectRootDir(), getSiteConfig(),
- * getVersion() ainsi que les ini_set() de session éparpillés dans fonctions.php.
- *
  * Instanciation via Config::fromFile() — lecture unique en mémoire.
  */
 final class Config

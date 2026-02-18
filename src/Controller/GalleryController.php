@@ -13,10 +13,8 @@ use ICO\Service\FileService;
 /**
  * Contrôleur des galeries d'images.
  *
- * Fusionne galeries.php (galerie publique) et galeries-privees.php (galerie privée par clé).
- *
- * Mode public  : show()        — accès libre via chemin sécurisé
- * Mode privé   : showPrivate() — accès par clé de partage valide
+ * Mode public  : show()        — galerie publique, accès libre via chemin sécurisé
+ * Mode privé   : showPrivate() — galerie privée, accès par clé de partage valide
  */
 class GalleryController
 {

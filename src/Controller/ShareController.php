@@ -12,9 +12,7 @@ use ICO\Repository\ShareKeyRepository;
 /**
  * Contrôleur de la page de partage d'image.
  *
- * Remplace partage.php (affichage d'une image avec actions : partager,
- * intégrer, télécharger, recherche SauceNAO).
- *
+ * Affiche une image avec ses actions : partager, intégrer, télécharger, recherche SauceNAO.
  * Prépare les données de vue et détecte si l'image est privée pour
  * conditionner l'affichage du bouton "Intégrer".
  */

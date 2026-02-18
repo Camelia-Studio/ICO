@@ -16,7 +16,7 @@ use ICO\Service\AuthService;
 /**
  * Contrôleur de gestion des clés de partage.
  *
- * Remplace clefs.php (liste, suppression, nettoyage des clés expirées).
+ * Liste, suppression et nettoyage des clés expirées.
  * Accès réservé aux admins connectés.
  */
 class ShareKeyController

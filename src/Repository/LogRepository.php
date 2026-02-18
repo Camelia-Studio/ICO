@@ -8,9 +8,6 @@ use PDO;
 
 /**
  * Accès aux données de la table `admin_logs`.
- *
- * Couvre les requêtes précédemment dans logAdminAction() dans fonctions.php
- * et toute la logique de lecture/filtrage dans logs.php.
  */
 class LogRepository
 {

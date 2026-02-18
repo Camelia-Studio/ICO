@@ -10,12 +10,7 @@ use ICO\Http\Request;
 /**
  * Contrôleur de la page d'accueil.
  *
- * Remplace index.php (carousel + overlay titre/description).
- * La vue reste le fichier PHP racine existant tant que la Phase 6 (vues natives) n'est pas activée.
- *
- * Responsabilités extraites :
- *  - getCarouselImages() locale → méthode privée
- *  - appel à getSiteConfig()   → Config injectable
+ * Prépare les données pour le carousel (images récentes) et l'overlay titre/description.
  */
 class HomeController
 {

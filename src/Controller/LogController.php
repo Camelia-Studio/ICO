@@ -14,7 +14,7 @@ use ICO\Service\AuthService;
 /**
  * Contrôleur des logs administrateurs.
  *
- * Remplace logs.php (liste des logs avec filtres et pagination).
+ * Liste des logs avec filtres et pagination.
  * Accès réservé au premier administrateur créé.
  */
 class LogController

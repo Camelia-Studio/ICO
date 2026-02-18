@@ -8,9 +8,6 @@ use PDO;
 
 /**
  * Accès aux données de la table `album_identifiers`.
- *
- * Couvre les requêtes précédemment dans ensureAlbumIdentifier()
- * et validateShareKey() dans fonctions.php, ainsi que clefs.php.
  */
 class AlbumIdentifierRepository
 {

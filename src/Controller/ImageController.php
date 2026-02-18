@@ -12,7 +12,7 @@ use ICO\Service\AlbumService;
 /**
  * Contrôleur du proxy d'images privées.
  *
- * Remplace images.php (proxy sécurisé : vérification chemin + auth).
+ * Proxy sécurisé : vérifie le chemin puis l'authentification avant de servir le fichier.
  *
  * Deux modes d'authentification :
  *  - admin_session : paramètre GET contenant un session_id d'admin

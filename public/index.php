@@ -3,19 +3,13 @@
 declare(strict_types=1);
 
 /**
- * Front controller — Phase 4.
- *
- * Ce fichier est le point d'entrée unique une fois que les règles
- * .htaccess racine seront activées (Phase 4 → activation en production).
- *
- * Pour l'instant (Phase 4) il est fonctionnel mais non encore activé
- * en production (les règles .htaccess racine restent commentées).
+ * Front controller — point d'entrée unique.
  *
  * Fonctionnement :
  *   1. Autoload Composer
  *   2. Construction de la Request depuis les superglobales
  *   3. Résolution via le Router → chemin absolu du fichier PHP racine
- *   4. Dispatch par require (transparence totale, l'existant tourne tel quel)
+ *   4. Dispatch par require
  *   5. 404 si aucune route ne correspond
  */
 

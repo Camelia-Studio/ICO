@@ -8,9 +8,6 @@ use PDO;
 
 /**
  * Accès aux données de la table `share_keys`.
- *
- * Couvre les requêtes précédemment dans createShareKey(), validateShareKey(),
- * cleanExpiredShareKeys() dans fonctions.php, ainsi que clefs.php et arbre-prive.php.
  */
 class ShareKeyRepository
 {

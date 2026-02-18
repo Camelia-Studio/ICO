@@ -13,8 +13,6 @@ use ICO\Service\AuthService;
 /**
  * Contrôleur de la page de personnalisation du site.
  *
- * Remplace personnalisation.php (formulaire admin : titre, description, basePath).
- *
  * Accès réservé aux admins connectés.
  * En POST : valide et sauvegarde config.txt, log l'action.
  * En GET  : affiche le formulaire pré-rempli.

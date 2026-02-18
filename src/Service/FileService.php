@@ -6,11 +6,6 @@ namespace ICO\Service;
 
 /**
  * Utilitaires de manipulation de fichiers.
- *
- * Remplace sanitizeFilename(), formatFileSize(), getSecureImageSize(),
- * generateSecureId(), generateShareKey(), generateAlbumIdentifier()
- * de fonctions.php, ainsi que la logique de suppression récursive
- * de dossier présente dans arbre-prive.php.
  */
 class FileService
 {

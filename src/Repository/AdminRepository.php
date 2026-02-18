@@ -8,9 +8,6 @@ use PDO;
 
 /**
  * Accès aux données de la table `admins`.
- *
- * Couvre toutes les requêtes SQL relatives aux comptes administrateurs
- * précédemment dispersées dans admin.php, utilisateurs.php et fonctions.php.
  */
 class AdminRepository
 {

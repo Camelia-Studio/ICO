@@ -5,21 +5,15 @@ declare(strict_types=1);
 namespace ICO\Http;
 
 /**
- * Routeur de transition — Phase 4.
+ * Routeur : résout une URI entrante vers le chemin absolu du fichier PHP racine.
  *
- * Son rôle est de résoudre une URI entrante vers le chemin absolu du fichier
- * PHP racine existant qui doit le traiter, en garantissant la transparence
- * totale des URLs (les `.php` restent identiques).
- *
- * Aucune logique métier ici : le routeur ne fait que de la résolution.
+ * Garantit la transparence totale des URLs (les `.php` restent identiques).
  * Le dispatch effectif (require du fichier) est fait par le front controller.
  *
  * Exemple :
  *   $router  = new Router('/var/www/ico', 'mon-ico');
  *   $handler = $router->resolve(new Request('GET', '/mon-ico/albums.php'));
  *   // $handler === '/var/www/ico/albums.php'
- *
- * En Phase 5 les handlers deviendront des callables (Controllers).
  */
 class Router
 {

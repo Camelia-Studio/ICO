@@ -8,9 +8,6 @@ use ICO\Repository\AdminRepository;
 
 /**
  * Gère l'authentification et la session administrateur.
- *
- * Remplace checkAdminSession() et la logique de login/logout
- * dispersée dans admin.php et fonctions.php.
  */
 class AuthService
 {

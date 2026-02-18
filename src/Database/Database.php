@@ -11,9 +11,6 @@ use RuntimeException;
 /**
  * Singleton PDO pour l'accès à la base SQLite.
  *
- * Remplace les `new SQLite3('database.sqlite')` instanciés à la volée
- * dans chaque fonction de fonctions.php.
- *
  * Usage :
  *   $pdo = Database::getInstance()->getPdo();
  */

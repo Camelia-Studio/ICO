@@ -13,10 +13,8 @@ use ICO\View\ViewRenderer;
 /**
  * Gère la gestion des images au sein d'un album.
  *
- * Sources : arbre-img.php (725 lignes), arbre-img-prive.php (427 lignes).
- *
- * - handlePublic()  → arbre-img.php  (albums publics + carrousel)
- * - handlePrivate() → arbre-img-prive.php (albums privés)
+ * - handlePublic()  — albums publics (upload, suppression, déplacement, carrousel)
+ * - handlePrivate() — albums privés (upload, suppression, génération de lien de partage)
  */
 class TreeImageController
 {

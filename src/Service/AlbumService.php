@@ -6,10 +6,6 @@ namespace ICO\Service;
 
 /**
  * Gère l'accès aux albums (dossiers d'images).
- *
- * Remplace getAlbumInfo(), getLatestImages(), getImagesRecursively(),
- * hasSubfolders(), hasImages(), isSecurePath(), isSecurePrivatePath()
- * de fonctions.php.
  */
 class AlbumService
 {
@@ -181,7 +177,6 @@ class AlbumService
 
     /**
      * Vérifie que $path est sous le dossier liste_albums (ou img_carrousel).
-     * Remplace isSecurePath() de fonctions.php.
      */
     public function isSecurePath(string $path): bool
     {
@@ -202,7 +197,6 @@ class AlbumService
 
     /**
      * Vérifie que $path est sous le dossier liste_albums_prives.
-     * Remplace isSecurePrivatePath() de fonctions.php.
      */
     public function isSecurePrivatePath(string $path): bool
     {
