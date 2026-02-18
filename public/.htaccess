@@ -1,0 +1,10 @@
+# Redirige toutes les requêtes sans fichier/dossier correspondant vers le front controller
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+# Désactiver l'affichage du contenu des répertoires
+Options -Indexes
