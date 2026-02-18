@@ -34,7 +34,8 @@ class Request
         private readonly array  $body    = [],
         private readonly array  $cookies = [],
         private readonly array  $server  = [],
-    ) {}
+    ) {
+    }
 
     /**
      * Construit l'instance à partir des superglobales PHP.

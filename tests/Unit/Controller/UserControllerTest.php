@@ -21,6 +21,7 @@ class UserControllerTest extends TestCase
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
+
         $_SESSION = [];
         $_GET     = [];
         $_POST    = [];
@@ -93,7 +94,8 @@ class UserControllerTest extends TestCase
 
         $view = $this->createMock(ViewRenderer::class);
         $view->expects($this->once())->method('render')
-            ->with('pages/users-list', $this->callback(fn (array $d) =>
+            ->with('pages/users-list', $this->callback(
+                fn (array $d): bool =>
                 isset($d['users'], $d['siteTitle'])
             ));
 
@@ -267,11 +269,11 @@ class UserControllerTest extends TestCase
         ?ViewRenderer     $view      = null,
     ): UserController {
         $config    = $this->makeConfig();
-        $auth      = $auth      ?? $this->createMock(AuthService::class);
-        $adminRepo = $adminRepo ?? $this->createMock(AdminRepository::class);
-        $logRepo   = $logRepo   ?? $this->createMock(LogRepository::class);
+        $auth ??= $this->createMock(AuthService::class);
+        $adminRepo ??= $this->createMock(AdminRepository::class);
+        $logRepo ??= $this->createMock(LogRepository::class);
         $pwdVal    = new PasswordValidator();
-        $view      = $view      ?? $this->createMock(ViewRenderer::class);
+        $view ??= $this->createMock(ViewRenderer::class);
 
         return new UserController($config, $auth, $adminRepo, $logRepo, $pwdVal, $view);
     }
@@ -279,7 +281,7 @@ class UserControllerTest extends TestCase
     private function makeConfig(): Config
     {
         $tmp = sys_get_temp_dir() . '/ico_user_cfg_' . uniqid();
-        mkdir($tmp, 0775, true);
+        mkdir($tmp, 0o775, true);
         file_put_contents($tmp . '/config.txt', "Test Site\nDesc\n");
         file_put_contents($tmp . '/version.txt', '1.0.0');
         $config = Config::fromFile($tmp . '/config.txt', $tmp . '/version.txt');

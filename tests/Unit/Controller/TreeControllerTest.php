@@ -19,7 +19,9 @@ use PHPUnit\Framework\TestCase;
 class TreeControllerTest extends TestCase
 {
     private string $tmpDir;
+
     private string $albumsRoot;
+
     private string $privateRoot;
 
     protected function setUp(): void
@@ -28,8 +30,8 @@ class TreeControllerTest extends TestCase
         $this->albumsRoot  = $this->tmpDir . '/liste_albums';
         $this->privateRoot = $this->tmpDir . '/liste_albums_prives';
 
-        mkdir($this->albumsRoot,  0775, true);
-        mkdir($this->privateRoot, 0775, true);
+        mkdir($this->albumsRoot, 0o775, true);
+        mkdir($this->privateRoot, 0o775, true);
 
         file_put_contents($this->albumsRoot  . '/infos.txt', "Albums\nDesc\n18-\n");
         file_put_contents($this->privateRoot . '/infos.txt', "Albums privés\nDesc\n18-\n");
@@ -83,7 +85,7 @@ class TreeControllerTest extends TestCase
 
         $viewMock = $this->createMock(ViewRenderer::class);
         $viewMock->expects($this->once())->method('render')
-            ->with('pages/tree-public', $this->callback(fn (array $d) => isset($d['tree'])));
+            ->with('pages/tree-public', $this->callback(fn (array $d): bool => isset($d['tree'])));
 
         $_GET['path'] = $this->albumsRoot;
 
@@ -126,7 +128,7 @@ class TreeControllerTest extends TestCase
     public function testHandlePublicPostDeleteFolder(): void
     {
         $toDelete = $this->albumsRoot . '/to-delete';
-        mkdir($toDelete, 0775, true);
+        mkdir($toDelete, 0o775, true);
         file_put_contents($toDelete . '/infos.txt', "To delete\n\n18-\n");
 
         $authMock = $this->createMock(AuthService::class);
@@ -152,7 +154,7 @@ class TreeControllerTest extends TestCase
     public function testHandlePublicPostEditFolder(): void
     {
         $albumPath = $this->albumsRoot . '/editable';
-        mkdir($albumPath, 0775, true);
+        mkdir($albumPath, 0o775, true);
         file_put_contents($albumPath . '/infos.txt', "Old Title\nOld Desc\n18-\n");
 
         $authMock = $this->createMock(AuthService::class);
@@ -202,7 +204,7 @@ class TreeControllerTest extends TestCase
 
         $viewMock = $this->createMock(ViewRenderer::class);
         $viewMock->expects($this->once())->method('render')
-            ->with('pages/tree-private', $this->callback(fn (array $d) => isset($d['tree'])));
+            ->with('pages/tree-private', $this->callback(fn (array $d): bool => isset($d['tree'])));
 
         $_GET['path'] = $this->privateRoot;
 
@@ -242,7 +244,7 @@ class TreeControllerTest extends TestCase
     public function testHandlePrivatePostDeleteFolder(): void
     {
         $toDelete = $this->privateRoot . '/to-delete';
-        mkdir($toDelete, 0775, true);
+        mkdir($toDelete, 0o775, true);
         file_put_contents($toDelete . '/infos.txt', "To delete\n\n18-\n");
 
         $authMock = $this->createMock(AuthService::class);
@@ -268,7 +270,7 @@ class TreeControllerTest extends TestCase
     public function testHandlePrivatePostEditFolder(): void
     {
         $albumPath = $this->privateRoot . '/editable';
-        mkdir($albumPath, 0775, true);
+        mkdir($albumPath, 0o775, true);
         file_put_contents($albumPath . '/infos.txt', "Old Title\nOld Desc\n18-\n");
 
         $authMock = $this->createMock(AuthService::class);
@@ -295,20 +297,20 @@ class TreeControllerTest extends TestCase
     {
         // Album with mature content and images (no sub-subfolders → hasSubfolders=false, hasImages=true)
         $albumA = $this->albumsRoot . '/album-mature';
-        mkdir($albumA, 0775, true);
+        mkdir($albumA, 0o775, true);
         file_put_contents($albumA . '/infos.txt', "Album Mature\nDesc\n18+\n");
         file_put_contents($albumA . '/photo.jpg', '');
 
         // Album with a subfolder (hasSubfolders=true)
         $albumB    = $this->albumsRoot . '/album-parent';
         $albumBSub = $albumB . '/sub';
-        mkdir($albumBSub, 0775, true);
+        mkdir($albumBSub, 0o775, true);
         file_put_contents($albumB    . '/infos.txt', "Album Parent\nDesc\n18-\n");
         file_put_contents($albumBSub . '/infos.txt', "Sub\nDesc\n18-\n");
 
         // Private album with images (covers generateShareLink branch)
         $privAlbum = $this->privateRoot . '/priv-with-img';
-        mkdir($privAlbum, 0775, true);
+        mkdir($privAlbum, 0o775, true);
         file_put_contents($privAlbum . '/infos.txt', "Private Mature\nDesc\n18+\n");
         file_put_contents($privAlbum . '/photo.png', '');
 
@@ -317,7 +319,7 @@ class TreeControllerTest extends TestCase
 
         $viewMock = $this->createMock(ViewRenderer::class);
         $viewMock->expects($this->once())->method('render')
-            ->with('pages/tree-public', $this->callback(fn (array $d) => isset($d['tree'])));
+            ->with('pages/tree-public', $this->callback(fn (array $d): bool => isset($d['tree'])));
 
         $_GET['path'] = $this->albumsRoot;
 
@@ -333,14 +335,14 @@ class TreeControllerTest extends TestCase
     {
         // Private album with mature content + images (covers mature_content=true, hasImages=true → share button)
         $privAlbum = $this->privateRoot . '/priv-mature';
-        mkdir($privAlbum, 0775, true);
+        mkdir($privAlbum, 0o775, true);
         file_put_contents($privAlbum . '/infos.txt', "Private Mature\nDesc\n18+\n");
         file_put_contents($privAlbum . '/photo.png', '');
 
         // Private album with a subfolder (hasSubfolders=true branch)
         $privParent = $this->privateRoot . '/priv-parent';
         $privSub    = $privParent . '/sub';
-        mkdir($privSub, 0775, true);
+        mkdir($privSub, 0o775, true);
         file_put_contents($privParent . '/infos.txt', "Priv Parent\nDesc\n18-\n");
         file_put_contents($privSub    . '/infos.txt', "Priv Sub\nDesc\n18-\n");
 
@@ -349,7 +351,7 @@ class TreeControllerTest extends TestCase
 
         $viewMock = $this->createMock(ViewRenderer::class);
         $viewMock->expects($this->once())->method('render')
-            ->with('pages/tree-private', $this->callback(fn (array $d) => isset($d['tree'])));
+            ->with('pages/tree-private', $this->callback(fn (array $d): bool => isset($d['tree'])));
 
         $_GET['path'] = $this->privateRoot;
 
@@ -364,7 +366,7 @@ class TreeControllerTest extends TestCase
     public function testHandlePublicPostCreateFolderWhenAlreadyExists(): void
     {
         $existing = $this->albumsRoot . '/existing';
-        mkdir($existing, 0775, true);
+        mkdir($existing, 0o775, true);
         file_put_contents($existing . '/infos.txt', "Existing\nDesc\n18-\n");
 
         $authMock = $this->createMock(AuthService::class);
@@ -394,7 +396,7 @@ class TreeControllerTest extends TestCase
     public function testHandlePrivatePostGenerateLink(): void
     {
         $albumPath = $this->privateRoot . '/shared-album';
-        mkdir($albumPath, 0775, true);
+        mkdir($albumPath, 0o775, true);
         file_put_contents($albumPath . '/infos.txt', "Shared\nDesc\n18-\n");
 
         $authMock = $this->createMock(AuthService::class);
@@ -436,7 +438,7 @@ class TreeControllerTest extends TestCase
         $config       = $this->makeConfig();
         $log          = $logMock ?? $this->createMock(LogRepository::class);
         $albumService = new AlbumService($this->albumsRoot, $this->privateRoot);
-        $fileSvc      = $fileSvc ?? $this->createMock(FileService::class);
+        $fileSvc ??= $this->createMock(FileService::class);
 
         return new TreeController(
             $config,
@@ -461,7 +463,7 @@ class TreeControllerTest extends TestCase
         $config       = $this->makeConfig();
         $log          = $logMock ?? $this->createMock(LogRepository::class);
         $albumService = new AlbumService($this->albumsRoot, $this->privateRoot);
-        $fileSvc      = $fileSvc ?? $this->createMock(FileService::class);
+        $fileSvc ??= $this->createMock(FileService::class);
 
         return new TreeController(
             $config,
@@ -478,7 +480,7 @@ class TreeControllerTest extends TestCase
     private function makeConfig(): Config
     {
         $tmp = sys_get_temp_dir() . '/ico_tree_cfg_' . uniqid();
-        mkdir($tmp, 0775, true);
+        mkdir($tmp, 0o775, true);
         file_put_contents($tmp . '/config.txt', "Test Site\n\n");
         file_put_contents($tmp . '/version.txt', '1.0.0');
         $config = Config::fromFile($tmp . '/config.txt', $tmp . '/version.txt');
@@ -494,13 +496,16 @@ class TreeControllerTest extends TestCase
         if (!is_dir($dir)) {
             return;
         }
+
         foreach (scandir($dir) ?: [] as $item) {
             if ($item === '.' || $item === '..') {
                 continue;
             }
+
             $path = $dir . '/' . $item;
             is_dir($path) ? $this->removeDirRecursive($path) : unlink($path);
         }
+
         rmdir($dir);
     }
 }

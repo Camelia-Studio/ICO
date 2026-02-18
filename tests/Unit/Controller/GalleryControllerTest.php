@@ -17,7 +17,9 @@ use PHPUnit\Framework\TestCase;
 class GalleryControllerTest extends TestCase
 {
     private string $tmpDir;
+
     private string $albumsRoot;
+
     private string $privateRoot;
 
     protected function setUp(): void
@@ -25,8 +27,8 @@ class GalleryControllerTest extends TestCase
         $this->tmpDir     = sys_get_temp_dir() . '/ico_gallery_test_' . uniqid();
         $this->albumsRoot = $this->tmpDir . '/liste_albums';
         $this->privateRoot = $this->tmpDir . '/liste_albums_prives';
-        mkdir($this->albumsRoot . '/album1', 0775, true);
-        mkdir($this->privateRoot . '/secret', 0775, true);
+        mkdir($this->albumsRoot . '/album1', 0o775, true);
+        mkdir($this->privateRoot . '/secret', 0o775, true);
     }
 
     protected function tearDown(): void
@@ -72,7 +74,7 @@ class GalleryControllerTest extends TestCase
         $capturedData = null;
         $view = $this->createMock(ViewRenderer::class);
         $view->expects($this->once())->method('render')
-            ->with('pages/gallery-public', $this->callback(fn (array $d) => $d['images'] === []))
+            ->with('pages/gallery-public', $this->callback(fn (array $d): bool => $d['images'] === []))
             ->willReturnCallback(function (string $tpl, array $data) use (&$capturedData): void {
                 $capturedData = $data;
             });
@@ -123,7 +125,7 @@ class GalleryControllerTest extends TestCase
         $capturedData = null;
         $view = $this->createMock(ViewRenderer::class);
         $view->expects($this->once())->method('render')
-            ->with('pages/gallery-private', $this->callback(fn (array $d) => $d['error_title'] !== null))
+            ->with('pages/gallery-private', $this->callback(fn (array $d): bool => $d['error_title'] !== null))
             ->willReturnCallback(function (string $tpl, array $data) use (&$capturedData): void {
                 $capturedData = $data;
             });
@@ -145,7 +147,7 @@ class GalleryControllerTest extends TestCase
         $capturedData = null;
         $view = $this->createMock(ViewRenderer::class);
         $view->expects($this->once())->method('render')
-            ->with('pages/gallery-private', $this->callback(fn (array $d) => $d['error_title'] !== null))
+            ->with('pages/gallery-private', $this->callback(fn (array $d): bool => $d['error_title'] !== null))
             ->willReturnCallback(function (string $tpl, array $data) use (&$capturedData): void {
                 $capturedData = $data;
             });
@@ -252,7 +254,7 @@ class GalleryControllerTest extends TestCase
     private function makeConfig(): Config
     {
         $tmp = sys_get_temp_dir() . '/ico_gallery_cfg_' . uniqid();
-        mkdir($tmp, 0775, true);
+        mkdir($tmp, 0o775, true);
         file_put_contents($tmp . '/config.txt', "Test Site\nDesc\n");
         file_put_contents($tmp . '/version.txt', '1.0.0');
         $config = Config::fromFile($tmp . '/config.txt', $tmp . '/version.txt');
@@ -267,13 +269,16 @@ class GalleryControllerTest extends TestCase
         if (!is_dir($dir)) {
             return;
         }
+
         foreach (scandir($dir) ?: [] as $item) {
             if ($item === '.' || $item === '..') {
                 continue;
             }
+
             $path = $dir . '/' . $item;
             is_dir($path) ? $this->removeDirRecursive($path) : unlink($path);
         }
+
         rmdir($dir);
     }
 }

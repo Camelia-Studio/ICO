@@ -27,7 +27,8 @@ class ViewRenderer
 {
     public function __construct(
         private readonly string $viewsDir,
-    ) {}
+    ) {
+    }
 
     /**
      * Rend une vue en injectant $data comme variables locales.

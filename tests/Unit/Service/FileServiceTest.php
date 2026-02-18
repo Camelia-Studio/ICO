@@ -155,7 +155,7 @@ class FileServiceTest extends TestCase
         $sub     = $base . '/sub';
         $file    = $sub . '/file.txt';
 
-        mkdir($sub, 0777, true);
+        mkdir($sub, 0o777, true);
         file_put_contents($file, 'test');
 
         $result = $this->service->deleteDirectoryRecursively($base);

@@ -6,7 +6,6 @@ namespace ICO\Tests\Unit\Controller;
 
 use ICO\Config\Config;
 use ICO\Controller\AdminController;
-use ICO\Http\Request;
 use ICO\Http\TerminateException;
 use ICO\Repository\AdminRepository;
 use ICO\Service\AuthService;
@@ -15,12 +14,12 @@ use ICO\Service\UpdateService;
 use ICO\View\ViewRenderer;
 use PHPUnit\Framework\TestCase;
 
-    /**
-     * Tests for AdminController — only paths that don't call exit().
-     *
-     * Previously untestable paths (all called exit unconditionally) are now
-     * testable because exit() was replaced by throw new TerminateException().
-     */
+/**
+ * Tests for AdminController — only paths that don't call exit().
+ *
+ * Previously untestable paths (all called exit unconditionally) are now
+ * testable because exit() was replaced by throw new TerminateException().
+ */
 class AdminControllerTest extends TestCase
 {
     protected function setUp(): void
@@ -28,6 +27,7 @@ class AdminControllerTest extends TestCase
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
+
         $_SESSION = [];
         $_GET     = [];
         $_POST    = [];
@@ -51,7 +51,8 @@ class AdminControllerTest extends TestCase
 
         $view = $this->createMock(ViewRenderer::class);
         $view->expects($this->once())->method('render')
-            ->with('pages/admin-login', $this->callback(fn (array $d) =>
+            ->with('pages/admin-login', $this->callback(
+                fn (array $d): bool =>
                 array_key_exists('error', $d) && $d['error'] === null
             ));
 
@@ -70,7 +71,8 @@ class AdminControllerTest extends TestCase
 
         $view = $this->createMock(ViewRenderer::class);
         $view->expects($this->once())->method('render')
-            ->with('pages/admin-login', $this->callback(fn (array $d) =>
+            ->with('pages/admin-login', $this->callback(
+                fn (array $d): bool =>
                 $d['error'] === 'Identifiants incorrects'
             ));
 
@@ -98,7 +100,8 @@ class AdminControllerTest extends TestCase
 
         $view = $this->createMock(ViewRenderer::class);
         $view->expects($this->once())->method('render')
-            ->with('pages/admin-dashboard', $this->callback(fn (array $d) =>
+            ->with('pages/admin-dashboard', $this->callback(
+                fn (array $d): bool =>
                 isset($d['isFirst'], $d['updateAvailable'])
             ));
 
@@ -157,7 +160,8 @@ class AdminControllerTest extends TestCase
 
         $view = $this->createMock(ViewRenderer::class);
         $view->expects($this->once())->method('render')
-            ->with('pages/admin-change-password', $this->callback(fn (array $d) =>
+            ->with('pages/admin-change-password', $this->callback(
+                fn (array $d): bool =>
                 isset($d['version'])
             ));
 
@@ -397,11 +401,11 @@ class AdminControllerTest extends TestCase
         ?ViewRenderer     $view          = null,
     ): AdminController {
         $config    = $this->makeConfig();
-        $auth      = $auth          ?? $this->createMock(AuthService::class);
-        $adminRepo = $adminRepo     ?? $this->createMock(AdminRepository::class);
+        $auth ??= $this->createMock(AuthService::class);
+        $adminRepo ??= $this->createMock(AdminRepository::class);
         $pwdVal    = new PasswordValidator();
         $updSvc    = $updateService ?? $this->createMock(UpdateService::class);
-        $view      = $view          ?? $this->createMock(ViewRenderer::class);
+        $view ??= $this->createMock(ViewRenderer::class);
 
         return new AdminController($config, $auth, $adminRepo, $pwdVal, $updSvc, $view);
     }
@@ -409,7 +413,7 @@ class AdminControllerTest extends TestCase
     private function makeConfig(): Config
     {
         $tmp = sys_get_temp_dir() . '/ico_admin_cfg_' . uniqid();
-        mkdir($tmp, 0775, true);
+        mkdir($tmp, 0o775, true);
         file_put_contents($tmp . '/config.txt', "Test Site\nDesc\n");
         file_put_contents($tmp . '/version.txt', '1.0.0');
         $config = Config::fromFile($tmp . '/config.txt', $tmp . '/version.txt');

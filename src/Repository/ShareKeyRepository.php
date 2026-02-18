@@ -11,7 +11,9 @@ use PDO;
  */
 class ShareKeyRepository
 {
-    public function __construct(private readonly PDO $pdo) {}
+    public function __construct(private readonly PDO $pdo)
+    {
+    }
 
     /**
      * Retourne les clés de partage avec filtres optionnels.
@@ -67,6 +69,7 @@ class ShareKeyRepository
              AND s.expires_at > datetime("now")'
         );
         $stmt->execute([':key' => $key]);
+
         $row = $stmt->fetch();
 
         return $row !== false ? $row : null;
@@ -87,7 +90,7 @@ class ShareKeyRepository
             ? ($keyGenerator)()
             : bin2hex(random_bytes(32));
 
-        $expiresAt = date('Y-m-d H:i:s', strtotime("+{$durationHours} hours"));
+        $expiresAt = date('Y-m-d H:i:s', strtotime(sprintf('+%d hours', $durationHours)));
 
         $stmt = $this->pdo->prepare(
             'INSERT INTO share_keys (key_value, album_identifier, expires_at, comment)

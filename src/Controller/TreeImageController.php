@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ICO\Controller;
 
+use DirectoryIterator;
 use ICO\Config\Config;
 use ICO\Http\TerminateException;
 use ICO\Repository\LogRepository;
@@ -25,7 +26,8 @@ class TreeImageController
         private readonly AlbumService $albumService,
         private readonly LogRepository $logRepo,
         private readonly ViewRenderer  $view,
-    ) {}
+    ) {
+    }
 
     // -------------------------------------------------------------------------
     // arbre-img.php — images publiques (et carrousel)
@@ -148,7 +150,7 @@ class TreeImageController
             $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
 
             if (!in_array($extension, $allowedExts, true)) {
-                $errors[] = "Extension non autorisée pour $fileName";
+                $errors[] = 'Extension non autorisée pour ' . $fileName;
                 continue;
             }
 
@@ -168,20 +170,20 @@ class TreeImageController
             if (move_uploaded_file($tmpName, $destination)) {
                 $successCount++;
             } else {
-                $errors[] = "Erreur lors du déplacement de $fileName";
+                $errors[] = 'Erreur lors du déplacement de ' . $fileName;
             }
         }
 
         if ($successCount > 0) {
             $logAction  = $isPrivate ? 'UPLOAD_PRIVATE_IMAGES' : 'UPLOAD_IMAGES';
             $logMessage = $isPrivate
-                ? "Téléversement de $successCount image(s) privée(s)"
-                : "Téléversement de $successCount image(s)";
+                ? sprintf('Téléversement de %d image(s) privée(s)', $successCount)
+                : sprintf('Téléversement de %d image(s)', $successCount);
             $this->logRepo->log((int) $_SESSION['admin_id'], $logAction, $logMessage, $currentPath);
-            $_SESSION['success_message'] = "$successCount image(s) téléversée(s) avec succès.";
+            $_SESSION['success_message'] = $successCount . ' image(s) téléversée(s) avec succès.';
         }
 
-        if (!empty($errors)) {
+        if ($errors !== []) {
             $_SESSION['error_message'] = implode("\n", $errors);
         }
     }
@@ -193,7 +195,7 @@ class TreeImageController
             return;
         }
 
-        $imagePath = $currentPath . '/' . basename($image);
+        $imagePath = $currentPath . '/' . basename((string) $image);
         $secure    = $isPrivate
             ? $this->albumService->isSecurePrivatePath($imagePath)
             : $this->albumService->isSecurePath($imagePath);
@@ -203,7 +205,7 @@ class TreeImageController
         }
 
         $info  = pathinfo($imagePath);
-        $isTop = strpos($info['filename'], '--top--') !== false;
+        $isTop = str_contains($info['filename'], '--top--');
 
         $newName = $isTop
             ? str_replace('--top--', '', $info['filename']) . '.' . $info['extension']
@@ -242,13 +244,13 @@ class TreeImageController
         if ($deleteCount > 0) {
             $logAction  = $isPrivate ? 'DELETE_PRIVATE_IMAGES' : 'DELETE_IMAGES';
             $logMessage = $isPrivate
-                ? "Suppression de $deleteCount image(s) privée(s)"
-                : "Suppression de $deleteCount image(s)";
+                ? sprintf('Suppression de %d image(s) privée(s)', $deleteCount)
+                : sprintf('Suppression de %d image(s)', $deleteCount);
             $this->logRepo->log((int) $_SESSION['admin_id'], $logAction, $logMessage, $currentPath);
-            $_SESSION['success_message'] = "$deleteCount image(s) supprimée(s).";
+            $_SESSION['success_message'] = $deleteCount . ' image(s) supprimée(s).';
         }
 
-        if (!empty($errors)) {
+        if ($errors !== []) {
             $_SESSION['error_message'] = implode("\n", $errors);
         }
     }
@@ -294,13 +296,13 @@ class TreeImageController
             $this->logRepo->log(
                 (int) $_SESSION['admin_id'],
                 'MOVE_IMAGES',
-                "Déplacement de $moveCount image(s) vers " . basename($destinationPath),
+                sprintf('Déplacement de %d image(s) vers ', $moveCount) . basename((string) $destinationPath),
                 $currentPath . ' -> ' . $destinationPath,
             );
-            $_SESSION['success_message'] = "$moveCount image(s) déplacée(s) avec succès.";
+            $_SESSION['success_message'] = $moveCount . ' image(s) déplacée(s) avec succès.';
         }
 
-        if (!empty($errors)) {
+        if ($errors !== []) {
             $_SESSION['error_message'] = implode("\n", $errors);
         }
     }
@@ -319,17 +321,19 @@ class TreeImageController
         $allowedExts = $this->config->getAllowedExtensions();
         $temp        = [];
 
-        foreach (new \DirectoryIterator($path) as $file) {
+        foreach (new DirectoryIterator($path) as $file) {
             if ($file->isDot() || !$file->isFile()) {
                 continue;
             }
+
             if (!in_array(strtolower($file->getExtension()), $allowedExts, true)) {
                 continue;
             }
+
             $temp[] = ['name' => $file->getFilename(), 'time' => $file->getCTime()];
         }
 
-        usort($temp, static fn($a, $b) => $b['time'] - $a['time']);
+        usort($temp, static fn (array $a, array $b): int => $b['time'] - $a['time']);
 
         return array_column($temp, 'name');
     }
@@ -346,17 +350,19 @@ class TreeImageController
         $output = '';
         $indent = str_repeat('&nbsp;&nbsp;&nbsp;&nbsp;', $level);
 
-        foreach (new \DirectoryIterator($path) as $item) {
+        foreach (new DirectoryIterator($path) as $item) {
             if ($item->isDot() || !$item->isDir()) {
                 continue;
             }
+
             $fullPath = $item->getPathname();
 
             // Exclure le dossier courant et ses sous-dossiers, et le carrousel
-            if (strpos($fullPath, $currentPath) === 0) {
+            if (str_starts_with($fullPath, $currentPath)) {
                 continue;
             }
-            if (strpos($fullPath, './img_carrousel') === 0) {
+
+            if (str_starts_with($fullPath, './img_carrousel')) {
                 continue;
             }
 
@@ -366,6 +372,7 @@ class TreeImageController
                     . $indent . htmlspecialchars($info['title'])
                     . '</option>';
             }
+
             $output .= $this->generateFolderOptions($fullPath, $currentPath, $level + 1);
         }
 
@@ -381,7 +388,7 @@ class TreeImageController
         $basePath  = $this->config->getBasePath();
         $baseUrl   = $protocol . $_SERVER['HTTP_HOST'] . ($basePath !== '' ? '/' . $basePath : '');
 
-        if (strpos($currentPath, 'img_carrousel') !== false) {
+        if (str_contains($currentPath, 'img_carrousel')) {
             return $baseUrl . '/img_carrousel/' . $image;
         }
 
@@ -418,8 +425,7 @@ class TreeImageController
     {
         $filename = mb_strtolower($filename);
         $filename = preg_replace('/\s+/', '-', $filename) ?? $filename;
-        $filename = preg_replace('/[^a-z0-9\-_\.]/', '', $filename) ?? $filename;
-        return $filename;
+        return preg_replace('/[^a-z0-9\-_\.]/', '', $filename) ?? $filename;
     }
 
     // -------------------------------------------------------------------------
@@ -431,18 +437,16 @@ class TreeImageController
      */
     private function renderPublic(string $siteTitle, string $currentPath, array $images): void
     {
-        $isCarousel = strpos($currentPath, 'img_carrousel') !== false;
+        $isCarousel = str_contains($currentPath, 'img_carrousel');
         $pageTitle  = $isCarousel
             ? 'Images du carrousel'
             : 'Images de : ' . htmlspecialchars($this->albumService->getAlbumInfo($currentPath)['title']);
 
-        $imageData = array_map(function (string $image) use ($currentPath): array {
-            return [
-                'name'  => $image,
-                'url'   => $this->buildPublicImageUrl($currentPath, $image),
-                'isTop' => strpos($image, '--top--') !== false,
-            ];
-        }, $images);
+        $imageData = array_map(fn (string $image): array => [
+            'name'  => $image,
+            'url'   => $this->buildPublicImageUrl($currentPath, $image),
+            'isTop' => str_contains($image, '--top--'),
+        ], $images);
 
         $this->view->render('pages/tree-image-public', [
             'siteTitle'     => $siteTitle,
@@ -462,13 +466,11 @@ class TreeImageController
      */
     private function renderPrivate(string $siteTitle, string $currentPath, array $images, array $albumInfo): void
     {
-        $imageData = array_map(function (string $image) use ($currentPath): array {
-            return [
-                'name'  => $image,
-                'url'   => $this->buildPrivateImageUrl($currentPath, $image),
-                'isTop' => strpos($image, '--top--') !== false,
-            ];
-        }, $images);
+        $imageData = array_map(fn (string $image): array => [
+            'name'  => $image,
+            'url'   => $this->buildPrivateImageUrl($currentPath, $image),
+            'isTop' => str_contains($image, '--top--'),
+        ], $images);
 
         $this->view->render('pages/tree-image-private', [
             'siteTitle'    => $siteTitle,
@@ -489,153 +491,153 @@ class TreeImageController
     {
         $moveJs = $withMove ? <<<'JS'
 
-        function moveSelected() {
-            const checkboxes = document.querySelectorAll('.image-checkbox:checked');
-            if (checkboxes.length === 0) return;
+                    function moveSelected() {
+                        const checkboxes = document.querySelectorAll('.image-checkbox:checked');
+                        if (checkboxes.length === 0) return;
 
-            const container = document.getElementById('selected-images-container');
-            container.innerHTML = '';
+                        const container = document.getElementById('selected-images-container');
+                        container.innerHTML = '';
 
-            checkboxes.forEach(checkbox => {
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = 'images[]';
-                input.value = checkbox.value;
-                container.appendChild(input);
-            });
+                        checkboxes.forEach(checkbox => {
+                            const input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = 'images[]';
+                            input.value = checkbox.value;
+                            container.appendChild(input);
+                        });
 
-            document.getElementById('moveFolderModal').style.display = 'block';
-        }
+                        document.getElementById('moveFolderModal').style.display = 'block';
+                    }
 
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-        }
+                    function closeModal(modalId) {
+                        document.getElementById(modalId).style.display = 'none';
+                    }
 
-        window.onclick = function(event) {
-            if (event.target.classList.contains('modal')) {
-                event.target.style.display = 'none';
-            }
-        };
-JS : '';
+                    window.onclick = function(event) {
+                        if (event.target.classList.contains('modal')) {
+                            event.target.style.display = 'none';
+                        }
+                    };
+            JS : '';
 
         return <<<JS
-    <script>
-        function updateActionButtons() {
-            const checkboxes         = document.querySelectorAll('.image-checkbox');
-            const selectedCheckboxes = document.querySelectorAll('.image-checkbox:checked');
-            const count = selectedCheckboxes.length;
+                <script>
+                    function updateActionButtons() {
+                        const checkboxes         = document.querySelectorAll('.image-checkbox');
+                        const selectedCheckboxes = document.querySelectorAll('.image-checkbox:checked');
+                        const count = selectedCheckboxes.length;
 
-            const deleteBtn   = document.getElementById('deleteSelectedBtn');
-            const moveBtn     = document.getElementById('moveSelectedBtn');
-            const selectAllBtn = document.getElementById('selectAllBtn');
+                        const deleteBtn   = document.getElementById('deleteSelectedBtn');
+                        const moveBtn     = document.getElementById('moveSelectedBtn');
+                        const selectAllBtn = document.getElementById('selectAllBtn');
 
-            if (deleteBtn) deleteBtn.style.display = count > 0 ? 'inline-flex' : 'none';
-            if (moveBtn)   moveBtn.style.display   = count > 0 ? 'inline-flex' : 'none';
+                        if (deleteBtn) deleteBtn.style.display = count > 0 ? 'inline-flex' : 'none';
+                        if (moveBtn)   moveBtn.style.display   = count > 0 ? 'inline-flex' : 'none';
 
-            if (selectAllBtn) {
-                selectAllBtn.textContent = checkboxes.length === selectedCheckboxes.length
-                    ? 'Tout désélectionner'
-                    : 'Tout sélectionner';
-            }
-        }
-
-        function toggleSelectAll() {
-            const checkboxes = document.querySelectorAll('.image-checkbox');
-            const allChecked = document.querySelectorAll('.image-checkbox:checked').length === checkboxes.length;
-            checkboxes.forEach(cb => { cb.checked = !allChecked; });
-            updateActionButtons();
-        }
-
-        function deleteImage(imageName) {
-            if (confirm('Êtes-vous sûr de vouloir supprimer cette image ?')) {
-                const form = document.getElementById('imagesForm');
-                form.innerHTML = `
-                    <input type="hidden" name="action" value="delete">
-                    <input type="hidden" name="images[]" value="\${imageName}">
-                `;
-                form.submit();
-            }
-        }
-
-        function deleteSelected() {
-            const checkboxes = document.querySelectorAll('.image-checkbox:checked');
-            if (checkboxes.length > 0 && confirm('Êtes-vous sûr de vouloir supprimer les images sélectionnées ?')) {
-                document.getElementById('formAction').value = 'delete';
-                document.getElementById('imagesForm').submit();
-            }
-        }
-
-        function toggleTop(imageName) {
-            const form = document.createElement('form');
-            form.method = 'post';
-            form.innerHTML = `
-                <input type="hidden" name="action" value="toggle_top">
-                <input type="hidden" name="image" value="\${imageName}">
-            `;
-            document.body.appendChild(form);
-            form.submit();
-        }
-$moveJs
-        document.addEventListener('DOMContentLoaded', function() {
-            updateActionButtons();
-
-            const modal           = document.getElementById('uploadModal');
-            const dropZone        = document.getElementById('dropZone');
-            const uploadForm      = document.getElementById('uploadForm');
-            const imageUploadForm = document.getElementById('imageUploadForm');
-
-            if (uploadForm) {
-                uploadForm.addEventListener('submit', function() {
-                    const fileInput = this.querySelector('input[type="file"]');
-                    if (fileInput && fileInput.files && fileInput.files.length > 0) {
-                        modal.style.display = 'block';
+                        if (selectAllBtn) {
+                            selectAllBtn.textContent = checkboxes.length === selectedCheckboxes.length
+                                ? 'Tout désélectionner'
+                                : 'Tout sélectionner';
+                        }
                     }
-                });
-            }
 
-            if (imageUploadForm) {
-                imageUploadForm.addEventListener('change', function() {
-                    if (this.files && this.files.length > 0) {
-                        modal.style.display = 'block';
-                        uploadForm.submit();
+                    function toggleSelectAll() {
+                        const checkboxes = document.querySelectorAll('.image-checkbox');
+                        const allChecked = document.querySelectorAll('.image-checkbox:checked').length === checkboxes.length;
+                        checkboxes.forEach(cb => { cb.checked = !allChecked; });
+                        updateActionButtons();
                     }
-                });
-            }
 
-            if (dropZone) {
-                dropZone.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    dropZone.classList.add('drag-over');
-                });
-                dropZone.addEventListener('dragleave', () => {
-                    dropZone.classList.remove('drag-over');
-                });
-                dropZone.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    dropZone.classList.remove('drag-over');
-                    const files = e.dataTransfer.files;
-                    if (files.length > 0) {
-                        const dataTransfer = new DataTransfer();
-                        for (let file of files) { dataTransfer.items.add(file); }
-                        imageUploadForm.files = dataTransfer.files;
-                        modal.style.display = 'block';
-                        uploadForm.submit();
+                    function deleteImage(imageName) {
+                        if (confirm('Êtes-vous sûr de vouloir supprimer cette image ?')) {
+                            const form = document.getElementById('imagesForm');
+                            form.innerHTML = `
+                                <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="images[]" value="\x24{imageName}">
+                            `;
+                            form.submit();
+                        }
                     }
-                });
-            }
-        });
 
-        const scrollBtn = document.querySelector('.scroll-top');
-        if (scrollBtn) {
-            window.addEventListener('scroll', () => {
-                scrollBtn.style.display = window.scrollY > 500 ? 'flex' : 'none';
-            });
-            scrollBtn.addEventListener('click', () => {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            });
-        }
-    </script>
-    <button class="scroll-top" title="Retour en haut">↑</button>
-JS;
+                    function deleteSelected() {
+                        const checkboxes = document.querySelectorAll('.image-checkbox:checked');
+                        if (checkboxes.length > 0 && confirm('Êtes-vous sûr de vouloir supprimer les images sélectionnées ?')) {
+                            document.getElementById('formAction').value = 'delete';
+                            document.getElementById('imagesForm').submit();
+                        }
+                    }
+
+                    function toggleTop(imageName) {
+                        const form = document.createElement('form');
+                        form.method = 'post';
+                        form.innerHTML = `
+                            <input type="hidden" name="action" value="toggle_top">
+                            <input type="hidden" name="image" value="\x24{imageName}">
+                        `;
+                        document.body.appendChild(form);
+                        form.submit();
+                    }
+            {$moveJs}
+                    document.addEventListener('DOMContentLoaded', function() {
+                        updateActionButtons();
+
+                        const modal           = document.getElementById('uploadModal');
+                        const dropZone        = document.getElementById('dropZone');
+                        const uploadForm      = document.getElementById('uploadForm');
+                        const imageUploadForm = document.getElementById('imageUploadForm');
+
+                        if (uploadForm) {
+                            uploadForm.addEventListener('submit', function() {
+                                const fileInput = this.querySelector('input[type="file"]');
+                                if (fileInput && fileInput.files && fileInput.files.length > 0) {
+                                    modal.style.display = 'block';
+                                }
+                            });
+                        }
+
+                        if (imageUploadForm) {
+                            imageUploadForm.addEventListener('change', function() {
+                                if (this.files && this.files.length > 0) {
+                                    modal.style.display = 'block';
+                                    uploadForm.submit();
+                                }
+                            });
+                        }
+
+                        if (dropZone) {
+                            dropZone.addEventListener('dragover', (e) => {
+                                e.preventDefault();
+                                dropZone.classList.add('drag-over');
+                            });
+                            dropZone.addEventListener('dragleave', () => {
+                                dropZone.classList.remove('drag-over');
+                            });
+                            dropZone.addEventListener('drop', (e) => {
+                                e.preventDefault();
+                                dropZone.classList.remove('drag-over');
+                                const files = e.dataTransfer.files;
+                                if (files.length > 0) {
+                                    const dataTransfer = new DataTransfer();
+                                    for (let file of files) { dataTransfer.items.add(file); }
+                                    imageUploadForm.files = dataTransfer.files;
+                                    modal.style.display = 'block';
+                                    uploadForm.submit();
+                                }
+                            });
+                        }
+                    });
+
+                    const scrollBtn = document.querySelector('.scroll-top');
+                    if (scrollBtn) {
+                        window.addEventListener('scroll', () => {
+                            scrollBtn.style.display = window.scrollY > 500 ? 'flex' : 'none';
+                        });
+                        scrollBtn.addEventListener('click', () => {
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        });
+                    }
+                </script>
+                <button class="scroll-top" title="Retour en haut">↑</button>
+            JS;
     }
 }

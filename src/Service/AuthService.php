@@ -12,9 +12,11 @@ use ICO\Repository\AdminRepository;
 class AuthService
 {
     /** Durée de vie de session en secondes (24h). */
-    private const SESSION_TIMEOUT = 86400;
+    private const int SESSION_TIMEOUT = 86400;
 
-    public function __construct(private readonly AdminRepository $adminRepository) {}
+    public function __construct(private readonly AdminRepository $adminRepository)
+    {
+    }
 
     /**
      * Tente d'authentifier un admin par son username/mot de passe en clair.
@@ -29,7 +31,7 @@ class AuthService
             return false;
         }
 
-        if (!password_verify($password, $admin['password_hash'])) {
+        if (!password_verify($password, (string) $admin['password_hash'])) {
             return false;
         }
 
@@ -101,7 +103,7 @@ class AuthService
             return false;
         }
 
-        return password_verify($plainPassword, $admin['password_hash']);
+        return password_verify($plainPassword, (string) $admin['password_hash']);
     }
 
     /**

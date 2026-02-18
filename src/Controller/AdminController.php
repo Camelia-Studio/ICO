@@ -25,7 +25,8 @@ class AdminController
         private readonly PasswordValidator $passwordValidator,
         private readonly UpdateService     $updateService,
         private readonly ViewRenderer      $view,
-    ) {}
+    ) {
+    }
 
     // -------------------------------------------------------------------------
     // Dispatch
@@ -35,23 +36,13 @@ class AdminController
     {
         $action = $_GET['action'] ?? 'home';
 
-        switch ($action) {
-            case 'login':
-                $this->login();
-                break;
-            case 'logout':
-                $this->logout();
-                break;
-            case 'show_change_password':
-                $this->showChangePassword();
-                break;
-            case 'change_password':
-                $this->changePassword();
-                break;
-            default:
-                $this->home();
-                break;
-        }
+        match ($action) {
+            'login' => $this->login(),
+            'logout' => $this->logout(),
+            'show_change_password' => $this->showChangePassword(),
+            'change_password' => $this->changePassword(),
+            default => $this->home(),
+        };
     }
 
     // -------------------------------------------------------------------------
@@ -186,6 +177,7 @@ class AdminController
             $_SESSION['error_message'] = 'Une erreur est survenue lors du changement de mot de passe.';
             header('Location: admin.php?action=show_change_password');
         }
+
         throw new TerminateException();
     }
 }

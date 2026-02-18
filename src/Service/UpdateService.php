@@ -9,11 +9,15 @@ namespace ICO\Service;
  */
 class UpdateService
 {
-    private const TAGS_API_URL  = 'https://git.crystalyx.net/api/v1/repos/camelia-studio/ICO/tags';
-    private const TAG_URL_BASE  = 'https://git.crystalyx.net/camelia-studio/ICO/releases/tag/';
-    private const USER_AGENT    = 'ICO Gallery Update Checker';
+    private const string TAGS_API_URL  = 'https://git.crystalyx.net/api/v1/repos/camelia-studio/ICO/tags';
 
-    public function __construct(private readonly string $currentVersion) {}
+    private const string TAG_URL_BASE  = 'https://git.crystalyx.net/camelia-studio/ICO/releases/tag/';
+
+    private const string USER_AGENT    = 'ICO Gallery Update Checker';
+
+    public function __construct(private readonly string $currentVersion)
+    {
+    }
 
     // -------------------------------------------------------------------------
     // API publique
@@ -34,11 +38,13 @@ class UpdateService
 
         $tags = json_decode($response, true);
 
-        if (!is_array($tags) || empty($tags)) {
+        if (!is_array($tags) || $tags === []) {
             return null;
         }
 
-        usort($tags, static fn (array $a, array $b): int =>
+        usort(
+            $tags,
+            static fn (array $a, array $b): int =>
             strtotime((string) ($b['created_at'] ?? '')) - strtotime((string) ($a['created_at'] ?? ''))
         );
 
@@ -59,8 +65,8 @@ class UpdateService
      */
     public function compareVersions(string $v1, string $v2): int
     {
-        $parts1 = array_map('intval', explode('.', $v1));
-        $parts2 = array_map('intval', explode('.', $v2));
+        $parts1 = array_map(intval(...), explode('.', $v1));
+        $parts2 = array_map(intval(...), explode('.', $v2));
 
         for ($i = 0; $i < 3; $i++) {
             $a = $parts1[$i] ?? 0;
@@ -69,6 +75,7 @@ class UpdateService
             if ($a > $b) {
                 return 1;
             }
+
             if ($a < $b) {
                 return -1;
             }

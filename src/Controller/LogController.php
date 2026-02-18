@@ -22,10 +22,10 @@ use ICO\View\ViewRenderer;
 class LogController
 {
     /** Nombre de logs par page. */
-    private const PER_PAGE = 50;
+    private const int PER_PAGE = 50;
 
     /** Traduction des types d'actions. */
-    private const ACTION_TRANSLATIONS = [
+    private const array ACTION_TRANSLATIONS = [
         'ADD_USER'               => 'Ajouter un utilisateur',
         'EDIT_USER'              => 'Modifier un utilisateur',
         'DELETE_USER'            => 'Supprimer un utilisateur',
@@ -52,7 +52,8 @@ class LogController
         private readonly LogRepository   $logRepo,
         private readonly AdminRepository $adminRepo,
         private readonly ViewRenderer    $view,
-    ) {}
+    ) {
+    }
 
     // -------------------------------------------------------------------------
     // Action principale

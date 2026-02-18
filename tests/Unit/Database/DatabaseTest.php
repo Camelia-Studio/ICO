@@ -69,6 +69,7 @@ class DatabaseTest extends TestCase
 
         $pdo->exec('CREATE TABLE t (id INTEGER)');
         $pdo->exec('INSERT INTO t VALUES (42)');
+
         $row = $pdo->query('SELECT id FROM t')->fetch();
 
         $this->assertIsArray($row);
@@ -95,7 +96,7 @@ class DatabaseTest extends TestCase
     public function testInvalidPathThrowsRuntimeException(): void
     {
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageMatches('/Impossible d\'ouvrir/');
+        $this->expectExceptionMessageMatches("/Impossible d'ouvrir/");
 
         // Un chemin dans un dossier inexistant force PDO à lever une exception
         Database::getInstance('/nonexistent_directory_xyz/db.sqlite');

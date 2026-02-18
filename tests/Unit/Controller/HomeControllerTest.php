@@ -17,7 +17,7 @@ class HomeControllerTest extends TestCase
     protected function setUp(): void
     {
         $this->tmpDir = sys_get_temp_dir() . '/ico_home_test_' . uniqid();
-        mkdir($this->tmpDir, 0775, true);
+        mkdir($this->tmpDir, 0o775, true);
     }
 
     protected function tearDown(): void
@@ -30,7 +30,8 @@ class HomeControllerTest extends TestCase
         $config = $this->makeConfig();
         $view   = $this->createMock(ViewRenderer::class);
         $view->expects($this->once())->method('render')
-            ->with('pages/home', $this->callback(fn (array $d) =>
+            ->with('pages/home', $this->callback(
+                fn (array $d): bool =>
                 isset($d['carousel_images'], $d['site_title'], $d['site_description'])
                 && is_array($d['carousel_images'])
             ));
@@ -54,7 +55,7 @@ class HomeControllerTest extends TestCase
     public function testIndexReturnsCarouselImagesWhenPresent(): void
     {
         $carouselDir = $this->tmpDir . '/img_carrousel';
-        mkdir($carouselDir, 0775, true);
+        mkdir($carouselDir, 0o775, true);
         file_put_contents($carouselDir . '/photo.jpg', '');
         file_put_contents($carouselDir . '/photo2.png', '');
 
@@ -76,9 +77,9 @@ class HomeControllerTest extends TestCase
     public function testIndexCarouselLimitedToFive(): void
     {
         $carouselDir = $this->tmpDir . '/img_carrousel';
-        mkdir($carouselDir, 0775, true);
+        mkdir($carouselDir, 0o775, true);
         for ($i = 1; $i <= 8; $i++) {
-            file_put_contents($carouselDir . "/photo{$i}.jpg", '');
+            file_put_contents($carouselDir . sprintf('/photo%d.jpg', $i), '');
         }
 
         $config = $this->makeConfig();
@@ -99,7 +100,7 @@ class HomeControllerTest extends TestCase
     public function testIndexIgnoresNonImageFilesInCarousel(): void
     {
         $carouselDir = $this->tmpDir . '/img_carrousel';
-        mkdir($carouselDir, 0775, true);
+        mkdir($carouselDir, 0o775, true);
         file_put_contents($carouselDir . '/photo.jpg', '');
         file_put_contents($carouselDir . '/notes.txt', '');
         file_put_contents($carouselDir . '/data.json', '');
@@ -126,7 +127,7 @@ class HomeControllerTest extends TestCase
     private function makeConfig(): Config
     {
         $tmp = sys_get_temp_dir() . '/ico_home_cfg_' . uniqid();
-        mkdir($tmp, 0775, true);
+        mkdir($tmp, 0o775, true);
         file_put_contents($tmp . '/config.txt', "Mon Site\nDescription\n");
         file_put_contents($tmp . '/version.txt', '1.0.0');
         $config = Config::fromFile($tmp . '/config.txt', $tmp . '/version.txt');
@@ -146,13 +147,16 @@ class HomeControllerTest extends TestCase
         if (!is_dir($dir)) {
             return;
         }
+
         foreach (scandir($dir) ?: [] as $item) {
             if ($item === '.' || $item === '..') {
                 continue;
             }
+
             $path = $dir . '/' . $item;
             is_dir($path) ? $this->removeDirRecursive($path) : unlink($path);
         }
+
         rmdir($dir);
     }
 }

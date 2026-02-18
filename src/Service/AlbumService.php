@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace ICO\Service;
 
+use DirectoryIterator;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use SplFileInfo;
+
 /**
  * Gère l'accès aux albums (dossiers d'images).
  */
@@ -14,7 +19,8 @@ class AlbumService
         private readonly string $albumsRoot,
         private readonly string $privateRoot,
         private readonly array  $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'],
-    ) {}
+    ) {
+    }
 
     // -------------------------------------------------------------------------
     // Lecture des métadonnées
@@ -41,12 +47,15 @@ class AlbumService
             if (isset($lines[0]) && $lines[0] !== '') {
                 $info['title'] = trim($lines[0]);
             }
+
             if (isset($lines[1])) {
                 $info['description'] = trim($lines[1]);
             }
+
             if (isset($lines[2])) {
                 $info['mature_content'] = trim($lines[2]) === '18+';
             }
+
             if (isset($lines[3])) {
                 $info['more_info_url'] = trim($lines[3]);
             }
@@ -73,10 +82,11 @@ class AlbumService
 
         $images = [];
 
-        foreach (new \DirectoryIterator($albumPath) as $file) {
+        foreach (new DirectoryIterator($albumPath) as $file) {
             if ($file->isDot() || !$file->isFile()) {
                 continue;
             }
+
             if ($this->isAllowedExtension($file->getExtension())) {
                 $images[] = $file->getPathname();
             }
@@ -101,16 +111,17 @@ class AlbumService
 
         $images = [];
 
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($albumPath),
-            \RecursiveIteratorIterator::SELF_FIRST
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($albumPath),
+            RecursiveIteratorIterator::SELF_FIRST
         );
 
         foreach ($iterator as $file) {
-            /** @var \SplFileInfo $file */
+            /** @var SplFileInfo $file */
             if (!$file->isFile()) {
                 continue;
             }
+
             if ($this->isAllowedExtension($file->getExtension())) {
                 $parentInfo = $this->getAlbumInfo(dirname($file->getPathname()));
                 $images[]   = [
@@ -141,7 +152,7 @@ class AlbumService
             return false;
         }
 
-        foreach (new \DirectoryIterator($path) as $item) {
+        foreach (new DirectoryIterator($path) as $item) {
             if (!$item->isDot() && $item->isDir()) {
                 return true;
             }
@@ -159,10 +170,11 @@ class AlbumService
             return false;
         }
 
-        foreach (new \DirectoryIterator($path) as $item) {
+        foreach (new DirectoryIterator($path) as $item) {
             if ($item->isDot() || !$item->isFile()) {
                 continue;
             }
+
             if ($this->isAllowedExtension($item->getExtension())) {
                 return true;
             }
@@ -187,12 +199,7 @@ class AlbumService
         }
 
         $albumsReal = realpath($this->albumsRoot);
-
-        if ($albumsReal !== false && str_starts_with($realPath, $albumsReal)) {
-            return true;
-        }
-
-        return false;
+        return $albumsReal !== false && str_starts_with($realPath, $albumsReal);
     }
 
     /**

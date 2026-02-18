@@ -11,7 +11,9 @@ use PDO;
  */
 class AdminRepository
 {
-    public function __construct(private readonly PDO $pdo) {}
+    public function __construct(private readonly PDO $pdo)
+    {
+    }
 
     /**
      * Trouve un admin par son nom d'utilisateur.
@@ -25,6 +27,7 @@ class AdminRepository
             'SELECT id, username, password_hash, created_at FROM admins WHERE username = :username'
         );
         $stmt->execute([':username' => $username]);
+
         $row = $stmt->fetch();
 
         return $row !== false ? $row : null;
@@ -41,6 +44,7 @@ class AdminRepository
             'SELECT id, username, password_hash, created_at FROM admins WHERE id = :id'
         );
         $stmt->execute([':id' => $id]);
+
         $row = $stmt->fetch();
 
         return $row !== false ? $row : null;

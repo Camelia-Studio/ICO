@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ICO\Controller;
 
+use DirectoryIterator;
 use ICO\Config\Config;
 use ICO\Http\Request;
 use ICO\Http\Response;
@@ -22,7 +23,8 @@ class AlbumController
         private readonly Config       $config,
         private readonly AlbumService $albumService,
         private readonly ViewRenderer $view,
-    ) {}
+    ) {
+    }
 
     // -------------------------------------------------------------------------
     // Action principale
@@ -47,7 +49,7 @@ class AlbumController
         // Construire la liste des sous-albums
         $tempAlbums = [];
 
-        foreach (new \DirectoryIterator($currentPath) as $item) {
+        foreach (new DirectoryIterator($currentPath) as $item) {
             if ($item->isDot() || !$item->isDir()) {
                 continue;
             }

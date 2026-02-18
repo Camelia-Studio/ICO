@@ -109,7 +109,7 @@ class ShareKeyRepositoryTest extends TestCase
 
     public function testCreateInsertsKeyAndReturnsValue(): void
     {
-        $key = $this->repo->create('album-uuid', 24, 'test comment', fn() => 'fixed-key-value');
+        $key = $this->repo->create('album-uuid', 24, 'test comment', fn (): string => 'fixed-key-value');
 
         $this->assertSame('fixed-key-value', $key);
         $this->assertNotNull($this->repo->findValidByKey('fixed-key-value'));

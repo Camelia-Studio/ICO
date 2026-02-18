@@ -41,7 +41,8 @@ class Router
     public function __construct(
         private readonly string $projectRoot,
         private readonly string $basePath = '',
-    ) {}
+    ) {
+    }
 
     // -------------------------------------------------------------------------
     // Enregistrement des routes

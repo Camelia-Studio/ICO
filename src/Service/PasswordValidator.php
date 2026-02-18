@@ -35,7 +35,7 @@ class PasswordValidator
             return 'Le mot de passe doit contenir au moins une lettre majuscule.';
         }
 
-        if (!preg_match('/[0-9]/', $password)) {
+        if (!preg_match('/\d/', $password)) {
             return 'Le mot de passe doit contenir au moins un chiffre.';
         }
 

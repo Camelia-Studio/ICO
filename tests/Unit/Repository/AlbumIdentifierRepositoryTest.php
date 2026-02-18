@@ -84,14 +84,14 @@ class AlbumIdentifierRepositoryTest extends TestCase
     {
         $this->repo->create('existingid', './liste_albums/album');
 
-        $result = $this->repo->ensure('./liste_albums/album', fn() => 'shouldnotbeused');
+        $result = $this->repo->ensure('./liste_albums/album', fn (): string => 'shouldnotbeused');
 
         $this->assertSame('existingid', $result);
     }
 
     public function testEnsureCreatesNewIdentifierWhenNotExists(): void
     {
-        $result = $this->repo->ensure('./liste_albums/new', fn() => 'generatedid');
+        $result = $this->repo->ensure('./liste_albums/new', fn (): string => 'generatedid');
 
         $this->assertSame('generatedid', $result);
         $this->assertNotNull($this->repo->findByIdentifier('generatedid'));

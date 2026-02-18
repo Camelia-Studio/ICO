@@ -92,7 +92,7 @@ class LogRepositoryTest extends TestCase
     public function testFindAllRespectsPagination(): void
     {
         for ($i = 0; $i < 5; $i++) {
-            $this->repo->log(1, 'ADD_USER', "log $i");
+            $this->repo->log(1, 'ADD_USER', 'log ' . $i);
         }
 
         $page1 = $this->repo->findAll([], 2, 0);

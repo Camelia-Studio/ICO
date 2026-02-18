@@ -22,12 +22,12 @@ use ICO\View\ViewRenderer;
 class SettingsController
 {
     public function __construct(
-        private readonly Config        $config,
         private readonly AuthService   $authService,
         private readonly LogRepository $logRepo,
         private readonly string        $configFile,
         private readonly ViewRenderer  $view,
-    ) {}
+    ) {
+    }
 
     // -------------------------------------------------------------------------
     // Action principale (GET + POST)
@@ -63,6 +63,7 @@ class SettingsController
             $successMessage = $_SESSION['success_message'];
             unset($_SESSION['success_message']);
         }
+
         if (isset($_SESSION['error_message'])) {
             $errorMessage = $_SESSION['error_message'];
             unset($_SESSION['error_message']);

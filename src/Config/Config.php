@@ -9,20 +9,21 @@ namespace ICO\Config;
  *
  * Instanciation via Config::fromFile() — lecture unique en mémoire.
  */
-final class Config
+final readonly class Config
 {
     /** Extensions d'images autorisées */
-    private const EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif'];
+    private const array EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif'];
 
     /** Durée de vie de session en secondes (24h) */
-    private const SESSION_LIFETIME = 86400;
+    private const int SESSION_LIFETIME = 86400;
 
     private function __construct(
-        private readonly string $siteTitle,
-        private readonly string $siteDescription,
-        private readonly string $basePath,
-        private readonly string $version,
-    ) {}
+        private string $siteTitle,
+        private string $siteDescription,
+        private string $basePath,
+        private string $version,
+    ) {
+    }
 
     /**
      * Construit l'instance depuis les fichiers config.txt et version.txt.

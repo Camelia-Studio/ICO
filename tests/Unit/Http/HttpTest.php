@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace ICO\Tests\Unit\Http;
 
-use ICO\Controller\AlbumController;
 use ICO\Controller\AdminController;
+use ICO\Controller\AlbumController;
 use ICO\Controller\HomeController;
 use ICO\Http\Request;
 use ICO\Http\Response;
@@ -307,6 +307,7 @@ class HttpTest extends TestCase
     {
         $router = new Router('/var/www/ico', '');
         $router->add('/custom.php', 'custom.php');
+
         $req = new Request('GET', '/custom.php');
 
         $this->assertSame('/var/www/ico/custom.php', $router->resolve($req));
@@ -336,7 +337,7 @@ class HttpTest extends TestCase
             $req = new Request('GET', $page);
             $this->assertNotNull(
                 $router->resolve($req),
-                "La route $page devrait être résolue"
+                sprintf('La route %s devrait être résolue', $page)
             );
         }
     }

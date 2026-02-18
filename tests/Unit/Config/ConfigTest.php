@@ -14,7 +14,7 @@ class ConfigTest extends TestCase
     protected function setUp(): void
     {
         $this->tmpDir = sys_get_temp_dir() . '/ico_config_test_' . uniqid();
-        mkdir($this->tmpDir, 0775, true);
+        mkdir($this->tmpDir, 0o775, true);
     }
 
     protected function tearDown(): void
@@ -22,6 +22,7 @@ class ConfigTest extends TestCase
         foreach (glob($this->tmpDir . '/*') ?: [] as $file) {
             unlink($file);
         }
+
         rmdir($this->tmpDir);
     }
 

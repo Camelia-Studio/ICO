@@ -14,6 +14,7 @@ class AuthServiceTest extends TestCase
     use DatabaseTestTrait;
 
     private AdminRepository $adminRepo;
+
     private AuthService     $auth;
 
     protected function setUp(): void
@@ -26,6 +27,7 @@ class AuthServiceTest extends TestCase
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
+
         $_SESSION = [];
     }
 

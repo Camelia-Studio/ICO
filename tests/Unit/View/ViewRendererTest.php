@@ -11,12 +11,13 @@ use RuntimeException;
 class ViewRendererTest extends TestCase
 {
     private string $tmpDir;
+
     private ViewRenderer $renderer;
 
     protected function setUp(): void
     {
         $this->tmpDir   = sys_get_temp_dir() . '/ico_view_test_' . uniqid();
-        mkdir($this->tmpDir, 0775, true);
+        mkdir($this->tmpDir, 0o775, true);
         $this->renderer = new ViewRenderer($this->tmpDir);
     }
 
@@ -90,7 +91,7 @@ class ViewRendererTest extends TestCase
 
     public function testRenderLayoutOutputsPartialContent(): void
     {
-        mkdir($this->tmpDir . '/layout', 0775, true);
+        mkdir($this->tmpDir . '/layout', 0o775, true);
         file_put_contents($this->tmpDir . '/layout/header.php', '<header>ICO</header>');
 
         ob_start();
@@ -102,7 +103,7 @@ class ViewRendererTest extends TestCase
 
     public function testRenderLayoutInjectsData(): void
     {
-        mkdir($this->tmpDir . '/layout', 0775, true);
+        mkdir($this->tmpDir . '/layout', 0o775, true);
         file_put_contents($this->tmpDir . '/layout/footer.php', '<?php echo $version; ?>');
 
         ob_start();
@@ -129,13 +130,16 @@ class ViewRendererTest extends TestCase
         if (!is_dir($dir)) {
             return;
         }
+
         foreach (scandir($dir) ?: [] as $item) {
             if ($item === '.' || $item === '..') {
                 continue;
             }
+
             $path = $dir . '/' . $item;
             is_dir($path) ? $this->removeDirRecursive($path) : unlink($path);
         }
+
         rmdir($dir);
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ICO\Controller;
 
+use DirectoryIterator;
 use ICO\Config\Config;
 use ICO\Http\Request;
 use ICO\View\ViewRenderer;
@@ -16,13 +17,14 @@ use ICO\View\ViewRenderer;
 class HomeController
 {
     /** Extensions acceptées pour le carousel */
-    private const CAROUSEL_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif'];
+    private const array CAROUSEL_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif'];
 
     public function __construct(
         private readonly Config       $config,
         private readonly string       $projectRoot,
         private readonly ViewRenderer $view,
-    ) {}
+    ) {
+    }
 
     // -------------------------------------------------------------------------
     // Action principale
@@ -55,16 +57,17 @@ class HomeController
         $carouselDir = $this->projectRoot . '/img_carrousel';
 
         if (!is_dir($carouselDir)) {
-            mkdir($carouselDir, 0775, true);
+            mkdir($carouselDir, 0o775, true);
             return [];
         }
 
         $images = [];
 
-        foreach (new \DirectoryIterator($carouselDir) as $file) {
+        foreach (new DirectoryIterator($carouselDir) as $file) {
             if ($file->isDot() || !$file->isFile()) {
                 continue;
             }
+
             if (in_array(strtolower($file->getExtension()), self::CAROUSEL_EXTENSIONS, true)) {
                 $images[] = str_replace('\\', '/', $file->getPathname());
             }

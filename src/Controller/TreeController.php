@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ICO\Controller;
 
+use DirectoryIterator;
 use ICO\Config\Config;
 use ICO\Http\TerminateException;
 use ICO\Repository\AlbumIdentifierRepository;
@@ -28,7 +29,8 @@ class TreeController
         private readonly AlbumIdentifierRepository  $albumIdentRepo,
         private readonly ShareKeyRepository         $shareKeyRepo,
         private readonly ViewRenderer               $view,
-    ) {}
+    ) {
+    }
 
     // -------------------------------------------------------------------------
     // arbre.php — albums publics
@@ -72,13 +74,14 @@ class TreeController
                     $newPath = $path . '/' . $this->fileService->sanitizeFilename($newName);
                     if (!file_exists($newPath)) {
                         $moreInfoUrl  = $_POST['more_info_url'] ?? '';
-                        mkdir($newPath, 0775, true);
+                        mkdir($newPath, 0o775, true);
                         $infoContent = $newName . "\n" . $description . "\n" . $matureContent . "\n" . $moreInfoUrl;
                         file_put_contents($newPath . '/infos.txt', $infoContent);
                         $_SESSION['success_message'] = 'Dossier créé avec succès.';
                     } else {
                         $_SESSION['error_message'] = 'Ce dossier existe déjà.';
                     }
+
                     $this->logRepo->log(
                         (int) $_SESSION['admin_id'],
                         'CREATE_FOLDER',
@@ -86,6 +89,7 @@ class TreeController
                         $newPath,
                     );
                 }
+
                 break;
 
             case 'edit_folder':
@@ -97,6 +101,7 @@ class TreeController
                     } else {
                         $_SESSION['error_message'] = 'Erreur lors de la modification du dossier.';
                     }
+
                     $this->logRepo->log(
                         (int) $_SESSION['admin_id'],
                         'EDIT_FOLDER',
@@ -104,6 +109,7 @@ class TreeController
                         $path,
                     );
                 }
+
                 break;
 
             case 'delete_folder':
@@ -117,6 +123,7 @@ class TreeController
                     $this->fileService->deleteDirectoryRecursively($path);
                     $_SESSION['success_message'] = 'Dossier supprimé avec succès.';
                 }
+
                 break;
         }
     }
@@ -134,7 +141,7 @@ class TreeController
 
         // Créer le dossier racine privé si nécessaire
         if (!file_exists('./liste_albums_prives')) {
-            mkdir('./liste_albums_prives', 0775, true);
+            mkdir('./liste_albums_prives', 0o775, true);
             file_put_contents('./liste_albums_prives/infos.txt', "Albums privés\nVos albums photos privés\n18-\n");
         }
 
@@ -210,13 +217,14 @@ class TreeController
                     $newPath = $path . '/' . $this->fileService->sanitizeFilename($newName);
                     if (!file_exists($newPath)) {
                         $moreInfoUrl  = $_POST['more_info_url'] ?? '';
-                        mkdir($newPath, 0775, true);
+                        mkdir($newPath, 0o775, true);
                         $infoContent = $newName . "\n" . $description . "\n" . $matureContent . "\n" . $moreInfoUrl;
                         file_put_contents($newPath . '/infos.txt', $infoContent);
                         $_SESSION['success_message'] = 'Dossier privé créé avec succès.';
                     } else {
                         $_SESSION['error_message'] = 'Ce dossier existe déjà.';
                     }
+
                     $this->logRepo->log(
                         (int) $_SESSION['admin_id'],
                         'CREATE_PRIVATE_FOLDER',
@@ -224,6 +232,7 @@ class TreeController
                         $newPath,
                     );
                 }
+
                 break;
 
             case 'edit_folder':
@@ -235,6 +244,7 @@ class TreeController
                     } else {
                         $_SESSION['error_message'] = 'Erreur lors de la modification du dossier.';
                     }
+
                     $this->logRepo->log(
                         (int) $_SESSION['admin_id'],
                         'EDIT_PRIVATE_FOLDER',
@@ -242,6 +252,7 @@ class TreeController
                         $path,
                     );
                 }
+
                 break;
 
             case 'delete_folder':
@@ -255,6 +266,7 @@ class TreeController
                     $this->fileService->deleteDirectoryRecursively($path);
                     $_SESSION['success_message'] = 'Dossier privé supprimé avec succès.';
                 }
+
                 break;
         }
     }
@@ -282,6 +294,7 @@ class TreeController
                 $output .= '<a href="arbre-img.php?path=' . urlencode($carouselPath) . '" class="tree-button carousel-button" title="Gérer les images">🖼️</a>';
                 $output .= '</div></div></li>';
             }
+
             $info = $this->albumService->getAlbumInfo($path);
             $output .= '<li class="tree-item root-folder' . ($path === $currentPath ? ' active' : '') . '">';
             $output .= '<div class="tree-item-content">';
@@ -289,23 +302,26 @@ class TreeController
             if ($info['mature_content']) {
                 $output .= ' <span class="mature-warning">🔞</span>';
             }
+
             $output .= '</span>';
             $output .= '<div class="tree-actions">';
-            $output .= '<button onclick="editFolder(\'' . htmlspecialchars($path) . '\', \'' . rawurlencode($info['title']) . '\', \'' . rawurlencode($info['description']) . '\', ' . ($info['mature_content'] ? 'true' : 'false') . ', \'' . rawurlencode($info['more_info_url']) . '\', ' . ($this->albumService->hasImages($path) ? 'true' : 'false') . ')" class="tree-button">✏️</button>';
+            $output .= '<button onclick="editFolder(\'' . htmlspecialchars($path) . "', '" . rawurlencode($info['title']) . "', '" . rawurlencode($info['description']) . "', " . ($info['mature_content'] ? 'true' : 'false') . ", '" . rawurlencode($info['more_info_url']) . "', " . ($this->albumService->hasImages($path) ? 'true' : 'false') . ')" class="tree-button">✏️</button>';
             $output .= '<button onclick="createSubfolder(\'' . htmlspecialchars($path) . '\')" class="tree-button">➕</button>';
             $output .= '</div></div>';
         }
 
         // Sous-dossiers triés alphabétiquement
         $dirs = [];
-        foreach (new \DirectoryIterator($path) as $item) {
+        foreach (new DirectoryIterator($path) as $item) {
             if ($item->isDot() || !$item->isDir()) {
                 continue;
             }
+
             $fullPath = $item->getPathname();
             $info     = $this->albumService->getAlbumInfo($fullPath);
             $dirs[$info['title']] = $fullPath;
         }
+
         ksort($dirs, SORT_STRING | SORT_FLAG_CASE);
 
         foreach ($dirs as $fullPath) {
@@ -320,27 +336,29 @@ class TreeController
             if ($info['mature_content']) {
                 $output .= ' <span class="mature-warning">🔞</span>';
             }
+
             $output .= '</span>';
             $output .= '<div class="tree-actions">';
             if (!$hasSubfolders) {
                 $output .= '<a href="arbre-img.php?path=' . urlencode($fullPath) . '" class="tree-button" style="text-decoration: none">🖼️</a>';
             }
+
             if (!$hasSubfolders) {
-                $output .= '<button onclick="editFolder(\'' . htmlspecialchars($fullPath) . '\', \'' . rawurlencode($info['title']) . '\', \'' . rawurlencode($info['description']) . '\', ' . ($info['mature_content'] ? 'true' : 'false') . ', \'' . rawurlencode($info['more_info_url']) . '\', ' . ($hasImages ? 'true' : 'false') . ')" class="tree-button">✏️</button>';
+                $output .= '<button onclick="editFolder(\'' . htmlspecialchars($fullPath) . "', '" . rawurlencode($info['title']) . "', '" . rawurlencode($info['description']) . "', " . ($info['mature_content'] ? 'true' : 'false') . ", '" . rawurlencode($info['more_info_url']) . "', " . ($hasImages ? 'true' : 'false') . ')" class="tree-button">✏️</button>';
             } else {
-                $output .= '<button onclick="editFolder(\'' . htmlspecialchars($fullPath) . '\', \'' . rawurlencode($info['title']) . '\', \'' . rawurlencode($info['description']) . '\', ' . ($info['mature_content'] ? 'true' : 'false') . ', \'\', false)" class="tree-button">✏️</button>';
+                $output .= '<button onclick="editFolder(\'' . htmlspecialchars($fullPath) . "', '" . rawurlencode($info['title']) . "', '" . rawurlencode($info['description']) . "', " . ($info['mature_content'] ? 'true' : 'false') . ', \'\', false)" class="tree-button">✏️</button>';
             }
+
             if (!$hasImages) {
                 $output .= '<button onclick="createSubfolder(\'' . htmlspecialchars($fullPath) . '\')" class="tree-button">➕</button>';
             }
+
             $output .= '<button onclick="deleteFolder(\'' . htmlspecialchars($fullPath) . '\')" class="tree-button tree-button-danger">🗑️</button>';
             $output .= '</div></div>';
             $output .= $this->generatePublicTree($fullPath, $currentPath);
             $output .= '</li>';
         }
-
-        $output .= '</ul>';
-        return $output;
+        return $output . '</ul>';
     }
 
     private function generatePrivateTree(string $path, string $currentPath): string
@@ -360,22 +378,25 @@ class TreeController
             if ($info['mature_content']) {
                 $output .= ' <span class="mature-warning">🔞</span>';
             }
+
             $output .= '</span>';
             $output .= '<div class="tree-actions">';
-            $output .= '<button onclick="editFolder(\'' . htmlspecialchars($path) . '\', \'' . rawurlencode($info['title']) . '\', \'' . rawurlencode($info['description']) . '\', ' . ($info['mature_content'] ? 'true' : 'false') . ', \'' . rawurlencode($info['more_info_url']) . '\', ' . ($this->albumService->hasImages($path) ? 'true' : 'false') . ')" class="tree-button">✏️</button>';
+            $output .= '<button onclick="editFolder(\'' . htmlspecialchars($path) . "', '" . rawurlencode($info['title']) . "', '" . rawurlencode($info['description']) . "', " . ($info['mature_content'] ? 'true' : 'false') . ", '" . rawurlencode($info['more_info_url']) . "', " . ($this->albumService->hasImages($path) ? 'true' : 'false') . ')" class="tree-button">✏️</button>';
             $output .= '<button onclick="createSubfolder(\'' . htmlspecialchars($path) . '\')" class="tree-button">➕</button>';
             $output .= '</div></div>';
         }
 
         $dirs = [];
-        foreach (new \DirectoryIterator($path) as $item) {
+        foreach (new DirectoryIterator($path) as $item) {
             if ($item->isDot() || !$item->isDir()) {
                 continue;
             }
+
             $fullPath = $item->getPathname();
             $info     = $this->albumService->getAlbumInfo($fullPath);
             $dirs[$info['title']] = $fullPath;
         }
+
         ksort($dirs, SORT_STRING | SORT_FLAG_CASE);
 
         foreach ($dirs as $fullPath) {
@@ -390,6 +411,7 @@ class TreeController
             if ($info['mature_content']) {
                 $output .= ' <span class="mature-warning">🔞</span>';
             }
+
             $output .= '</span>';
             $output .= '<div class="tree-actions">';
             if (!$hasSubfolders) {
@@ -397,25 +419,26 @@ class TreeController
                 if ($hasImages) {
                     $encodedPath  = htmlspecialchars(addslashes($fullPath));
                     $encodedTitle = htmlspecialchars(addslashes($info['title']));
-                    $output .= '<button onclick="generateShareLink(\'' . $encodedPath . '\', \'' . $encodedTitle . '\')" class="tree-button tree-button-share" title="Générer un lien de partage">🔗</button>';
+                    $output .= '<button onclick="generateShareLink(\'' . $encodedPath . "', '" . $encodedTitle . '\')" class="tree-button tree-button-share" title="Générer un lien de partage">🔗</button>';
                 }
             }
+
             if (!$hasSubfolders) {
-                $output .= '<button onclick="editFolder(\'' . htmlspecialchars($fullPath) . '\', \'' . rawurlencode($info['title']) . '\', \'' . rawurlencode($info['description']) . '\', ' . ($info['mature_content'] ? 'true' : 'false') . ', \'' . rawurlencode($info['more_info_url']) . '\', ' . ($hasImages ? 'true' : 'false') . ')" class="tree-button">✏️</button>';
+                $output .= '<button onclick="editFolder(\'' . htmlspecialchars($fullPath) . "', '" . rawurlencode($info['title']) . "', '" . rawurlencode($info['description']) . "', " . ($info['mature_content'] ? 'true' : 'false') . ", '" . rawurlencode($info['more_info_url']) . "', " . ($hasImages ? 'true' : 'false') . ')" class="tree-button">✏️</button>';
             } else {
-                $output .= '<button onclick="editFolder(\'' . htmlspecialchars($fullPath) . '\', \'' . rawurlencode($info['title']) . '\', \'' . rawurlencode($info['description']) . '\', ' . ($info['mature_content'] ? 'true' : 'false') . ', \'\', false)" class="tree-button">✏️</button>';
+                $output .= '<button onclick="editFolder(\'' . htmlspecialchars($fullPath) . "', '" . rawurlencode($info['title']) . "', '" . rawurlencode($info['description']) . "', " . ($info['mature_content'] ? 'true' : 'false') . ', \'\', false)" class="tree-button">✏️</button>';
             }
+
             if (!$hasImages) {
                 $output .= '<button onclick="createSubfolder(\'' . htmlspecialchars($fullPath) . '\')" class="tree-button">➕</button>';
             }
+
             $output .= '<button onclick="deleteFolder(\'' . htmlspecialchars($fullPath) . '\')" class="tree-button tree-button-danger">🗑️</button>';
             $output .= '</div></div>';
             $output .= $this->generatePrivateTree($fullPath, $currentPath);
             $output .= '</li>';
         }
-
-        $output .= '</ul>';
-        return $output;
+        return $output . '</ul>';
     }
 
     // -------------------------------------------------------------------------
@@ -446,52 +469,52 @@ class TreeController
     private function renderTreeScripts(): string
     {
         return <<<'JS'
-    <script>
-    function createSubfolder(path) {
-        document.getElementById('parentPath').value = path;
-        document.getElementById('createFolderModal').style.display = 'block';
-    }
+                <script>
+                function createSubfolder(path) {
+                    document.getElementById('parentPath').value = path;
+                    document.getElementById('createFolderModal').style.display = 'block';
+                }
 
-    function editFolder(path, title, description, matureContent, moreInfoUrl, hasImages) {
-        document.getElementById('editPath').value = path;
-        document.getElementById('edit_name').value = decodeURIComponent(title);
-        document.getElementById('edit_description').value = decodeURIComponent(description);
-        document.getElementById('edit_mature_content').checked = matureContent;
-        document.getElementById('edit_more_info_url').value = decodeURIComponent(moreInfoUrl);
-        const field = document.getElementById('edit_more_info_url_field');
-        const show  = hasImages === true || hasImages === 'true';
-        if (field) {
-            field.style.display = show ? 'block' : 'none';
-            if (!show) document.getElementById('edit_more_info_url').value = '';
-        }
-        document.getElementById('editFolderModal').style.display = 'block';
-    }
+                function editFolder(path, title, description, matureContent, moreInfoUrl, hasImages) {
+                    document.getElementById('editPath').value = path;
+                    document.getElementById('edit_name').value = decodeURIComponent(title);
+                    document.getElementById('edit_description').value = decodeURIComponent(description);
+                    document.getElementById('edit_mature_content').checked = matureContent;
+                    document.getElementById('edit_more_info_url').value = decodeURIComponent(moreInfoUrl);
+                    const field = document.getElementById('edit_more_info_url_field');
+                    const show  = hasImages === true || hasImages === 'true';
+                    if (field) {
+                        field.style.display = show ? 'block' : 'none';
+                        if (!show) document.getElementById('edit_more_info_url').value = '';
+                    }
+                    document.getElementById('editFolderModal').style.display = 'block';
+                }
 
-    function deleteFolder(path) {
-        document.getElementById('deletePath').value = path;
-        document.getElementById('deleteFolderModal').style.display = 'block';
-    }
+                function deleteFolder(path) {
+                    document.getElementById('deletePath').value = path;
+                    document.getElementById('deleteFolderModal').style.display = 'block';
+                }
 
-    function closeModal() {
-        document.getElementById('createFolderModal').style.display = 'none';
-        document.getElementById('editFolderModal').style.display = 'none';
-        document.getElementById('deleteFolderModal').style.display = 'none';
-    }
+                function closeModal() {
+                    document.getElementById('createFolderModal').style.display = 'none';
+                    document.getElementById('editFolderModal').style.display = 'none';
+                    document.getElementById('deleteFolderModal').style.display = 'none';
+                }
 
-    window.onclick = function(event) {
-        if (event.target.classList.contains('modal')) closeModal();
-    }
-    </script>
-    <button class="scroll-top" title="Retour en haut">↑</button>
-    <script>
-    const scrollBtn = document.querySelector('.scroll-top');
-    window.addEventListener('scroll', () => {
-        scrollBtn.style.display = window.scrollY > 500 ? 'flex' : 'none';
-    });
-    scrollBtn.addEventListener('click', () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
-    </script>
-JS;
+                window.onclick = function(event) {
+                    if (event.target.classList.contains('modal')) closeModal();
+                }
+                </script>
+                <button class="scroll-top" title="Retour en haut">↑</button>
+                <script>
+                const scrollBtn = document.querySelector('.scroll-top');
+                window.addEventListener('scroll', () => {
+                    scrollBtn.style.display = window.scrollY > 500 ? 'flex' : 'none';
+                });
+                scrollBtn.addEventListener('click', () => {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+                </script>
+            JS;
     }
 }

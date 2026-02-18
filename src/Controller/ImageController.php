@@ -24,7 +24,8 @@ class ImageController
     public function __construct(
         private readonly AlbumService      $albumService,
         private readonly ShareKeyRepository $shareKeyRepo,
-    ) {}
+    ) {
+    }
 
     // -------------------------------------------------------------------------
     // Action principale
@@ -52,11 +53,9 @@ class ImageController
                 Response::html('', 403)->send();
                 throw new TerminateException();
             }
-        } else {
-            if ($key === '' || $this->shareKeyRepo->findValidByKey($key) === null) {
-                Response::html('', 403)->send();
-                throw new TerminateException();
-            }
+        } elseif ($key === '' || $this->shareKeyRepo->findValidByKey($key) === null) {
+            Response::html('', 403)->send();
+            throw new TerminateException();
         }
 
         // Envoi du fichier

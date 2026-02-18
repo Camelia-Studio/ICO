@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace ICO\Tests\Unit\Controller;
 
+use ICO\Config\Config;
 use ICO\Controller\LogController;
 use ICO\Controller\SettingsController;
 use ICO\Controller\ShareController;
-use ICO\Config\Config;
 use ICO\Http\Request;
 use ICO\Http\TerminateException;
 use ICO\Repository\AdminRepository;
@@ -69,19 +69,15 @@ class ControllerTest extends TestCase
         $tmpFile = tempnam(sys_get_temp_dir(), 'ico_settings_');
         file_put_contents($tmpFile, "Mon Site\nDescription\nmon-ico");
 
-        $config     = $this->makeConfig();
         $authMock   = $this->createMock(AuthService::class);
         $logMock    = $this->createMock(LogRepository::class);
         $viewMock   = $this->createMock(ViewRenderer::class);
 
         $authMock->method('isLoggedIn')->willReturn(true);
         $viewMock->expects($this->once())->method('render')
-            ->with('pages/settings', $this->callback(function (array $data) {
-                return isset($data['site_title'], $data['site_description'], $data['project_path']);
-            }));
+            ->with('pages/settings', $this->callback(fn (array $data) => isset($data['site_title'], $data['site_description'], $data['project_path'])));
 
         $controller = new SettingsController(
-            $config,
             $authMock,
             $logMock,
             $tmpFile,
@@ -98,19 +94,15 @@ class ControllerTest extends TestCase
         $tmpFile = tempnam(sys_get_temp_dir(), 'ico_settings_');
         file_put_contents($tmpFile, "Titre\nDesc\n");
 
-        $config   = $this->makeConfig();
         $authMock = $this->createMock(AuthService::class);
         $logMock  = $this->createMock(LogRepository::class);
         $viewMock = $this->createMock(ViewRenderer::class);
 
         $authMock->method('isLoggedIn')->willReturn(true);
         $viewMock->expects($this->once())->method('render')
-            ->with('pages/settings', $this->callback(function (array $data) {
-                return $data['error_message'] === 'Le titre du site est requis.';
-            }));
+            ->with('pages/settings', $this->callback(fn (array $data) => $data['error_message'] === 'Le titre du site est requis.'));
 
         $controller = new SettingsController(
-            $config,
             $authMock,
             $logMock,
             $tmpFile,
@@ -132,6 +124,7 @@ class ControllerTest extends TestCase
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
+
         $_SESSION['admin_id'] = 1;
 
         $config    = $this->makeConfig();
@@ -149,9 +142,7 @@ class ControllerTest extends TestCase
         $logMock->method('findDistinctActionTypes')->willReturn([]);
 
         $viewMock->expects($this->once())->method('render')
-            ->with('pages/logs', $this->callback(function (array $data) {
-                return isset($data['logs'], $data['admins'], $data['filters'], $data['total']);
-            }));
+            ->with('pages/logs', $this->callback(fn (array $data) => isset($data['logs'], $data['admins'], $data['filters'], $data['total'])));
 
         $controller = new LogController($config, $authMock, $logMock, $adminMock, $viewMock);
         $req = new Request('GET', '/logs.php');
@@ -171,10 +162,8 @@ class ControllerTest extends TestCase
         $viewMock     = $this->createMock(ViewRenderer::class);
 
         $viewMock->expects($this->once())->method('render')
-            ->with('pages/share', $this->callback(function (array $data) {
-                return $data['is_private_image'] === false
-                    && $data['filename'] === 'photo.jpg';
-            }));
+            ->with('pages/share', $this->callback(fn (array $data) => $data['is_private_image'] === false
+                && $data['filename'] === 'photo.jpg'));
 
         $controller = new ShareController($config, $shareKeyMock, $viewMock);
         $req = new Request('GET', '/partage.php', ['image' => 'https://example.com/photo.jpg']);
@@ -193,9 +182,7 @@ class ControllerTest extends TestCase
         ]);
 
         $viewMock->expects($this->once())->method('render')
-            ->with('pages/share', $this->callback(function (array $data) {
-                return $data['is_private_image'] === true;
-            }));
+            ->with('pages/share', $this->callback(fn (array $data) => $data['is_private_image'] === true));
 
         // Simuler une session admin inexistante
         unset($_SESSION['admin_id']);
@@ -248,7 +235,6 @@ class ControllerTest extends TestCase
         $tmpFile = tempnam(sys_get_temp_dir(), 'ico_settings_');
         file_put_contents($tmpFile, "Mon Site\nDescription\nmon-ico");
 
-        $config   = $this->makeConfig();
         $authMock = $this->createMock(AuthService::class);
         $logMock  = $this->createMock(LogRepository::class);
         $viewMock = $this->createMock(ViewRenderer::class);
@@ -256,7 +242,7 @@ class ControllerTest extends TestCase
         $authMock->method('isLoggedIn')->willReturn(false);
         $viewMock->expects($this->never())->method('render');
 
-        $controller = new SettingsController($config, $authMock, $logMock, $tmpFile, $viewMock);
+        $controller = new SettingsController($authMock, $logMock, $tmpFile, $viewMock);
 
         $this->expectException(TerminateException::class);
         $controller->index(new Request('GET', '/personnalisation.php'));
@@ -273,7 +259,6 @@ class ControllerTest extends TestCase
             session_start();
         }
 
-        $config   = $this->makeConfig();
         $authMock = $this->createMock(AuthService::class);
         $logMock  = $this->createMock(LogRepository::class);
         $viewMock = $this->createMock(ViewRenderer::class);
@@ -283,7 +268,7 @@ class ControllerTest extends TestCase
         $logMock->expects($this->once())->method('log');
         $viewMock->expects($this->never())->method('render');
 
-        $controller = new SettingsController($config, $authMock, $logMock, $tmpFile, $viewMock);
+        $controller = new SettingsController($authMock, $logMock, $tmpFile, $viewMock);
         $req = new Request('POST', '/personnalisation.php', [], [
             'site_title'       => 'New Title',
             'site_description' => 'New Desc',
@@ -304,22 +289,20 @@ class ControllerTest extends TestCase
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
+
         $_SESSION['success_message'] = 'Sauvegardé';
         $_SESSION['error_message']   = 'Erreur test';
 
-        $config   = $this->makeConfig();
         $authMock = $this->createMock(AuthService::class);
         $logMock  = $this->createMock(LogRepository::class);
         $viewMock = $this->createMock(ViewRenderer::class);
 
         $authMock->method('isLoggedIn')->willReturn(true);
         $viewMock->expects($this->once())->method('render')
-            ->with('pages/settings', $this->callback(function (array $data): bool {
-                return $data['success_message'] === 'Sauvegardé'
-                    && $data['error_message'] === 'Erreur test';
-            }));
+            ->with('pages/settings', $this->callback(fn (array $data): bool => $data['success_message'] === 'Sauvegardé'
+                && $data['error_message'] === 'Erreur test'));
 
-        $controller = new SettingsController($config, $authMock, $logMock, $tmpFile, $viewMock);
+        $controller = new SettingsController($authMock, $logMock, $tmpFile, $viewMock);
         $controller->index(new Request('GET', '/personnalisation.php'));
 
         unlink($tmpFile);
@@ -331,18 +314,15 @@ class ControllerTest extends TestCase
         $missingFile = sys_get_temp_dir() . '/ico_nofile_' . uniqid() . '.txt';
         // deliberately do NOT create the file
 
-        $config   = $this->makeConfig();
         $authMock = $this->createMock(AuthService::class);
         $logMock  = $this->createMock(LogRepository::class);
         $viewMock = $this->createMock(ViewRenderer::class);
 
         $authMock->method('isLoggedIn')->willReturn(true);
         $viewMock->expects($this->once())->method('render')
-            ->with('pages/settings', $this->callback(function (array $data): bool {
-                return $data['site_title'] === 'ICO';
-            }));
+            ->with('pages/settings', $this->callback(fn (array $data): bool => $data['site_title'] === 'ICO'));
 
-        $controller = new SettingsController($config, $authMock, $logMock, $missingFile, $viewMock);
+        $controller = new SettingsController($authMock, $logMock, $missingFile, $viewMock);
         $controller->index(new Request('GET', '/personnalisation.php'));
     }
 
@@ -355,6 +335,7 @@ class ControllerTest extends TestCase
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
+
         unset($_SESSION['admin_id']);
 
         $config    = $this->makeConfig();
@@ -378,6 +359,7 @@ class ControllerTest extends TestCase
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
+
         $_SESSION['admin_id'] = 2;
 
         $config    = $this->makeConfig();
@@ -407,7 +389,7 @@ class ControllerTest extends TestCase
     private function makeConfig(): Config
     {
         $tmp = sys_get_temp_dir() . '/ico_ctrl_test_' . uniqid();
-        mkdir($tmp, 0775, true);
+        mkdir($tmp, 0o775, true);
         file_put_contents($tmp . '/config.txt', "Test Site\nDescription\n");
         file_put_contents($tmp . '/version.txt', '1.0.0');
 

@@ -61,14 +61,14 @@ final class Container
         $basePath = $config->getBasePath();
         $baseUrl  = $protocol . $host . ($basePath !== '' ? '/' . $basePath : '');
 
-        $container->setParameter('project_root',  $projectRoot);
-        $container->setParameter('base_url',      $baseUrl);
-        $container->setParameter('config_file',   $projectRoot . '/config.txt');
-        $container->setParameter('albums_root',   $projectRoot . '/liste_albums');
-        $container->setParameter('private_root',  $projectRoot . '/liste_albums_prives');
-        $container->setParameter('allowed_exts',  $config->getAllowedExtensions());
-        $container->setParameter('db_path',       $projectRoot . '/database.sqlite');
-        $container->setParameter('views_dir',     $projectRoot . '/src/View');
+        $container->setParameter('project_root', $projectRoot);
+        $container->setParameter('base_url', $baseUrl);
+        $container->setParameter('config_file', $projectRoot . '/config.txt');
+        $container->setParameter('albums_root', $projectRoot . '/liste_albums');
+        $container->setParameter('private_root', $projectRoot . '/liste_albums_prives');
+        $container->setParameter('allowed_exts', $config->getAllowedExtensions());
+        $container->setParameter('db_path', $projectRoot . '/database.sqlite');
+        $container->setParameter('views_dir', $projectRoot . '/src/View');
         $container->setParameter('current_version', $config->getVersion());
 
         // -------------------------------------------------------------------------

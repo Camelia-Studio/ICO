@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace ICO\Service;
 
+use Exception;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use SplFileInfo;
+
 /**
  * Utilitaires de manipulation de fichiers.
  */
@@ -62,7 +67,7 @@ class FileService
 
         try {
             $info = getimagesize($path);
-        } catch (\Exception) {
+        } catch (Exception) {
             return null;
         }
 
@@ -115,13 +120,13 @@ class FileService
             return false;
         }
 
-        $items = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST
+        $items = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST
         );
 
         foreach ($items as $item) {
-            /** @var \SplFileInfo $item */
+            /** @var SplFileInfo $item */
             if ($item->isDir()) {
                 rmdir($item->getPathname());
             } else {

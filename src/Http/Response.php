@@ -21,7 +21,8 @@ class Response
         private readonly string $body       = '',
         private readonly int    $statusCode = 200,
         private readonly array  $headers    = [],
-    ) {}
+    ) {
+    }
 
     // -------------------------------------------------------------------------
     // Factory helpers
@@ -49,7 +50,7 @@ class Response
     public static function json(mixed $data, int $status = 200): self
     {
         return new self(
-            (string) json_encode($data, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR),
+            json_encode($data, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR),
             $status,
             ['Content-Type' => 'application/json; charset=UTF-8'],
         );

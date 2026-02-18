@@ -24,7 +24,8 @@ class ShareController
         private readonly Config             $config,
         private readonly ShareKeyRepository $shareKeyRepo,
         private readonly ViewRenderer       $view,
-    ) {}
+    ) {
+    }
 
     // -------------------------------------------------------------------------
     // Action principale

@@ -11,7 +11,9 @@ use PDO;
  */
 class AlbumIdentifierRepository
 {
-    public function __construct(private readonly PDO $pdo) {}
+    public function __construct(private readonly PDO $pdo)
+    {
+    }
 
     /**
      * Retourne l'identifiant UUID d'un album à partir de son chemin filesystem.
@@ -23,6 +25,7 @@ class AlbumIdentifierRepository
             'SELECT identifier FROM album_identifiers WHERE path = :path'
         );
         $stmt->execute([':path' => $path]);
+
         $row = $stmt->fetch();
 
         return $row !== false ? $row['identifier'] : null;
@@ -39,6 +42,7 @@ class AlbumIdentifierRepository
             'SELECT identifier, path FROM album_identifiers WHERE identifier = :identifier'
         );
         $stmt->execute([':identifier' => $identifier]);
+
         $row = $stmt->fetch();
 
         return $row !== false ? $row : null;

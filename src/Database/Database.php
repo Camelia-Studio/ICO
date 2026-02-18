@@ -28,11 +28,11 @@ final class Database
             $this->pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
             // Active les clés étrangères (désactivées par défaut dans SQLite)
             $this->pdo->exec('PRAGMA foreign_keys = ON');
-        } catch (PDOException $e) {
+        } catch (PDOException $pdoException) {
             throw new RuntimeException(
-                'Impossible d\'ouvrir la base de données : ' . $e->getMessage(),
+                'Impossible d\'ouvrir la base de données : ' . $pdoException->getMessage(),
                 0,
-                $e
+                $pdoException
             );
         }
     }
@@ -45,7 +45,7 @@ final class Database
      */
     public static function getInstance(string $dbPath = 'database.sqlite'): self
     {
-        if (self::$instance === null) {
+        if (!self::$instance instanceof \ICO\Database\Database) {
             self::$instance = new self($dbPath);
         }
 

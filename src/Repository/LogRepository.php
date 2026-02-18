@@ -11,7 +11,9 @@ use PDO;
  */
 class LogRepository
 {
-    public function __construct(private readonly PDO $pdo) {}
+    public function __construct(private readonly PDO $pdo)
+    {
+    }
 
     /**
      * Insère une entrée de log.
@@ -57,6 +59,7 @@ class LogRepository
         foreach ($params as $key => $value) {
             $stmt->bindValue($key, $value);
         }
+
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         $stmt->execute();
@@ -73,7 +76,7 @@ class LogRepository
     {
         [$where, $params] = $this->buildWhereClause($filters);
 
-        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM admin_logs l {$where}");
+        $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM admin_logs l ' . $where);
         $stmt->execute($params);
 
         return (int) $stmt->fetchColumn();
@@ -142,7 +145,7 @@ class LogRepository
             }
         }
 
-        $where = !empty($conditions) ? 'WHERE ' . implode(' AND ', $conditions) : '';
+        $where = $conditions === [] ? '' : 'WHERE ' . implode(' AND ', $conditions);
 
         return [$where, $params];
     }

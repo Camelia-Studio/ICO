@@ -32,7 +32,8 @@ class ShareKeyController
         private readonly LogRepository             $logRepo,
         private readonly string                    $baseUrl,
         private readonly ViewRenderer              $view,
-    ) {}
+    ) {
+    }
 
     // -------------------------------------------------------------------------
     // Action principale (GET + POST)
@@ -69,8 +70,8 @@ class ShareKeyController
             $enrichedKeys[] = array_merge($key, [
                 'album_title'    => $albumInfo['title'],
                 'album_mature'   => $albumInfo['mature_content'],
-                'share_url'      => $this->baseUrl . '/galeries-privees.php?key=' . urlencode($key['key_value']),
-                'is_expired'     => strtotime($key['expires_at']) <= time(),
+                'share_url'      => $this->baseUrl . '/galeries-privees.php?key=' . urlencode((string) $key['key_value']),
+                'is_expired'     => strtotime((string) $key['expires_at']) <= time(),
             ]);
         }
 
@@ -119,7 +120,7 @@ class ShareKeyController
         }
 
         if ($adminId !== null) {
-            $this->logRepo->log($adminId, 'DELETE_SHARE_KEY', "Suppression d'une clé de partage", "ID: {$keyId}");
+            $this->logRepo->log($adminId, 'DELETE_SHARE_KEY', "Suppression d'une clé de partage", 'ID: ' . $keyId);
         }
 
         return ['Clé supprimée avec succès.', ''];
@@ -134,12 +135,12 @@ class ShareKeyController
             $this->logRepo->log(
                 $adminId,
                 'CLEAN_EXPIRED_KEYS',
-                "Nettoyage de {$count} clé(s) de partage expirée(s)",
+                sprintf('Nettoyage de %d clé(s) de partage expirée(s)', $count),
             );
         }
 
         $msg = $count > 0
-            ? "{$count} clé(s) expirée(s) supprimée(s)."
+            ? $count . ' clé(s) expirée(s) supprimée(s).'
             : 'Aucune clé expirée à supprimer.';
 
         return [$msg, ''];

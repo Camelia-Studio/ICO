@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace ICO\Controller;
 
 use ICO\Config\Config;
-use ICO\Http\Request;
 use ICO\Http\Response;
 use ICO\Http\TerminateException;
 use ICO\Repository\AdminRepository;
@@ -28,7 +27,8 @@ class UserController
         private readonly LogRepository     $logRepo,
         private readonly PasswordValidator $passwordValidator,
         private readonly ViewRenderer      $view,
-    ) {}
+    ) {
+    }
 
     // -------------------------------------------------------------------------
     // Dispatch
@@ -142,6 +142,7 @@ class UserController
                 $_SESSION['error_message'] = $error;
                 return;
             }
+
             $hash = $this->auth->hashPassword($password);
         }
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ICO\Controller;
 
+use DirectoryIterator;
 use ICO\Config\Config;
 use ICO\Http\Request;
 use ICO\Http\Response;
@@ -22,7 +23,7 @@ use ICO\View\ViewRenderer;
 class GalleryController
 {
     /** Extensions d'images autorisées */
-    private const EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif'];
+    private const array EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif'];
 
     public function __construct(
         private readonly Config              $config,
@@ -32,7 +33,8 @@ class GalleryController
         private readonly string              $projectRoot,
         private readonly string              $baseUrl,
         private readonly ViewRenderer        $view,
-    ) {}
+    ) {
+    }
 
     // -------------------------------------------------------------------------
     // Galerie publique (galeries.php)
@@ -56,15 +58,15 @@ class GalleryController
         $images    = $this->buildPublicImageList($currentPath);
 
         $parentPath = realpath(dirname($currentPath)) ?: './liste_albums';
-        if (!$this->albumService->isSecurePath((string) $parentPath)) {
+        if (!$this->albumService->isSecurePath($parentPath)) {
             $parentPath = './liste_albums';
         }
 
         $this->view->render('pages/gallery-public', [
             'album_info'   => $albumInfo,
             'images'       => $images,
-            'header_image' => !empty($images) ? $images[0]['url'] : null,
-            'parent_path'  => (string) $parentPath,
+            'header_image' => $images === [] ? null : $images[0]['url'],
+            'parent_path'  => $parentPath,
             'site_title'   => $this->config->getSiteTitle(),
         ]);
     }
@@ -106,7 +108,7 @@ class GalleryController
             'error_message' => null,
             'album_data'    => $albumData,
             'images'        => $images,
-            'header_image'  => !empty($images) ? $images[0]['url'] : null,
+            'header_image'  => $images === [] ? null : $images[0]['url'],
             'share_key'     => $shareKey,
             'site_title'    => $this->config->getSiteTitle(),
         ]);
@@ -125,14 +127,16 @@ class GalleryController
     {
         $items = [];
 
-        foreach (new \DirectoryIterator($path) as $file) {
+        foreach (new DirectoryIterator($path) as $file) {
             if ($file->isDot() || !$file->isFile()) {
                 continue;
             }
+
             $ext = strtolower($file->getExtension());
             if (!in_array($ext, self::EXTENSIONS, true)) {
                 continue;
             }
+
             $relativePath = str_replace('\\', '/', substr($file->getPathname(), strlen(realpath($this->projectRoot) . '/')));
             $url   = $this->baseUrl . '/' . ltrim($relativePath, '/');
             $isTop = str_contains(basename($url), '--top--');
@@ -146,8 +150,14 @@ class GalleryController
         }
 
         usort($items, static function (array $a, array $b): int {
-            if ($a['is_top'] && !$b['is_top']) return -1;
-            if (!$a['is_top'] && $b['is_top']) return 1;
+            if ($a['is_top'] && !$b['is_top']) {
+                return -1;
+            }
+
+            if (!$a['is_top'] && $b['is_top']) {
+                return 1;
+            }
+
             return 0;
         });
 
@@ -167,14 +177,16 @@ class GalleryController
 
         $items = [];
 
-        foreach (new \DirectoryIterator($path) as $file) {
+        foreach (new DirectoryIterator($path) as $file) {
             if ($file->isDot() || !$file->isFile()) {
                 continue;
             }
+
             $ext = strtolower($file->getExtension());
             if (!in_array($ext, self::EXTENSIONS, true)) {
                 continue;
             }
+
             if (!file_exists($file->getPathname())) {
                 continue;
             }
@@ -191,8 +203,14 @@ class GalleryController
         }
 
         usort($items, static function (array $a, array $b): int {
-            if ($a['is_top'] && !$b['is_top']) return -1;
-            if (!$a['is_top'] && $b['is_top']) return 1;
+            if ($a['is_top'] && !$b['is_top']) {
+                return -1;
+            }
+
+            if (!$a['is_top'] && $b['is_top']) {
+                return 1;
+            }
+
             return 0;
         });
 
