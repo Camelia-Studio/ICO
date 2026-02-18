@@ -11,13 +11,13 @@ jobs:
       image: php:8.3-cli
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
       - name: Install system dependencies
         run: |
           apt-get update -qq
-          apt-get install -y --no-install-recommends unzip git
+          apt-get install -y --no-install-recommends unzip git ca-certificates
+
+      - name: Checkout
+        run: git clone --depth=1 --branch="${GITHUB_REF_NAME}" "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git" .
 
       - name: Install Composer
         run: |
@@ -41,13 +41,13 @@ jobs:
       image: php:8.3-cli
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
       - name: Install system dependencies
         run: |
           apt-get update -qq
-          apt-get install -y --no-install-recommends unzip git
+          apt-get install -y --no-install-recommends unzip git ca-certificates
+
+      - name: Checkout
+        run: git clone --depth=1 --branch="${GITHUB_REF_NAME}" "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git" .
 
       - name: Install Composer
         run: |
@@ -68,13 +68,13 @@ jobs:
       image: php:8.3-cli
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
       - name: Install system dependencies
         run: |
           apt-get update -qq
-          apt-get install -y --no-install-recommends unzip git
+          apt-get install -y --no-install-recommends unzip git ca-certificates
+
+      - name: Checkout
+        run: git clone --depth=1 --branch="${GITHUB_REF_NAME}" "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git" .
 
       - name: Install Composer
         run: |
@@ -95,13 +95,13 @@ jobs:
       image: php:8.3-cli
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
       - name: Install system dependencies
         run: |
           apt-get update -qq
-          apt-get install -y --no-install-recommends unzip git
+          apt-get install -y --no-install-recommends unzip git ca-certificates
+
+      - name: Checkout
+        run: git clone --depth=1 --branch="${GITHUB_REF_NAME}" "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git" .
 
       - name: Install Composer
         run: |
