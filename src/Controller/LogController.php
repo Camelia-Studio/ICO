@@ -7,6 +7,7 @@ namespace ICO\Controller;
 use ICO\Config\Config;
 use ICO\Http\Request;
 use ICO\Http\Response;
+use ICO\Http\TerminateException;
 use ICO\Repository\AdminRepository;
 use ICO\Repository\LogRepository;
 use ICO\Service\AuthService;
@@ -65,7 +66,7 @@ class LogController
     {
         if (!$this->authService->isLoggedIn()) {
             Response::redirect('admin.php?action=login')->send();
-            exit;
+            throw new TerminateException();
         }
 
         // Seul le premier admin peut consulter les logs
@@ -75,7 +76,7 @@ class LogController
         if ($adminId !== $firstAdminId) {
             $_SESSION['error_message'] = 'Accès non autorisé. Seul le premier administrateur peut consulter les logs.';
             Response::redirect('admin.php')->send();
-            exit;
+            throw new TerminateException();
         }
 
         // Purge automatique des logs > 1 mois

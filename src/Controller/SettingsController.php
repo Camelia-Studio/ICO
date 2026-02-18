@@ -7,6 +7,7 @@ namespace ICO\Controller;
 use ICO\Config\Config;
 use ICO\Http\Request;
 use ICO\Http\Response;
+use ICO\Http\TerminateException;
 use ICO\Repository\LogRepository;
 use ICO\Service\AuthService;
 use ICO\View\ViewRenderer;
@@ -40,7 +41,7 @@ class SettingsController
     {
         if (!$this->authService->isLoggedIn()) {
             Response::redirect('admin.php?action=login')->send();
-            exit;
+            throw new TerminateException();
         }
 
         $successMessage = '';
@@ -53,7 +54,7 @@ class SettingsController
             if ($successMessage !== '') {
                 $_SESSION['success_message'] = $successMessage;
                 Response::redirect('personnalisation.php')->send();
-                exit;
+                throw new TerminateException();
             }
         }
 

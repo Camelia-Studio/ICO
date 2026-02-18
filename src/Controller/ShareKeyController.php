@@ -7,6 +7,7 @@ namespace ICO\Controller;
 use ICO\Config\Config;
 use ICO\Http\Request;
 use ICO\Http\Response;
+use ICO\Http\TerminateException;
 use ICO\Repository\AlbumIdentifierRepository;
 use ICO\Repository\LogRepository;
 use ICO\Repository\ShareKeyRepository;
@@ -45,7 +46,7 @@ class ShareKeyController
     {
         if (!$this->authService->isLoggedIn()) {
             Response::redirect('admin.php?action=login')->send();
-            exit;
+            throw new TerminateException();
         }
 
         $successMessage = '';

@@ -22,6 +22,7 @@ use ICO\Container;
 use ICO\Http\Request;
 use ICO\Http\Response;
 use ICO\Http\Router;
+use ICO\Http\TerminateException;
 
 // --- Configuration -----------------------------------------------------------
 
@@ -68,7 +69,11 @@ if ($handler === null) {
 if (is_array($handler)) {
     [$controllerClass, $method] = $handler;
     $controller = $container->get($controllerClass);
-    $controller->$method($request);
+    try {
+        $controller->$method($request);
+    } catch (TerminateException) {
+        // Expected termination from legacy controllers
+    }
     exit;
 }
 

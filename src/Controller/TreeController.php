@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ICO\Controller;
 
 use ICO\Config\Config;
+use ICO\Http\TerminateException;
 use ICO\Repository\AlbumIdentifierRepository;
 use ICO\Repository\LogRepository;
 use ICO\Repository\ShareKeyRepository;
@@ -37,19 +38,19 @@ class TreeController
     {
         if (!$this->auth->isLoggedIn()) {
             header('Location: admin.php?action=login');
-            exit;
+            throw new TerminateException();
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->handlePublicPost();
             header('Location: arbre.php');
-            exit;
+            throw new TerminateException();
         }
 
         $currentPath = realpath($_GET['path'] ?? './liste_albums') ?: realpath('./liste_albums');
         if (!$currentPath || !$this->albumService->isSecurePath($currentPath)) {
             header('Location: arbre.php');
-            exit;
+            throw new TerminateException();
         }
 
         $siteTitle = $this->config->getSiteTitle();
@@ -128,7 +129,7 @@ class TreeController
     {
         if (!$this->auth->isLoggedIn()) {
             header('Location: admin.php?action=login');
-            exit;
+            throw new TerminateException();
         }
 
         // Créer le dossier racine privé si nécessaire
@@ -141,19 +142,19 @@ class TreeController
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'generate_link') {
             $this->handleGenerateLink();
             header('Location: arbre-prive.php');
-            exit;
+            throw new TerminateException();
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->handlePrivatePost();
             header('Location: arbre-prive.php');
-            exit;
+            throw new TerminateException();
         }
 
         $currentPath = realpath($_GET['path'] ?? './liste_albums_prives') ?: realpath('./liste_albums_prives');
         if (!$currentPath || !$this->albumService->isSecurePrivatePath($currentPath)) {
             header('Location: arbre-prive.php');
-            exit;
+            throw new TerminateException();
         }
 
         $siteTitle = $this->config->getSiteTitle();

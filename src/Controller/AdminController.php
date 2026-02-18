@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ICO\Controller;
 
 use ICO\Config\Config;
+use ICO\Http\TerminateException;
 use ICO\Repository\AdminRepository;
 use ICO\Service\AuthService;
 use ICO\Service\PasswordValidator;
@@ -65,7 +66,7 @@ class AdminController
 
             if ($this->auth->login($username, $password)) {
                 header('Location: admin.php');
-                exit;
+                throw new TerminateException();
             }
 
             $this->renderLogin('Identifiants incorrects');
@@ -91,7 +92,7 @@ class AdminController
     {
         $this->auth->logout();
         header('Location: admin.php');
-        exit;
+        throw new TerminateException();
     }
 
     // -------------------------------------------------------------------------
@@ -102,7 +103,7 @@ class AdminController
     {
         if (!$this->auth->isLoggedIn()) {
             header('Location: admin.php?action=login');
-            exit;
+            throw new TerminateException();
         }
 
         $adminId  = $_SESSION['admin_id'];
@@ -130,7 +131,7 @@ class AdminController
     {
         if (!$this->auth->isLoggedIn()) {
             header('Location: admin.php?action=login');
-            exit;
+            throw new TerminateException();
         }
 
         $this->view->render('pages/admin-change-password', [
@@ -142,12 +143,12 @@ class AdminController
     {
         if (!$this->auth->isLoggedIn()) {
             header('Location: admin.php?action=login');
-            exit;
+            throw new TerminateException();
         }
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             header('Location: admin.php');
-            exit;
+            throw new TerminateException();
         }
 
         $currentPassword = $_POST['current_password'] ?? '';
@@ -159,21 +160,21 @@ class AdminController
         if ($error !== null) {
             $_SESSION['error_message'] = $error;
             header('Location: admin.php?action=show_change_password');
-            exit;
+            throw new TerminateException();
         }
 
         // Vérifier que les deux nouveaux mots de passe correspondent
         if ($newPassword !== $confirmPassword) {
             $_SESSION['error_message'] = 'Les deux nouveaux mots de passe ne correspondent pas.';
             header('Location: admin.php?action=show_change_password');
-            exit;
+            throw new TerminateException();
         }
 
         // Vérifier l'ancien mot de passe via AuthService
         if (!$this->auth->verifyPassword((int) $_SESSION['admin_id'], $currentPassword)) {
             $_SESSION['error_message'] = 'Le mot de passe actuel est incorrect.';
             header('Location: admin.php?action=show_change_password');
-            exit;
+            throw new TerminateException();
         }
 
         // Mettre à jour
@@ -185,6 +186,6 @@ class AdminController
             $_SESSION['error_message'] = 'Une erreur est survenue lors du changement de mot de passe.';
             header('Location: admin.php?action=show_change_password');
         }
-        exit;
+        throw new TerminateException();
     }
 }

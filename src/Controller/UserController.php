@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace ICO\Controller;
 
 use ICO\Config\Config;
+use ICO\Http\Request;
+use ICO\Http\Response;
+use ICO\Http\TerminateException;
 use ICO\Repository\AdminRepository;
 use ICO\Repository\LogRepository;
 use ICO\Service\AuthService;
@@ -35,8 +38,8 @@ class UserController
     {
         // Auth
         if (!$this->auth->isLoggedIn()) {
-            header('Location: admin.php?action=login');
-            exit;
+            Response::redirect('admin.php?action=login')->send();
+            throw new TerminateException();
         }
 
         // Accès premier admin uniquement
@@ -45,14 +48,14 @@ class UserController
 
         if ($adminId !== $firstId) {
             $_SESSION['error_message'] = 'Accès non autorisé. Seul le premier administrateur peut gérer les comptes.';
-            header('Location: admin.php');
-            exit;
+            Response::redirect('admin.php')->send();
+            throw new TerminateException();
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->handlePost();
-            header('Location: utilisateurs.php');
-            exit;
+            Response::redirect('utilisateurs.php')->send();
+            throw new TerminateException();
         }
 
         $this->renderList();

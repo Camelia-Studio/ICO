@@ -7,6 +7,7 @@ namespace ICO\Controller;
 use ICO\Config\Config;
 use ICO\Http\Request;
 use ICO\Http\Response;
+use ICO\Http\TerminateException;
 use ICO\Repository\ShareKeyRepository;
 use ICO\View\ViewRenderer;
 
@@ -39,7 +40,7 @@ class ShareController
 
         if ($imageUrl === '') {
             Response::redirect('index.php')->send();
-            exit;
+            throw new TerminateException();
         }
 
         $isPrivateImage = false;
@@ -57,7 +58,7 @@ class ShareController
                     // Vérification de la clé de partage
                     if ($key === '' || $this->shareKeyRepo->findValidByKey($key) === null) {
                         Response::redirect('index.php')->send();
-                        exit;
+                        throw new TerminateException();
                     }
                 } else {
                     // Admin : on substitue la clé par la session admin dans l'URL

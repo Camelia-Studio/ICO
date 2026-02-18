@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ICO\Controller;
 
 use ICO\Config\Config;
+use ICO\Http\TerminateException;
 use ICO\Repository\LogRepository;
 use ICO\Service\AlbumService;
 use ICO\Service\AuthService;
@@ -34,19 +35,19 @@ class TreeImageController
     {
         if (!$this->auth->isLoggedIn()) {
             header('Location: admin.php?action=login');
-            exit;
+            throw new TerminateException();
         }
 
         $currentPath = realpath($_GET['path'] ?? './liste_albums') ?: '';
         if (!$currentPath || !$this->albumService->isSecurePath($currentPath)) {
             header('Location: arbre.php');
-            exit;
+            throw new TerminateException();
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->handlePublicPost($currentPath);
             header('Location: arbre-img.php?path=' . urlencode($currentPath));
-            exit;
+            throw new TerminateException();
         }
 
         $images    = $this->listImages($currentPath);
@@ -85,19 +86,19 @@ class TreeImageController
     {
         if (!$this->auth->isLoggedIn()) {
             header('Location: admin.php?action=login');
-            exit;
+            throw new TerminateException();
         }
 
         $currentPath = realpath($_GET['path'] ?? './liste_albums_prives') ?: '';
         if (!$currentPath || !$this->albumService->isSecurePrivatePath($currentPath)) {
             header('Location: arbre-prive.php');
-            exit;
+            throw new TerminateException();
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->handlePrivatePost($currentPath);
             header('Location: arbre-img-prive.php?path=' . urlencode($currentPath));
-            exit;
+            throw new TerminateException();
         }
 
         $images    = $this->listImages($currentPath);

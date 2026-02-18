@@ -7,6 +7,7 @@ namespace ICO\Controller;
 use ICO\Config\Config;
 use ICO\Http\Request;
 use ICO\Http\Response;
+use ICO\Http\TerminateException;
 use ICO\Service\AlbumService;
 use ICO\View\ViewRenderer;
 
@@ -38,7 +39,7 @@ class AlbumController
 
         if ($currentPath === false || !$this->albumService->isSecurePath($currentPath)) {
             Response::redirect('index.php')->send();
-            exit;
+            throw new TerminateException();
         }
 
         $currentAlbumInfo = $this->albumService->getAlbumInfo($currentPath);

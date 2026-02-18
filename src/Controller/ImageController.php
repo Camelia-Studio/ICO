@@ -6,6 +6,7 @@ namespace ICO\Controller;
 
 use ICO\Http\Request;
 use ICO\Http\Response;
+use ICO\Http\TerminateException;
 use ICO\Repository\ShareKeyRepository;
 use ICO\Service\AlbumService;
 
@@ -42,19 +43,19 @@ class ImageController
         // Vérification du chemin (doit être sous liste_albums_prives)
         if (!$this->albumService->isSecurePrivatePath($path) || !file_exists($path)) {
             Response::html('', 404)->send();
-            exit;
+            throw new TerminateException();
         }
 
         // Authentification
         if ($adminSession !== '') {
             if (!$this->checkAdminSession($adminSession)) {
                 Response::html('', 403)->send();
-                exit;
+                throw new TerminateException();
             }
         } else {
             if ($key === '' || $this->shareKeyRepo->findValidByKey($key) === null) {
                 Response::html('', 403)->send();
-                exit;
+                throw new TerminateException();
             }
         }
 
@@ -62,7 +63,7 @@ class ImageController
         $mime = mime_content_type($path) ?: 'application/octet-stream';
         header('Content-Type: ' . $mime);
         readfile($path);
-        exit;
+        throw new TerminateException();
     }
 
     // -------------------------------------------------------------------------

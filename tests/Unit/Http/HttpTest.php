@@ -62,6 +62,59 @@ class HttpTest extends TestCase
         $this->assertNull($req->server('UNKNOWN'));
     }
 
+    public function testRequestGetQueryReturnsFullArray(): void
+    {
+        $req = new Request('GET', '/albums.php', ['album' => 'foo', 'page' => '2']);
+
+        $this->assertSame(['album' => 'foo', 'page' => '2'], $req->getQuery());
+    }
+
+    public function testRequestGetBodyReturnsFullArray(): void
+    {
+        $req = new Request('POST', '/admin.php', [], ['user' => 'alice', 'pass' => 'x']);
+
+        $this->assertSame(['user' => 'alice', 'pass' => 'x'], $req->getBody());
+    }
+
+    public function testRequestCookieAccessor(): void
+    {
+        $req = new Request('GET', '/', [], [], ['session_id' => 'abc123']);
+
+        $this->assertSame('abc123', $req->cookie('session_id'));
+        $this->assertNull($req->cookie('missing'));
+        $this->assertSame('default', $req->cookie('missing', 'default'));
+    }
+
+    public function testRequestFromGlobalsReadsSuperglobals(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI']    = '/albums.php?album=test';
+        $_GET                      = ['album' => 'test'];
+        $_POST                     = [];
+        $_COOKIE                   = ['foo' => 'bar'];
+
+        $req = Request::fromGlobals();
+
+        $this->assertSame('GET', $req->getMethod());
+        $this->assertSame('/albums.php', $req->getUri());
+        $this->assertSame('test', $req->query('album'));
+        $this->assertSame('bar', $req->cookie('foo'));
+    }
+
+    public function testRequestFromGlobalsStripsQueryStringFromUri(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI']    = '/admin.php?action=login';
+        $_GET                      = [];
+        $_POST                     = ['username' => 'bob'];
+        $_COOKIE                   = [];
+
+        $req = Request::fromGlobals();
+
+        $this->assertSame('/admin.php', $req->getUri());
+        $this->assertSame('bob', $req->post('username'));
+    }
+
     // =========================================================================
     // Response
     // =========================================================================
@@ -134,6 +187,47 @@ class HttpTest extends TestCase
 
         $this->assertSame(200, $original->getStatusCode());
         $this->assertSame(404, $modified->getStatusCode());
+    }
+
+    public function testResponseGetHeadersReturnsAllHeaders(): void
+    {
+        $resp = (new Response())
+            ->withHeader('X-Foo', 'foo')
+            ->withHeader('X-Bar', 'bar');
+
+        $headers = $resp->getHeaders();
+
+        $this->assertArrayHasKey('X-Foo', $headers);
+        $this->assertArrayHasKey('X-Bar', $headers);
+        $this->assertSame('foo', $headers['X-Foo']);
+        $this->assertSame('bar', $headers['X-Bar']);
+    }
+
+    public function testResponseGetHeadersEmptyByDefault(): void
+    {
+        $resp = new Response();
+
+        $this->assertSame([], $resp->getHeaders());
+    }
+
+    public function testResponseSendOutputsBody(): void
+    {
+        $resp = new Response('body content', 200);
+
+        ob_start();
+        $resp->send();
+        $output = ob_get_clean();
+
+        $this->assertSame('body content', $output);
+    }
+
+    public function testResponseWithBodyCreatesNewInstance(): void
+    {
+        $original = new Response('old');
+        $modified = $original->withBody('new');
+
+        $this->assertSame('old', $original->getBody());
+        $this->assertSame('new', $modified->getBody());
     }
 
     // =========================================================================
