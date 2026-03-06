@@ -122,10 +122,11 @@ final class Container
             ->addArgument('%current_version%');
 
         // -------------------------------------------------------------------------
-        // Controllers
+        // Controllers — public car récupérés via $container->get() dans index.php
         // -------------------------------------------------------------------------
 
         $container->register(AdminController::class)
+            ->setPublic(true)
             ->addArgument(new Reference(Config::class))
             ->addArgument(new Reference(AuthService::class))
             ->addArgument(new Reference(AdminRepository::class))
@@ -134,6 +135,7 @@ final class Container
             ->addArgument(new Reference(ViewRenderer::class));
 
         $container->register(UserController::class)
+            ->setPublic(true)
             ->addArgument(new Reference(Config::class))
             ->addArgument(new Reference(AuthService::class))
             ->addArgument(new Reference(AdminRepository::class))
@@ -142,6 +144,7 @@ final class Container
             ->addArgument(new Reference(ViewRenderer::class));
 
         $container->register(TreeController::class)
+            ->setPublic(true)
             ->addArgument(new Reference(Config::class))
             ->addArgument(new Reference(AuthService::class))
             ->addArgument(new Reference(AlbumService::class))
@@ -152,6 +155,7 @@ final class Container
             ->addArgument(new Reference(ViewRenderer::class));
 
         $container->register(TreeImageController::class)
+            ->setPublic(true)
             ->addArgument(new Reference(Config::class))
             ->addArgument(new Reference(AuthService::class))
             ->addArgument(new Reference(AlbumService::class))
@@ -159,16 +163,19 @@ final class Container
             ->addArgument(new Reference(ViewRenderer::class));
 
         $container->register(HomeController::class)
+            ->setPublic(true)
             ->addArgument(new Reference(Config::class))
             ->addArgument('%project_root%')
             ->addArgument(new Reference(ViewRenderer::class));
 
         $container->register(AlbumController::class)
+            ->setPublic(true)
             ->addArgument(new Reference(Config::class))
             ->addArgument(new Reference(AlbumService::class))
             ->addArgument(new Reference(ViewRenderer::class));
 
         $container->register(GalleryController::class)
+            ->setPublic(true)
             ->addArgument(new Reference(Config::class))
             ->addArgument(new Reference(AlbumService::class))
             ->addArgument(new Reference(FileService::class))
@@ -178,10 +185,12 @@ final class Container
             ->addArgument(new Reference(ViewRenderer::class));
 
         $container->register(ImageController::class)
+            ->setPublic(true)
             ->addArgument(new Reference(AlbumService::class))
             ->addArgument(new Reference(ShareKeyRepository::class));
 
         $container->register(SettingsController::class)
+            ->setPublic(true)
             ->addArgument(new Reference(Config::class))
             ->addArgument(new Reference(AuthService::class))
             ->addArgument(new Reference(LogRepository::class))
@@ -189,6 +198,7 @@ final class Container
             ->addArgument(new Reference(ViewRenderer::class));
 
         $container->register(ShareKeyController::class)
+            ->setPublic(true)
             ->addArgument(new Reference(Config::class))
             ->addArgument(new Reference(AuthService::class))
             ->addArgument(new Reference(ShareKeyRepository::class))
@@ -199,6 +209,7 @@ final class Container
             ->addArgument(new Reference(ViewRenderer::class));
 
         $container->register(LogController::class)
+            ->setPublic(true)
             ->addArgument(new Reference(Config::class))
             ->addArgument(new Reference(AuthService::class))
             ->addArgument(new Reference(LogRepository::class))
@@ -206,6 +217,7 @@ final class Container
             ->addArgument(new Reference(ViewRenderer::class));
 
         $container->register(ShareController::class)
+            ->setPublic(true)
             ->addArgument(new Reference(Config::class))
             ->addArgument(new Reference(ShareKeyRepository::class))
             ->addArgument(new Reference(ViewRenderer::class));
