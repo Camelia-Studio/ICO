@@ -128,7 +128,6 @@ class UpdateService
 
         $response = curl_exec($ch);
         $error    = curl_error($ch);
-        curl_close($ch);
 
         if ($response === false || $response === '') {
             error_log('ICO UpdateService: erreur cURL — ' . $error);
