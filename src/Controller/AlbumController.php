@@ -23,7 +23,8 @@ class AlbumController
 
     public function __construct(
         private readonly Config       $config,
-        string       $projectRoot,
+        private readonly string       $projectRoot,
+        private readonly string       $baseUrl,
         private readonly AlbumService $albumService,
         private readonly ViewRenderer $view,
     ) {
@@ -70,6 +71,15 @@ class AlbumController
                 ? $this->albumService->getImagesRecursively($albumPath)
                 : $this->albumService->getLatestImages($albumPath);
 
+            // Normaliser vers des URLs (getLatestImages retourne des chemins absolus)
+            $images = array_map(function (mixed $image): array {
+                if (is_string($image)) {
+                    return ['url' => $this->pathToUrl($image), 'is_mature' => false];
+                }
+
+                return ['url' => $this->pathToUrl($image['path']), 'is_mature' => $image['is_mature']];
+            }, $images);
+
             $tempAlbums[] = [
                 'path'          => str_replace('\\', '/', $albumPath),
                 'title'         => $info['title'],
@@ -95,5 +105,19 @@ class AlbumController
             'parent_path'        => $parentPath,
             'site_title'         => $this->config->getSiteTitle(),
         ]);
+    }
+
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+
+    /**
+     * Convertit un chemin absolu filesystem en URL publique.
+     * Ex : /var/www/ICO/liste_albums/foo/bar.jpg → https://host/liste_albums/foo/bar.jpg
+     */
+    private function pathToUrl(string $absolutePath): string
+    {
+        $relative = str_replace('\\', '/', substr($absolutePath, strlen($this->projectRoot) + 1));
+        return $this->baseUrl . '/' . ltrim($relative, '/');
     }
 }

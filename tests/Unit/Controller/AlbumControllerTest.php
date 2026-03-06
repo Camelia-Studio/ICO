@@ -43,7 +43,7 @@ class AlbumControllerTest extends TestCase
             ));
 
         $request    = new Request('GET', '/albums.php', ['path' => $this->albumsRoot]);
-        $controller = new AlbumController($config, $this->tmpDir, $albumService, $view);
+        $controller = new AlbumController($config, $this->tmpDir, 'http://localhost', $albumService, $view);
         $controller->index($request);
     }
 
@@ -67,7 +67,7 @@ class AlbumControllerTest extends TestCase
             });
 
         $request    = new Request('GET', '/albums.php', ['path' => $this->albumsRoot]);
-        $controller = new AlbumController($config, $this->tmpDir, $albumService, $view);
+        $controller = new AlbumController($config, $this->tmpDir, 'http://localhost', $albumService, $view);
         $controller->index($request);
 
         $this->assertCount(2, $capturedData['albums']);
@@ -92,13 +92,43 @@ class AlbumControllerTest extends TestCase
             });
 
         $request    = new Request('GET', '/albums.php', ['path' => $this->albumsRoot]);
-        $controller = new AlbumController($config, $this->tmpDir, $albumService, $view);
+        $controller = new AlbumController($config, $this->tmpDir, 'http://localhost', $albumService, $view);
         $controller->index($request);
 
         $titles = array_column($capturedData['albums'], 'title');
         $sorted = $titles;
         usort($sorted, strcasecmp(...));
         $this->assertSame($sorted, $titles);
+    }
+
+    public function testImagesAreUrls(): void
+    {
+        $sub = $this->albumsRoot . '/album_img';
+        mkdir($sub, 0o775, true);
+        file_put_contents($sub . '/infos.txt', "Album Img\n\n18-");
+        file_put_contents($sub . '/photo.jpg', '');
+
+        $config       = $this->makeConfig();
+        $albumService = new AlbumService($this->albumsRoot, $this->tmpDir . '/priv');
+
+        $capturedData = null;
+        $view         = $this->createMock(ViewRenderer::class);
+        $view->method('render')
+            ->willReturnCallback(function (string $tpl, array $data) use (&$capturedData): void {
+                $capturedData = $data;
+            });
+
+        $request    = new Request('GET', '/albums.php', ['path' => $this->albumsRoot]);
+        $controller = new AlbumController($config, $this->tmpDir, 'http://localhost', $albumService, $view);
+        $controller->index($request);
+
+        $album = $capturedData['albums'][0];
+        $this->assertNotEmpty($album['images']);
+        foreach ($album['images'] as $image) {
+            $this->assertIsArray($image);
+            $this->assertStringStartsWith('http', $image['url']);
+            $this->assertStringNotContainsString($this->tmpDir, $image['url']);
+        }
     }
 
     public function testIndexRedirectsOnInvalidPath(): void
@@ -109,7 +139,7 @@ class AlbumControllerTest extends TestCase
         $view->expects($this->never())->method('render');
 
         $request    = new Request('GET', '/albums.php', ['path' => '/nonexistent/invalid/path']);
-        $controller = new AlbumController($config, $this->tmpDir, $albumService, $view);
+        $controller = new AlbumController($config, $this->tmpDir, 'http://localhost', $albumService, $view);
 
         $this->expectException(TerminateException::class);
         $controller->index($request);
