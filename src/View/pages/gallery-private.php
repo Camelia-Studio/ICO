@@ -6,7 +6,7 @@
  *   string|null $error_title    Titre d'erreur (non-null si accès refusé)
  *   string|null $error_message  Message d'erreur
  *   array<string, mixed>|null $album_data   Infos de l'album (null si erreur)
- *   list<array{url: string, is_top: bool, aspect_ratio: float}> $images
+ *   list<array{url: string, share_url: string, is_top: bool, aspect_ratio: float}> $images
  *   string|null $header_image   URL de la première image (ou null)
  *   string      $share_key      Clé de partage active
  *   string      $site_title     Titre du site
@@ -101,7 +101,7 @@
             }
         ?>
         <div class="gallery-item <?php echo $image['is_top'] ? 'gallery-item-top' : ''; ?> <?php echo $spanClass; ?>">
-            <a href="partage.php?image=<?php echo urlencode($image['url']); ?>&key=<?php echo urlencode($share_key); ?>" target="_blank">
+            <a href="<?php echo htmlspecialchars($image['share_url']); ?>" target="_blank">
                 <img src="<?php echo htmlspecialchars($image['url']); ?>"
                      alt="Image de la galerie"
                      loading="lazy">

@@ -195,12 +195,16 @@ class GalleryController
             }
 
             $relativePath = substr(str_replace('\\', '/', $file->getPathname()), strlen(realpath($this->projectRoot) . '/'));
-            $url   = $this->baseUrl . '/images.php?path=' . urlencode($relativePath) . '&key=' . urlencode($shareKey);
+            // L'URL proxy encode le path une seule fois
+            $proxyUrl = $this->baseUrl . '/images.php?path=' . rawurlencode($relativePath) . '&key=' . rawurlencode($shareKey);
+            // L'URL de partage encode l'URL proxy une seule fois (rawurlencode pour ne pas ré-encoder les %)
+            $shareUrl = $this->baseUrl . '/partage.php?image=' . rawurlencode($proxyUrl) . '&key=' . rawurlencode($shareKey);
             $isTop = str_contains($file->getFilename(), '--top--');
             $size  = $this->fileService->getSecureImageSize($file->getPathname());
 
             $items[] = [
-                'url'          => $url,
+                'url'          => $proxyUrl,
+                'share_url'    => $shareUrl,
                 'is_top'       => $isTop,
                 'aspect_ratio' => $size ? $size['width'] / $size['height'] : 1.0,
             ];
