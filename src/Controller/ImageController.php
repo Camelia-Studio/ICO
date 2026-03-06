@@ -54,7 +54,10 @@ class ImageController
         }
 
         // Authentification
-        if ($adminSession !== '') {
+        // 1. Admin connecté dans la session courante (cookie de session)
+        if (isset($_SESSION['admin_id'])) {
+            // Pas de vérification supplémentaire — la session PHP fait foi
+        } elseif ($adminSession !== '') {
             if (!$this->checkAdminSession($adminSession)) {
                 Response::html('', 403)->send();
                 throw new TerminateException();

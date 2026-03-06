@@ -407,12 +407,7 @@ class TreeImageController
     {
         $absolutePath = $currentPath . '/' . $image;
         $relativePath = substr(str_replace('\\', '/', $absolutePath), strlen($this->projectRoot) + 1);
-        $url = $this->baseUrl . '/images.php?path=' . urlencode($relativePath);
-        if (isset($_SESSION['admin_id'])) {
-            $url .= '&admin_session=' . session_id();
-        }
-
-        return $url;
+        return $this->baseUrl . '/images.php?path=' . urlencode($relativePath);
     }
 
     /**
