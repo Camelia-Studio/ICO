@@ -1,12 +1,17 @@
 # ---------------------------------------------------------------------------
-# Redirection vers public/ — sera activée en Phase 4 (front controller)
+# Redirection vers public/ — front controller
 # ---------------------------------------------------------------------------
 <IfModule mod_rewrite.c>
     RewriteEngine On
+
+    # Ne pas rediriger ce qui est déjà sous public/
     RewriteCond %{REQUEST_URI} !^/public/
+
+    # Laisser passer les fichiers statiques qui existent à la racine
     RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^(.*)$ public/$1 [L]
+
+    # Rediriger tout le reste (y compris /) vers public/index.php
+    RewriteRule ^(.*)$ public/index.php [L]
 </IfModule>
 # ---------------------------------------------------------------------------
 
