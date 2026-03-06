@@ -25,6 +25,8 @@ class GalleryController
     /** Extensions d'images autorisées */
     private const array EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif'];
 
+    private readonly string $albumsRoot;
+
     public function __construct(
         private readonly Config              $config,
         private readonly AlbumService        $albumService,
@@ -34,6 +36,7 @@ class GalleryController
         private readonly string              $baseUrl,
         private readonly ViewRenderer        $view,
     ) {
+        $this->albumsRoot = $projectRoot . '/liste_albums';
     }
 
     // -------------------------------------------------------------------------
@@ -46,7 +49,7 @@ class GalleryController
      */
     public function show(Request $request): void
     {
-        $rawPath     = (string) $request->query('path', './liste_albums');
+        $rawPath     = (string) $request->query('path', $this->albumsRoot);
         $currentPath = realpath($rawPath);
 
         if ($currentPath === false || !$this->albumService->isSecurePath($currentPath)) {
@@ -57,9 +60,9 @@ class GalleryController
         $albumInfo = $this->albumService->getAlbumInfo($currentPath);
         $images    = $this->buildPublicImageList($currentPath);
 
-        $parentPath = realpath(dirname($currentPath)) ?: './liste_albums';
+        $parentPath = realpath(dirname($currentPath)) ?: $this->albumsRoot;
         if (!$this->albumService->isSecurePath($parentPath)) {
-            $parentPath = './liste_albums';
+            $parentPath = $this->albumsRoot;
         }
 
         $this->view->render('pages/gallery-public', [

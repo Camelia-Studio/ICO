@@ -19,11 +19,15 @@ use ICO\View\ViewRenderer;
  */
 class AlbumController
 {
+    private readonly string $albumsRoot;
+
     public function __construct(
         private readonly Config       $config,
+        private readonly string       $projectRoot,
         private readonly AlbumService $albumService,
         private readonly ViewRenderer $view,
     ) {
+        $this->albumsRoot = $projectRoot . '/liste_albums';
     }
 
     // -------------------------------------------------------------------------
@@ -36,7 +40,7 @@ class AlbumController
      */
     public function index(Request $request): void
     {
-        $rawPath     = (string) $request->query('path', './liste_albums');
+        $rawPath     = (string) $request->query('path', $this->albumsRoot);
         $currentPath = realpath($rawPath);
 
         if ($currentPath === false || !$this->albumService->isSecurePath($currentPath)) {

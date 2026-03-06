@@ -43,7 +43,7 @@ class AlbumControllerTest extends TestCase
             ));
 
         $request    = new Request('GET', '/albums.php', ['path' => $this->albumsRoot]);
-        $controller = new AlbumController($config, $albumService, $view);
+        $controller = new AlbumController($config, $this->tmpDir, $albumService, $view);
         $controller->index($request);
     }
 
@@ -67,7 +67,7 @@ class AlbumControllerTest extends TestCase
             });
 
         $request    = new Request('GET', '/albums.php', ['path' => $this->albumsRoot]);
-        $controller = new AlbumController($config, $albumService, $view);
+        $controller = new AlbumController($config, $this->tmpDir, $albumService, $view);
         $controller->index($request);
 
         $this->assertCount(2, $capturedData['albums']);
@@ -92,7 +92,7 @@ class AlbumControllerTest extends TestCase
             });
 
         $request    = new Request('GET', '/albums.php', ['path' => $this->albumsRoot]);
-        $controller = new AlbumController($config, $albumService, $view);
+        $controller = new AlbumController($config, $this->tmpDir, $albumService, $view);
         $controller->index($request);
 
         $titles = array_column($capturedData['albums'], 'title');
@@ -109,7 +109,7 @@ class AlbumControllerTest extends TestCase
         $view->expects($this->never())->method('render');
 
         $request    = new Request('GET', '/albums.php', ['path' => '/nonexistent/invalid/path']);
-        $controller = new AlbumController($config, $albumService, $view);
+        $controller = new AlbumController($config, $this->tmpDir, $albumService, $view);
 
         $this->expectException(TerminateException::class);
         $controller->index($request);

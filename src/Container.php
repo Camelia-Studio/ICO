@@ -159,6 +159,7 @@ final class Container
         $container->register(TreeImageController::class)
             ->setPublic(true)
             ->addArgument(new Reference(Config::class))
+            ->addArgument('%project_root%')
             ->addArgument(new Reference(AuthService::class))
             ->addArgument(new Reference(AlbumService::class))
             ->addArgument(new Reference(LogRepository::class))
@@ -173,6 +174,7 @@ final class Container
         $container->register(AlbumController::class)
             ->setPublic(true)
             ->addArgument(new Reference(Config::class))
+            ->addArgument('%project_root%')
             ->addArgument(new Reference(AlbumService::class))
             ->addArgument(new Reference(ViewRenderer::class));
 

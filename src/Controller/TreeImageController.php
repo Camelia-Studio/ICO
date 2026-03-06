@@ -20,13 +20,23 @@ use ICO\View\ViewRenderer;
  */
 class TreeImageController
 {
+    private readonly string $albumsRoot;
+
+    private readonly string $privateRoot;
+
+    private readonly string $carouselRoot;
+
     public function __construct(
         private readonly Config       $config,
+        private readonly string       $projectRoot,
         private readonly AuthService  $auth,
         private readonly AlbumService $albumService,
         private readonly LogRepository $logRepo,
         private readonly ViewRenderer  $view,
     ) {
+        $this->albumsRoot   = $projectRoot . '/liste_albums';
+        $this->privateRoot  = $projectRoot . '/liste_albums_prives';
+        $this->carouselRoot = $projectRoot . '/img_carrousel';
     }
 
     // -------------------------------------------------------------------------
@@ -40,7 +50,7 @@ class TreeImageController
             throw new TerminateException();
         }
 
-        $currentPath = realpath($_GET['path'] ?? './liste_albums') ?: '';
+        $currentPath = realpath($_GET['path'] ?? $this->albumsRoot) ?: '';
         if (!$currentPath || !$this->albumService->isSecurePath($currentPath)) {
             header('Location: arbre.php');
             throw new TerminateException();
@@ -91,7 +101,7 @@ class TreeImageController
             throw new TerminateException();
         }
 
-        $currentPath = realpath($_GET['path'] ?? './liste_albums_prives') ?: '';
+        $currentPath = realpath($_GET['path'] ?? $this->privateRoot) ?: '';
         if (!$currentPath || !$this->albumService->isSecurePrivatePath($currentPath)) {
             header('Location: arbre-prive.php');
             throw new TerminateException();
@@ -362,7 +372,7 @@ class TreeImageController
                 continue;
             }
 
-            if (str_starts_with($fullPath, './img_carrousel')) {
+            if (str_starts_with($fullPath, $this->carouselRoot)) {
                 continue;
             }
 
@@ -453,7 +463,7 @@ class TreeImageController
             'currentPath'   => $currentPath,
             'imageData'     => $imageData,
             'pageTitle'     => $pageTitle,
-            'folderOptions' => $this->generateFolderOptions('./liste_albums', $currentPath),
+            'folderOptions' => $this->generateFolderOptions($this->albumsRoot, $currentPath),
             'imageScripts'  => $this->renderImageScripts(true),
             'isCarousel'    => $isCarousel,
             'version'       => $this->config->getVersion(),
