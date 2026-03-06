@@ -147,6 +147,7 @@ final class Container
         $container->register(TreeController::class)
             ->setPublic(true)
             ->addArgument(new Reference(Config::class))
+            ->addArgument('%project_root%')
             ->addArgument(new Reference(AuthService::class))
             ->addArgument(new Reference(AlbumService::class))
             ->addArgument(new Reference(FileService::class))

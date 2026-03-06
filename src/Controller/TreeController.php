@@ -20,8 +20,13 @@ use ICO\View\ViewRenderer;
  */
 class TreeController
 {
+    private readonly string $albumsRoot;
+    private readonly string $albumsPrivateRoot;
+    private readonly string $carouselRoot;
+
     public function __construct(
         private readonly Config                     $config,
+        private readonly string                     $projectRoot,
         private readonly AuthService                $auth,
         private readonly AlbumService               $albumService,
         private readonly FileService                $fileService,
@@ -30,6 +35,9 @@ class TreeController
         private readonly ShareKeyRepository         $shareKeyRepo,
         private readonly ViewRenderer               $view,
     ) {
+        $this->albumsRoot        = $projectRoot . '/liste_albums';
+        $this->albumsPrivateRoot = $projectRoot . '/liste_albums_prives';
+        $this->carouselRoot      = $projectRoot . '/img_carrousel';
     }
 
     // -------------------------------------------------------------------------
@@ -49,14 +57,14 @@ class TreeController
             throw new TerminateException();
         }
 
-        $currentPath = realpath($_GET['path'] ?? './liste_albums') ?: realpath('./liste_albums');
+        $currentPath = realpath($_GET['path'] ?? $this->albumsRoot) ?: realpath($this->albumsRoot);
         if (!$currentPath || !$this->albumService->isSecurePath($currentPath)) {
             header('Location: arbre.php');
             throw new TerminateException();
         }
 
         $siteTitle = $this->config->getSiteTitle();
-        $tree      = $this->generatePublicTree('./liste_albums', $currentPath);
+        $tree      = $this->generatePublicTree($this->albumsRoot, $currentPath);
         $this->renderPublic($siteTitle, $tree);
     }
 
@@ -113,7 +121,7 @@ class TreeController
                 break;
 
             case 'delete_folder':
-                if ($path && $this->albumService->isSecurePath($path) && $path !== './liste_albums') {
+                if ($path && $this->albumService->isSecurePath($path) && $path !== $this->albumsRoot) {
                     $this->logRepo->log(
                         (int) $_SESSION['admin_id'],
                         'DELETE_FOLDER',
@@ -140,9 +148,9 @@ class TreeController
         }
 
         // Créer le dossier racine privé si nécessaire
-        if (!file_exists('./liste_albums_prives')) {
-            mkdir('./liste_albums_prives', 0o775, true);
-            file_put_contents('./liste_albums_prives/infos.txt', "Albums privés\nVos albums photos privés\n18-\n");
+        if (!file_exists($this->albumsPrivateRoot)) {
+            mkdir($this->albumsPrivateRoot, 0o775, true);
+            file_put_contents($this->albumsPrivateRoot . '/infos.txt', "Albums privés\nVos albums photos privés\n18-\n");
         }
 
         // Action generate_link (prioritaire)
@@ -158,7 +166,7 @@ class TreeController
             throw new TerminateException();
         }
 
-        $currentPath = realpath($_GET['path'] ?? './liste_albums_prives') ?: realpath('./liste_albums_prives');
+        $currentPath = realpath($_GET['path'] ?? $this->albumsPrivateRoot) ?: realpath($this->albumsPrivateRoot);
         if (!$currentPath || !$this->albumService->isSecurePrivatePath($currentPath)) {
             header('Location: arbre-prive.php');
             throw new TerminateException();
@@ -166,7 +174,7 @@ class TreeController
 
         $siteTitle = $this->config->getSiteTitle();
         $shareUrl  = $_SESSION['share_url'] ?? null;
-        $tree      = $this->generatePrivateTree('./liste_albums_prives', $currentPath);
+        $tree      = $this->generatePrivateTree($this->albumsPrivateRoot, $currentPath);
         $this->renderPrivate($siteTitle, $tree, $shareUrl);
     }
 
@@ -256,7 +264,7 @@ class TreeController
                 break;
 
             case 'delete_folder':
-                if ($path && $this->albumService->isSecurePrivatePath($path) && $path !== './liste_albums_prives') {
+                if ($path && $this->albumService->isSecurePrivatePath($path) && $path !== $this->albumsPrivateRoot) {
                     $this->logRepo->log(
                         (int) $_SESSION['admin_id'],
                         'DELETE_PRIVATE_FOLDER',
@@ -284,8 +292,8 @@ class TreeController
         $output = '<ul class="tree-list">';
 
         // Dossier racine : affiche également le dossier carrousel
-        if ($path === './liste_albums') {
-            $carouselPath = './img_carrousel';
+        if (realpath($path) === realpath($this->albumsRoot)) {
+            $carouselPath = $this->carouselRoot;
             if (is_dir($carouselPath)) {
                 $output .= '<li class="tree-item carousel-folder' . ($carouselPath === $currentPath ? ' active' : '') . '">';
                 $output .= '<div class="tree-item-content">';
@@ -371,7 +379,7 @@ class TreeController
         $output = '<ul class="tree-list">';
 
         // Dossier racine
-        if ($path === './liste_albums_prives') {
+        if (realpath($path) === realpath($this->albumsPrivateRoot)) {
             $info = $this->albumService->getAlbumInfo($path);
             $output .= '<li class="tree-item root-folder' . ($path === $currentPath ? ' active' : '') . '">';
             $output .= '<div class="tree-item-content">';

@@ -442,6 +442,7 @@ class TreeControllerTest extends TestCase
 
         return new TreeController(
             $config,
+            $this->tmpDir,
             $auth,
             $albumService,
             $fileSvc,
@@ -467,6 +468,7 @@ class TreeControllerTest extends TestCase
 
         return new TreeController(
             $config,
+            $this->tmpDir,
             $auth,
             $albumService,
             $fileSvc,
