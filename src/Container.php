@@ -191,7 +191,6 @@ final class Container
 
         $container->register(SettingsController::class)
             ->setPublic(true)
-            ->addArgument(new Reference(Config::class))
             ->addArgument(new Reference(AuthService::class))
             ->addArgument(new Reference(LogRepository::class))
             ->addArgument('%config_file%')
