@@ -10,9 +10,10 @@ declare(strict_types=1);
  *   2. Construction de la Config et de la Request
  *   3. Session (configureSession + session_start)
  *   4. Construction du container Symfony DI
- *   5. Résolution via le Router → handler [ControllerClass, 'method']
- *   6. Récupération du controller depuis le container + invocation
- *   7. 404 si aucune route ne correspond
+ *   5. Injection des globales dans ViewRenderer (version, etc.)
+ *   6. Résolution via le Router → handler [ControllerClass, 'method']
+ *   7. Récupération du controller depuis le container + invocation
+ *   8. 404 si aucune route ne correspond
  */
 
 require_once dirname(__DIR__) . '/vendor/autoload.php';
@@ -23,6 +24,7 @@ use ICO\Http\Request;
 use ICO\Http\Response;
 use ICO\Http\Router;
 use ICO\Http\TerminateException;
+use ICO\View\ViewRenderer;
 
 // --- Configuration -----------------------------------------------------------
 
@@ -45,6 +47,10 @@ $request = Request::fromGlobals();
 // --- Container ---------------------------------------------------------------
 
 $container = Container::build($projectRoot, $config);
+
+// --- Globales de vues --------------------------------------------------------
+
+$container->get(ViewRenderer::class)->addGlobal('version', $config->getVersion());
 
 // --- Routeur -----------------------------------------------------------------
 

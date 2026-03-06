@@ -84,6 +84,7 @@ final class Container
         $container->set(PDO::class, Database::getInstance($projectRoot . '/database.sqlite')->getPdo());
 
         $container->register(ViewRenderer::class)
+            ->setPublic(true)
             ->addArgument('%views_dir%');
 
         // -------------------------------------------------------------------------

@@ -25,9 +25,20 @@ namespace ICO\View;
  */
 class ViewRenderer
 {
+    /** @var array<string, mixed> Variables injectées dans toutes les vues */
+    private array $globals = [];
+
     public function __construct(
         private readonly string $viewsDir,
     ) {
+    }
+
+    /**
+     * Déclare une variable globale disponible dans toutes les vues et partials.
+     */
+    public function addGlobal(string $key, mixed $value): void
+    {
+        $this->globals[$key] = $value;
     }
 
     /**
@@ -46,7 +57,7 @@ class ViewRenderer
 
         // On passe $this pour que les vues puissent appeler $this->renderLayout(...)
         $renderer = $this;
-        extract($data, EXTR_SKIP);
+        extract(array_merge($this->globals, $data), EXTR_SKIP);
 
         require $file;
     }
@@ -65,7 +76,7 @@ class ViewRenderer
             throw new \RuntimeException("Partial introuvable : {$file}");
         }
 
-        extract($data, EXTR_SKIP);
+        extract(array_merge($this->globals, $data), EXTR_SKIP);
         require $file;
     }
 }
