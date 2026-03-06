@@ -171,6 +171,7 @@ final class Container
             ->setPublic(true)
             ->addArgument(new Reference(Config::class))
             ->addArgument('%project_root%')
+            ->addArgument('%base_url%')
             ->addArgument(new Reference(ViewRenderer::class));
 
         $container->register(AlbumController::class)

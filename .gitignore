@@ -9,5 +9,7 @@ vendor/
 *.sqlite
 liste_albums/*
 liste_albums_prives/*
+img_carrousel/*
 !liste_albums/infos.txt
 !liste_albums_prives/infos.txt
+!img_carrousel/infos.txt

@@ -22,6 +22,7 @@ class HomeController
     public function __construct(
         private readonly Config       $config,
         private readonly string       $projectRoot,
+        private readonly string       $baseUrl,
         private readonly ViewRenderer $view,
     ) {
     }
@@ -70,12 +71,16 @@ class HomeController
             }
 
             if (in_array(strtolower($file->getExtension()), self::CAROUSEL_EXTENSIONS, true)) {
-                $images[] = str_replace('\\', '/', $file->getPathname());
+                $relative = substr(str_replace('\\', '/', $file->getPathname()), strlen($this->projectRoot) + 1);
+                $images[] = [
+                    'url'   => $this->baseUrl . '/' . $relative,
+                    'ctime' => $file->getCTime(),
+                ];
             }
         }
 
-        usort($images, static fn (string $a, string $b): int => filectime($b) - filectime($a));
+        usort($images, static fn (array $a, array $b): int => $b['ctime'] - $a['ctime']);
 
-        return array_slice($images, 0, $limit);
+        return array_slice(array_column($images, 'url'), 0, $limit);
     }
 }

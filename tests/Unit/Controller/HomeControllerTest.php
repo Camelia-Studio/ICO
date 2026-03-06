@@ -36,7 +36,7 @@ class HomeControllerTest extends TestCase
                 && is_array($d['carousel_images'])
             ));
 
-        $controller = new HomeController($config, $this->tmpDir, $view);
+        $controller = new HomeController($config, $this->tmpDir, 'http://localhost', $view);
         $controller->index($this->makeRequest());
     }
 
@@ -46,7 +46,7 @@ class HomeControllerTest extends TestCase
         $view   = $this->createMock(ViewRenderer::class);
         $view->method('render');
 
-        $controller = new HomeController($config, $this->tmpDir, $view);
+        $controller = new HomeController($config, $this->tmpDir, 'http://localhost', $view);
         $controller->index($this->makeRequest());
 
         $this->assertDirectoryExists($this->tmpDir . '/img_carrousel');
@@ -68,10 +68,14 @@ class HomeControllerTest extends TestCase
                 $capturedData = $data;
             });
 
-        $controller = new HomeController($config, $this->tmpDir, $view);
+        $controller = new HomeController($config, $this->tmpDir, 'http://localhost', $view);
         $controller->index($this->makeRequest());
 
         $this->assertCount(2, $capturedData['carousel_images']);
+        foreach ($capturedData['carousel_images'] as $url) {
+            $this->assertStringStartsWith('http://localhost/', $url);
+            $this->assertStringNotContainsString($this->tmpDir, $url);
+        }
     }
 
     public function testIndexCarouselLimitedToFive(): void
@@ -91,7 +95,7 @@ class HomeControllerTest extends TestCase
                 $capturedData = $data;
             });
 
-        $controller = new HomeController($config, $this->tmpDir, $view);
+        $controller = new HomeController($config, $this->tmpDir, 'http://localhost', $view);
         $controller->index($this->makeRequest());
 
         $this->assertLessThanOrEqual(5, count($capturedData['carousel_images']));
@@ -114,7 +118,7 @@ class HomeControllerTest extends TestCase
                 $capturedData = $data;
             });
 
-        $controller = new HomeController($config, $this->tmpDir, $view);
+        $controller = new HomeController($config, $this->tmpDir, 'http://localhost', $view);
         $controller->index($this->makeRequest());
 
         $this->assertCount(1, $capturedData['carousel_images']);

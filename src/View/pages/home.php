@@ -3,7 +3,7 @@
  * Vue : page d'accueil avec carousel et overlay.
  *
  * Variables :
- *   string[] $carousel_images   Chemins absolus des images du carousel
+ *   string[] $carousel_images   URLs publiques des images du carousel
  *   string   $site_title        Titre du site
  *   string   $site_description  Description du site
  *   string   $version           Version pour le footer
