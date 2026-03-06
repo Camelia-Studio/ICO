@@ -18,6 +18,7 @@ class AlbumService
     public function __construct(
         private readonly string $albumsRoot,
         private readonly string $privateRoot,
+        private readonly string $carouselRoot = '',
         private readonly array  $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'],
     ) {
     }
@@ -188,7 +189,7 @@ class AlbumService
     // -------------------------------------------------------------------------
 
     /**
-     * Vérifie que $path est sous le dossier liste_albums (ou img_carrousel).
+     * Vérifie que $path est sous le dossier liste_albums ou img_carrousel.
      */
     public function isSecurePath(string $path): bool
     {
@@ -199,7 +200,18 @@ class AlbumService
         }
 
         $albumsReal = realpath($this->albumsRoot);
-        return $albumsReal !== false && str_starts_with($realPath, $albumsReal);
+        if ($albumsReal !== false && str_starts_with($realPath, $albumsReal)) {
+            return true;
+        }
+
+        if ($this->carouselRoot !== '') {
+            $carouselReal = realpath($this->carouselRoot);
+            if ($carouselReal !== false && str_starts_with($realPath, $carouselReal)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

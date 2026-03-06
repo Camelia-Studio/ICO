@@ -15,18 +15,22 @@ class AlbumServiceTest extends TestCase
 
     private string $privateRoot;
 
+    private string $carouselRoot;
+
     private AlbumService $service;
 
     protected function setUp(): void
     {
-        $this->tmpDir      = sys_get_temp_dir() . '/ico_album_test_' . uniqid();
-        $this->albumsRoot  = $this->tmpDir . '/liste_albums';
-        $this->privateRoot = $this->tmpDir . '/liste_albums_prives';
+        $this->tmpDir       = sys_get_temp_dir() . '/ico_album_test_' . uniqid();
+        $this->albumsRoot   = $this->tmpDir . '/liste_albums';
+        $this->privateRoot  = $this->tmpDir . '/liste_albums_prives';
+        $this->carouselRoot = $this->tmpDir . '/img_carrousel';
 
         mkdir($this->albumsRoot, 0o775, true);
         mkdir($this->privateRoot, 0o775, true);
+        mkdir($this->carouselRoot, 0o775, true);
 
-        $this->service = new AlbumService($this->albumsRoot, $this->privateRoot);
+        $this->service = new AlbumService($this->albumsRoot, $this->privateRoot, $this->carouselRoot);
     }
 
     protected function tearDown(): void
@@ -276,6 +280,19 @@ class AlbumServiceTest extends TestCase
     public function testIsSecurePathReturnsTrueForAlbumsRootItself(): void
     {
         $this->assertTrue($this->service->isSecurePath($this->albumsRoot));
+    }
+
+    public function testIsSecurePathReturnsTrueForCarouselSubdir(): void
+    {
+        $sub = $this->carouselRoot . '/slide1';
+        mkdir($sub, 0o775, true);
+
+        $this->assertTrue($this->service->isSecurePath($sub));
+    }
+
+    public function testIsSecurePathReturnsTrueForCarouselRootItself(): void
+    {
+        $this->assertTrue($this->service->isSecurePath($this->carouselRoot));
     }
 
     // -------------------------------------------------------------------------

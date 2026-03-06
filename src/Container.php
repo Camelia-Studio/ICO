@@ -66,6 +66,7 @@ final class Container
         $container->setParameter('config_file', $projectRoot . '/config.txt');
         $container->setParameter('albums_root', $projectRoot . '/liste_albums');
         $container->setParameter('private_root', $projectRoot . '/liste_albums_prives');
+        $container->setParameter('carousel_root', $projectRoot . '/img_carrousel');
         $container->setParameter('allowed_exts', $config->getAllowedExtensions());
         $container->setParameter('db_path', $projectRoot . '/database.sqlite');
         $container->setParameter('views_dir', $projectRoot . '/src/View');
@@ -113,6 +114,7 @@ final class Container
         $container->register(AlbumService::class)
             ->addArgument('%albums_root%')
             ->addArgument('%private_root%')
+            ->addArgument('%carousel_root%')
             ->addArgument('%allowed_exts%');
 
         $container->register(FileService::class);
