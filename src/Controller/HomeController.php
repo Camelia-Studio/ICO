@@ -39,6 +39,7 @@ class HomeController
             'carousel_images'  => $this->getCarouselImages(),
             'site_title'       => $this->config->getSiteTitle(),
             'site_description' => $this->config->getSiteDescription(),
+            'version'          => $this->config->getVersion(),
         ]);
     }
 
