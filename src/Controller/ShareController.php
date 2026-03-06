@@ -45,12 +45,18 @@ class ShareController
         }
 
         $isPrivateImage = false;
+        $filename       = basename((string) parse_url($imageUrl, PHP_URL_PATH));
 
         // Image privée (proxy images.php)
         if (str_contains($imageUrl, 'images.php')) {
             parse_str((string) parse_url($imageUrl, PHP_URL_QUERY), $params);
             $path = $params['path'] ?? '';
             $key  = $params['key']  ?? '';
+
+            // Le vrai nom de fichier est dans path=, pas dans le path de l'URL proxy
+            if ($path !== '') {
+                $filename = basename($path);
+            }
 
             if (str_contains($path, 'liste_albums_prives')) {
                 $isPrivateImage = true;
@@ -61,15 +67,9 @@ class ShareController
                         Response::redirect('index.php')->send();
                         throw new TerminateException();
                     }
-                } else {
-                    // Admin : on substitue la clé par la session admin dans l'URL
-                    $imageUrl = preg_replace('/&key=[^&]*/', '', $imageUrl)
-                        . '&admin_session=' . session_id();
                 }
             }
         }
-
-        $filename = basename((string) parse_url($imageUrl, PHP_URL_PATH));
 
         $this->view->render('pages/share', [
             'image_url'        => $imageUrl,
