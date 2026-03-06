@@ -53,9 +53,10 @@
             <div class="form-group">
                 <label for="project_path">Chemin d'installation :</label>
                 <input type="text" id="project_path" name="project_path"
-                       value="<?php echo htmlspecialchars($project_path); ?>" required>
-                <small class="form-help">Ce chemin correspond au dossier dans lequel ICO est installé sur votre serveur web.
-                    Par exemple, si ICO est accessible via "www.monsite.com/ico", le chemin sera "ico".</small>
+                       value="<?php echo htmlspecialchars($project_path); ?>"
+                       placeholder="Laisser vide si ICO est à la racine du domaine">
+                <small class="form-help">Sous-chemin d'installation. Laisser vide si ICO est accessible directement via "www.monsite.com".
+                    Sinon, indiquer le sous-chemin : par exemple "ico" si l'URL est "www.monsite.com/ico".</small>
             </div>
 
             <div class="form-actions">

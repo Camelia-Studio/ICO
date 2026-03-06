@@ -21,12 +21,14 @@ use ICO\View\ViewRenderer;
 class TreeController
 {
     private readonly string $albumsRoot;
+
     private readonly string $albumsPrivateRoot;
+
     private readonly string $carouselRoot;
 
     public function __construct(
         private readonly Config                     $config,
-        private readonly string                     $projectRoot,
+        string                     $projectRoot,
         private readonly AuthService                $auth,
         private readonly AlbumService               $albumService,
         private readonly FileService                $fileService,

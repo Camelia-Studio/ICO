@@ -28,7 +28,7 @@ class TreeImageController
 
     public function __construct(
         private readonly Config       $config,
-        private readonly string       $projectRoot,
+        string       $projectRoot,
         private readonly AuthService  $auth,
         private readonly AlbumService $albumService,
         private readonly LogRepository $logRepo,

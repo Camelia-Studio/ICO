@@ -1,2 +1,13 @@
 vendor/
 .phpunit.result.cache
+.idea/
+.vscode/
+.fleet/
+*.iml
+.php-cs-fixer.cache
+*.db
+*.sqlite
+liste_albums/*
+liste_albums_prives/*
+!liste_albums/infos.txt
+!liste_albums_prives/infos.txt

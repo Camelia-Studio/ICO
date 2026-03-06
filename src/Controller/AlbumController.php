@@ -23,7 +23,7 @@ class AlbumController
 
     public function __construct(
         private readonly Config       $config,
-        private readonly string       $projectRoot,
+        string       $projectRoot,
         private readonly AlbumService $albumService,
         private readonly ViewRenderer $view,
     ) {
