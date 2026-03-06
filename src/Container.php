@@ -162,6 +162,7 @@ final class Container
             ->setPublic(true)
             ->addArgument(new Reference(Config::class))
             ->addArgument('%project_root%')
+            ->addArgument('%base_url%')
             ->addArgument(new Reference(AuthService::class))
             ->addArgument(new Reference(AlbumService::class))
             ->addArgument(new Reference(LogRepository::class))

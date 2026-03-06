@@ -28,7 +28,8 @@ class TreeImageController
 
     public function __construct(
         private readonly Config       $config,
-        string       $projectRoot,
+        private readonly string       $projectRoot,
+        private readonly string       $baseUrl,
         private readonly AuthService  $auth,
         private readonly AlbumService $albumService,
         private readonly LogRepository $logRepo,
@@ -394,21 +395,9 @@ class TreeImageController
      */
     private function buildPublicImageUrl(string $currentPath, string $image): string
     {
-        $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
-        $basePath  = $this->config->getBasePath();
-        $baseUrl   = $protocol . $_SERVER['HTTP_HOST'] . ($basePath !== '' ? '/' . $basePath : '');
-
-        if (str_contains($currentPath, 'img_carrousel')) {
-            return $baseUrl . '/img_carrousel/' . $image;
-        }
-
-        $pos = strpos($currentPath, '/liste_albums/');
-        if ($pos !== false) {
-            $relative = substr($currentPath, $pos + strlen('/liste_albums/'));
-            return $baseUrl . '/liste_albums/' . $relative . '/' . $image;
-        }
-
-        return $baseUrl . '/' . $image;
+        $absolutePath = $currentPath . '/' . $image;
+        $relative     = substr(str_replace('\\', '/', $absolutePath), strlen($this->projectRoot) + 1);
+        return $this->baseUrl . '/' . ltrim($relative, '/');
     }
 
     /**
@@ -416,11 +405,7 @@ class TreeImageController
      */
     private function buildPrivateImageUrl(string $currentPath, string $image): string
     {
-        $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
-        $basePath  = $this->config->getBasePath();
-        $baseUrl   = $protocol . $_SERVER['HTTP_HOST'] . ($basePath !== '' ? '/' . $basePath : '');
-
-        $url = $baseUrl . '/images.php?path=' . urlencode($currentPath . '/' . $image);
+        $url = $this->baseUrl . '/images.php?path=' . urlencode($currentPath . '/' . $image);
         if (isset($_SESSION['admin_id'])) {
             $url .= '&admin_session=' . session_id();
         }
