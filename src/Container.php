@@ -196,7 +196,8 @@ final class Container
         $container->register(ImageController::class)
             ->setPublic(true)
             ->addArgument(new Reference(AlbumService::class))
-            ->addArgument(new Reference(ShareKeyRepository::class));
+            ->addArgument(new Reference(ShareKeyRepository::class))
+            ->addArgument('%project_root%');
 
         $container->register(SettingsController::class)
             ->setPublic(true)

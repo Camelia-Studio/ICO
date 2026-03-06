@@ -194,7 +194,8 @@ class GalleryController
                 continue;
             }
 
-            $url   = $this->baseUrl . '/images.php?path=' . urlencode($file->getPathname()) . '&key=' . urlencode($shareKey);
+            $relativePath = substr(str_replace('\\', '/', $file->getPathname()), strlen(realpath($this->projectRoot) . '/'));
+            $url   = $this->baseUrl . '/images.php?path=' . urlencode($relativePath) . '&key=' . urlencode($shareKey);
             $isTop = str_contains($file->getFilename(), '--top--');
             $size  = $this->fileService->getSecureImageSize($file->getPathname());
 

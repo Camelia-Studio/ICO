@@ -22,8 +22,9 @@ use ICO\Service\AlbumService;
 class ImageController
 {
     public function __construct(
-        private readonly AlbumService      $albumService,
+        private readonly AlbumService       $albumService,
         private readonly ShareKeyRepository $shareKeyRepo,
+        private readonly string             $projectRoot,
     ) {
     }
 
@@ -40,6 +41,11 @@ class ImageController
         $path         = (string) $request->query('path', '');
         $key          = (string) $request->query('key', '');
         $adminSession = (string) $request->query('admin_session', '');
+
+        // Reconstituer le chemin absolu si un chemin relatif est fourni
+        if ($path !== '' && !str_starts_with($path, '/') && !preg_match('/^[A-Za-z]:[\\/]/', $path)) {
+            $path = $this->projectRoot . '/' . ltrim($path, '/');
+        }
 
         // Vérification du chemin (doit être sous liste_albums_prives)
         if (!$this->albumService->isSecurePrivatePath($path) || !file_exists($path)) {
