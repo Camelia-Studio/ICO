@@ -10,6 +10,7 @@ use ICO\Http\TerminateException;
 use ICO\Repository\LogRepository;
 use ICO\Service\AlbumService;
 use ICO\Service\AuthService;
+use ICO\Service\PathService;
 use ICO\View\ViewRenderer;
 use PHPUnit\Framework\TestCase;
 
@@ -362,7 +363,7 @@ class TreeImageControllerTest extends TestCase
         $log          = $logMock ?? $this->createMock(LogRepository::class);
         $albumService = new AlbumService($this->albumsRoot, $this->privateRoot, $this->tmpDir . '/img_carrousel');
 
-        return new TreeImageController($config, $this->tmpDir, 'http://localhost', $auth, $albumService, $log, $view);
+        return new TreeImageController($config, new PathService($this->tmpDir, 'http://localhost'), $auth, $albumService, $log, $view);
     }
 
     private function makeConfig(): Config

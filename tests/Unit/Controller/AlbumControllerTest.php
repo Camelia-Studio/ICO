@@ -9,6 +9,7 @@ use ICO\Controller\AlbumController;
 use ICO\Http\Request;
 use ICO\Http\TerminateException;
 use ICO\Service\AlbumService;
+use ICO\Service\PathService;
 use ICO\View\ViewRenderer;
 use PHPUnit\Framework\TestCase;
 
@@ -43,7 +44,7 @@ class AlbumControllerTest extends TestCase
             ));
 
         $request    = new Request('GET', '/albums.php', ['path' => $this->albumsRoot]);
-        $controller = new AlbumController($config, $this->tmpDir, 'http://localhost', $albumService, $view);
+        $controller = new AlbumController($config, new PathService($this->tmpDir, 'http://localhost'), $albumService, $view);
         $controller->index($request);
     }
 
@@ -67,7 +68,7 @@ class AlbumControllerTest extends TestCase
             });
 
         $request    = new Request('GET', '/albums.php', ['path' => $this->albumsRoot]);
-        $controller = new AlbumController($config, $this->tmpDir, 'http://localhost', $albumService, $view);
+        $controller = new AlbumController($config, new PathService($this->tmpDir, 'http://localhost'), $albumService, $view);
         $controller->index($request);
 
         $this->assertCount(2, $capturedData['albums']);
@@ -92,7 +93,7 @@ class AlbumControllerTest extends TestCase
             });
 
         $request    = new Request('GET', '/albums.php', ['path' => $this->albumsRoot]);
-        $controller = new AlbumController($config, $this->tmpDir, 'http://localhost', $albumService, $view);
+        $controller = new AlbumController($config, new PathService($this->tmpDir, 'http://localhost'), $albumService, $view);
         $controller->index($request);
 
         $titles = array_column($capturedData['albums'], 'title');
@@ -119,7 +120,7 @@ class AlbumControllerTest extends TestCase
             });
 
         $request    = new Request('GET', '/albums.php', ['path' => $this->albumsRoot]);
-        $controller = new AlbumController($config, $this->tmpDir, 'http://localhost', $albumService, $view);
+        $controller = new AlbumController($config, new PathService($this->tmpDir, 'http://localhost'), $albumService, $view);
         $controller->index($request);
 
         $album = $capturedData['albums'][0];
@@ -139,7 +140,7 @@ class AlbumControllerTest extends TestCase
         $view->expects($this->never())->method('render');
 
         $request    = new Request('GET', '/albums.php', ['path' => '/nonexistent/invalid/path']);
-        $controller = new AlbumController($config, $this->tmpDir, 'http://localhost', $albumService, $view);
+        $controller = new AlbumController($config, new PathService($this->tmpDir, 'http://localhost'), $albumService, $view);
 
         $this->expectException(TerminateException::class);
         $controller->index($request);

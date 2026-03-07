@@ -7,6 +7,7 @@ namespace ICO\Controller;
 use DirectoryIterator;
 use ICO\Config\Config;
 use ICO\Http\Request;
+use ICO\Service\PathService;
 use ICO\View\ViewRenderer;
 
 /**
@@ -20,9 +21,8 @@ class HomeController
     private const array CAROUSEL_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif'];
 
     public function __construct(
-        private readonly Config       $config,
-        private readonly string       $projectRoot,
-        private readonly string       $baseUrl,
+        private readonly Config      $config,
+        private readonly PathService $pathService,
         private readonly ViewRenderer $view,
     ) {
     }
@@ -56,7 +56,7 @@ class HomeController
      */
     private function getCarouselImages(int $limit = 5): array
     {
-        $carouselDir = $this->projectRoot . '/img_carrousel';
+        $carouselDir = $this->pathService->toAbsolute('img_carrousel');
 
         if (!is_dir($carouselDir)) {
             mkdir($carouselDir, 0o775, true);
@@ -71,9 +71,8 @@ class HomeController
             }
 
             if (in_array(strtolower($file->getExtension()), self::CAROUSEL_EXTENSIONS, true)) {
-                $relative = substr(str_replace('\\', '/', $file->getPathname()), strlen($this->projectRoot) + 1);
                 $images[] = [
-                    'url'   => $this->baseUrl . '/' . $relative,
+                    'url'   => $this->pathService->toUrl($file->getPathname()),
                     'ctime' => $file->getCTime(),
                 ];
             }

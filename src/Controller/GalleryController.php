@@ -12,6 +12,7 @@ use ICO\Http\TerminateException;
 use ICO\Repository\ShareKeyRepository;
 use ICO\Service\AlbumService;
 use ICO\Service\FileService;
+use ICO\Service\PathService;
 use ICO\View\ViewRenderer;
 
 /**
@@ -28,15 +29,14 @@ class GalleryController
     private readonly string $albumsRoot;
 
     public function __construct(
-        private readonly Config              $config,
-        private readonly AlbumService        $albumService,
-        private readonly FileService         $fileService,
-        private readonly ShareKeyRepository  $shareKeyRepo,
-        private readonly string              $projectRoot,
-        private readonly string              $baseUrl,
-        private readonly ViewRenderer        $view,
+        private readonly Config             $config,
+        private readonly AlbumService       $albumService,
+        private readonly FileService        $fileService,
+        private readonly ShareKeyRepository $shareKeyRepo,
+        private readonly PathService        $pathService,
+        private readonly ViewRenderer       $view,
     ) {
-        $this->albumsRoot = $projectRoot . '/liste_albums';
+        $this->albumsRoot = $pathService->toAbsolute('liste_albums');
     }
 
     // -------------------------------------------------------------------------
@@ -49,8 +49,13 @@ class GalleryController
      */
     public function show(Request $request): void
     {
-        $rawPath     = (string) $request->query('path', $this->albumsRoot);
-        $currentPath = realpath($rawPath);
+        $rawPath     = (string) $request->query('path', 'liste_albums');
+        $currentPath = realpath($this->pathService->toAbsolute(ltrim($rawPath, '/')));
+
+        // Fallback : si le path brut est déjà absolu (rétrocompatibilité), on le prend tel quel
+        if ($currentPath === false) {
+            $currentPath = realpath($rawPath);
+        }
 
         if ($currentPath === false || !$this->albumService->isSecurePath($currentPath)) {
             Response::redirect('index.php')->send();
@@ -60,16 +65,16 @@ class GalleryController
         $albumInfo = $this->albumService->getAlbumInfo($currentPath);
         $images    = $this->buildPublicImageList($currentPath);
 
-        $parentPath = realpath(dirname($currentPath)) ?: $this->albumsRoot;
-        if (!$this->albumService->isSecurePath($parentPath)) {
-            $parentPath = $this->albumsRoot;
+        $parentAbsolute = realpath(dirname($currentPath)) ?: $this->albumsRoot;
+        if (!$this->albumService->isSecurePath($parentAbsolute)) {
+            $parentAbsolute = $this->albumsRoot;
         }
 
         $this->view->render('pages/gallery-public', [
             'album_info'   => $albumInfo,
             'images'       => $images,
             'header_image' => $images === [] ? null : $images[0]['url'],
-            'parent_path'  => $parentPath,
+            'parent_path'  => $this->pathService->toRelative($parentAbsolute),
             'site_title'   => $this->config->getSiteTitle(),
         ]);
     }
@@ -140,8 +145,7 @@ class GalleryController
                 continue;
             }
 
-            $relativePath = str_replace('\\', '/', substr($file->getPathname(), strlen(realpath($this->projectRoot) . '/')));
-            $url   = $this->baseUrl . '/' . ltrim($relativePath, '/');
+            $url   = $this->pathService->toUrl($file->getPathname());
             $isTop = str_contains(basename($url), '--top--');
             $size  = $this->fileService->getSecureImageSize($file->getPathname());
 
@@ -194,11 +198,12 @@ class GalleryController
                 continue;
             }
 
-            $relativePath = substr(str_replace('\\', '/', $file->getPathname()), strlen(realpath($this->projectRoot) . '/'));
+            $relativePath = $this->pathService->toRelative($file->getPathname());
             // L'URL proxy encode le path une seule fois
-            $proxyUrl = $this->baseUrl . '/images.php?path=' . rawurlencode($relativePath) . '&key=' . rawurlencode($shareKey);
+            $baseUrl  = $this->pathService->getBaseUrl();
+            $proxyUrl = $baseUrl . '/images.php?path=' . rawurlencode($relativePath) . '&key=' . rawurlencode($shareKey);
             // L'URL de partage encode l'URL proxy une seule fois (rawurlencode pour ne pas ré-encoder les %)
-            $shareUrl = $this->baseUrl . '/partage.php?image=' . rawurlencode($proxyUrl);
+            $shareUrl = $baseUrl . '/partage.php?image=' . rawurlencode($proxyUrl);
             $isTop = str_contains($file->getFilename(), '--top--');
             $size  = $this->fileService->getSecureImageSize($file->getPathname());
 

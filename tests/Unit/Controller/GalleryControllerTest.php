@@ -11,6 +11,7 @@ use ICO\Http\TerminateException;
 use ICO\Repository\ShareKeyRepository;
 use ICO\Service\AlbumService;
 use ICO\Service\FileService;
+use ICO\Service\PathService;
 use ICO\View\ViewRenderer;
 use PHPUnit\Framework\TestCase;
 
@@ -245,8 +246,7 @@ class GalleryControllerTest extends TestCase
             $albumService,
             $fileService,
             $shareKeyRepo,
-            $this->tmpDir,
-            'http://localhost',
+            new PathService($this->tmpDir, 'http://localhost'),
             $view,
         );
     }

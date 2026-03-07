@@ -10,6 +10,7 @@ use ICO\Http\TerminateException;
 use ICO\Repository\LogRepository;
 use ICO\Service\AlbumService;
 use ICO\Service\AuthService;
+use ICO\Service\PathService;
 use ICO\View\ViewRenderer;
 
 /**
@@ -27,17 +28,16 @@ class TreeImageController
     private readonly string $carouselRoot;
 
     public function __construct(
-        private readonly Config       $config,
-        private readonly string       $projectRoot,
-        private readonly string       $baseUrl,
-        private readonly AuthService  $auth,
-        private readonly AlbumService $albumService,
+        private readonly Config        $config,
+        private readonly PathService   $pathService,
+        private readonly AuthService   $auth,
+        private readonly AlbumService  $albumService,
         private readonly LogRepository $logRepo,
         private readonly ViewRenderer  $view,
     ) {
-        $this->albumsRoot   = $projectRoot . '/liste_albums';
-        $this->privateRoot  = $projectRoot . '/liste_albums_prives';
-        $this->carouselRoot = $projectRoot . '/img_carrousel';
+        $this->albumsRoot   = $pathService->toAbsolute('liste_albums');
+        $this->privateRoot  = $pathService->toAbsolute('liste_albums_prives');
+        $this->carouselRoot = $pathService->toAbsolute('img_carrousel');
     }
 
     // -------------------------------------------------------------------------
@@ -396,8 +396,7 @@ class TreeImageController
     private function buildPublicImageUrl(string $currentPath, string $image): string
     {
         $absolutePath = $currentPath . '/' . $image;
-        $relative     = substr(str_replace('\\', '/', $absolutePath), strlen($this->projectRoot) + 1);
-        return $this->baseUrl . '/' . ltrim($relative, '/');
+        return $this->pathService->toUrl($absolutePath);
     }
 
     /**
@@ -406,8 +405,8 @@ class TreeImageController
     private function buildPrivateImageUrl(string $currentPath, string $image): string
     {
         $absolutePath = $currentPath . '/' . $image;
-        $relativePath = substr(str_replace('\\', '/', $absolutePath), strlen($this->projectRoot) + 1);
-        return $this->baseUrl . '/images.php?path=' . urlencode($relativePath);
+        $relativePath = $this->pathService->toRelative($absolutePath);
+        return $this->pathService->getBaseUrl() . '/images.php?path=' . urlencode($relativePath);
     }
 
     /**
@@ -513,6 +512,7 @@ class TreeImageController
             JS : '';
 
         return <<<JS
+                <button class="scroll-top" title="Retour en haut">↑</button>
                 <script>
                     function updateActionButtons() {
                         const checkboxes         = document.querySelectorAll('.image-checkbox');
@@ -629,7 +629,6 @@ class TreeImageController
                         });
                     }
                 </script>
-                <button class="scroll-top" title="Retour en haut">↑</button>
             JS;
     }
 }

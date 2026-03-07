@@ -26,6 +26,7 @@ use ICO\Service\AlbumService;
 use ICO\Service\AuthService;
 use ICO\Service\FileService;
 use ICO\Service\PasswordValidator;
+use ICO\Service\PathService;
 use ICO\Service\UpdateService;
 use ICO\View\ViewRenderer;
 use PDO;
@@ -119,6 +120,10 @@ final class Container
 
         $container->register(FileService::class);
 
+        $container->register(PathService::class)
+            ->addArgument('%project_root%')
+            ->addArgument('%base_url%');
+
         $container->register(PasswordValidator::class);
 
         $container->register(UpdateService::class)
@@ -161,8 +166,7 @@ final class Container
         $container->register(TreeImageController::class)
             ->setPublic(true)
             ->addArgument(new Reference(Config::class))
-            ->addArgument('%project_root%')
-            ->addArgument('%base_url%')
+            ->addArgument(new Reference(PathService::class))
             ->addArgument(new Reference(AuthService::class))
             ->addArgument(new Reference(AlbumService::class))
             ->addArgument(new Reference(LogRepository::class))
@@ -171,15 +175,13 @@ final class Container
         $container->register(HomeController::class)
             ->setPublic(true)
             ->addArgument(new Reference(Config::class))
-            ->addArgument('%project_root%')
-            ->addArgument('%base_url%')
+            ->addArgument(new Reference(PathService::class))
             ->addArgument(new Reference(ViewRenderer::class));
 
         $container->register(AlbumController::class)
             ->setPublic(true)
             ->addArgument(new Reference(Config::class))
-            ->addArgument('%project_root%')
-            ->addArgument('%base_url%')
+            ->addArgument(new Reference(PathService::class))
             ->addArgument(new Reference(AlbumService::class))
             ->addArgument(new Reference(ViewRenderer::class));
 
@@ -189,8 +191,7 @@ final class Container
             ->addArgument(new Reference(AlbumService::class))
             ->addArgument(new Reference(FileService::class))
             ->addArgument(new Reference(ShareKeyRepository::class))
-            ->addArgument('%project_root%')
-            ->addArgument('%base_url%')
+            ->addArgument(new Reference(PathService::class))
             ->addArgument(new Reference(ViewRenderer::class));
 
         $container->register(ImageController::class)

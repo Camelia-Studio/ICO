@@ -10,6 +10,7 @@ use ICO\Http\Request;
 use ICO\Http\Response;
 use ICO\Http\TerminateException;
 use ICO\Service\AlbumService;
+use ICO\Service\PathService;
 use ICO\View\ViewRenderer;
 
 /**
@@ -19,16 +20,12 @@ use ICO\View\ViewRenderer;
  */
 class AlbumController
 {
-    private readonly string $albumsRoot;
-
     public function __construct(
         private readonly Config       $config,
-        private readonly string       $projectRoot,
-        private readonly string       $baseUrl,
+        private readonly PathService  $pathService,
         private readonly AlbumService $albumService,
         private readonly ViewRenderer $view,
     ) {
-        $this->albumsRoot = $projectRoot . '/liste_albums';
     }
 
     // -------------------------------------------------------------------------
@@ -41,8 +38,13 @@ class AlbumController
      */
     public function index(Request $request): void
     {
-        $rawPath     = (string) $request->query('path', $this->albumsRoot);
-        $currentPath = realpath($rawPath);
+        $rawPath     = (string) $request->query('path', 'liste_albums');
+        $currentPath = realpath($this->pathService->toAbsolute(ltrim($rawPath, '/')));
+
+        // Fallback : si le path brut est déjà absolu (rétrocompatibilité), on le prend tel quel
+        if ($currentPath === false) {
+            $currentPath = realpath($rawPath);
+        }
 
         if ($currentPath === false || !$this->albumService->isSecurePath($currentPath)) {
             Response::redirect('index.php')->send();
@@ -74,14 +76,14 @@ class AlbumController
             // Normaliser vers des URLs (getLatestImages retourne des chemins absolus)
             $images = array_map(function (mixed $image): array {
                 if (is_string($image)) {
-                    return ['url' => $this->pathToUrl($image), 'is_mature' => false];
+                    return ['url' => $this->pathService->toUrl($image), 'is_mature' => false];
                 }
 
-                return ['url' => $this->pathToUrl($image['path']), 'is_mature' => $image['is_mature']];
+                return ['url' => $this->pathService->toUrl($image['path']), 'is_mature' => $image['is_mature']];
             }, $images);
 
             $tempAlbums[] = [
-                'path'          => str_replace('\\', '/', $albumPath),
+                'path'          => $this->pathService->toRelative($albumPath),
                 'title'         => $info['title'],
                 'description'   => $info['description'],
                 'images'        => $images,
@@ -94,10 +96,12 @@ class AlbumController
         usort($tempAlbums, static fn (array $a, array $b): int => strcasecmp($a['title'], $b['title']));
 
         // Chemin parent (bouton retour)
-        $parentPath = realpath(dirname($currentPath)) ?: null;
-        if ($parentPath !== null && !$this->albumService->isSecurePath($parentPath)) {
-            $parentPath = null;
+        $parentAbsolute = realpath(dirname($currentPath)) ?: null;
+        if ($parentAbsolute !== null && !$this->albumService->isSecurePath($parentAbsolute)) {
+            $parentAbsolute = null;
         }
+
+        $parentPath = $parentAbsolute !== null ? $this->pathService->toRelative($parentAbsolute) : null;
 
         $this->view->render('pages/albums', [
             'albums'             => $tempAlbums,
@@ -105,19 +109,5 @@ class AlbumController
             'parent_path'        => $parentPath,
             'site_title'         => $this->config->getSiteTitle(),
         ]);
-    }
-
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
-
-    /**
-     * Convertit un chemin absolu filesystem en URL publique.
-     * Ex : /var/www/ICO/liste_albums/foo/bar.jpg → https://host/liste_albums/foo/bar.jpg
-     */
-    private function pathToUrl(string $absolutePath): string
-    {
-        $relative = str_replace('\\', '/', substr($absolutePath, strlen($this->projectRoot) + 1));
-        return $this->baseUrl . '/' . ltrim($relative, '/');
     }
 }
