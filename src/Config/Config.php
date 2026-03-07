@@ -39,7 +39,7 @@ final readonly class Config
 
         if (file_exists($configFile)) {
             $lines = explode("\n", file_get_contents($configFile));
-            $siteTitle       = trim($lines[0] ?? 'ICO');
+            $siteTitle       = trim($lines[0]);
             $siteDescription = trim($lines[1] ?? '');
             $basePath        = trim($lines[2] ?? '');
         }

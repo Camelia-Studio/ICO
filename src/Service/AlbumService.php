@@ -45,7 +45,7 @@ class AlbumService
 
         if (file_exists($infoFile)) {
             $lines = explode("\n", file_get_contents($infoFile));
-            if (isset($lines[0]) && $lines[0] !== '') {
+            if ($lines[0] !== '') {
                 $info['title'] = trim($lines[0]);
             }
 

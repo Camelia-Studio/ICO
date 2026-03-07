@@ -194,10 +194,6 @@ class TreeController
         $albumIdentifier = $this->albumIdentRepo->ensure($albumPath);
 
         $key = $this->shareKeyRepo->create($albumIdentifier, $duration, $comment);
-        if ($key === null) {
-            $_SESSION['error_message'] = 'Erreur lors de la génération du lien de partage.';
-            return;
-        }
 
         $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
         $basePath  = $this->config->getBasePath();

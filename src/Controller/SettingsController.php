@@ -134,7 +134,7 @@ class SettingsController
         $lines = explode("\n", (string) file_get_contents($this->configFile));
 
         return [
-            'title'       => trim($lines[0] ?? 'ICO'),
+            'title'       => trim($lines[0]),
             'description' => trim($lines[1] ?? ''),
             'path'        => trim($lines[2] ?? ''),
         ];

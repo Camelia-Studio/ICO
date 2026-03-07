@@ -164,7 +164,7 @@ class GalleryController
             return 0;
         });
 
-        return array_values($items);
+        return $items;
     }
 
     /**
@@ -222,7 +222,7 @@ class GalleryController
             return 0;
         });
 
-        return array_values($items);
+        return $items;
     }
 
     /**

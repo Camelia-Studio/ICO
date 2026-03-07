@@ -61,12 +61,10 @@ class ShareController
             if (str_contains($path, 'liste_albums_prives')) {
                 $isPrivateImage = true;
 
-                if (!isset($_SESSION['admin_id'])) {
-                    // Vérification de la clé de partage
-                    if ($key === '' || $this->shareKeyRepo->findValidByKey($key) === null) {
-                        Response::redirect('index.php')->send();
-                        throw new TerminateException();
-                    }
+                // Vérification de la clé de partage
+                if (!isset($_SESSION['admin_id']) && ($key === '' || $this->shareKeyRepo->findValidByKey($key) === null)) {
+                    Response::redirect('index.php')->send();
+                    throw new TerminateException();
                 }
             }
         }

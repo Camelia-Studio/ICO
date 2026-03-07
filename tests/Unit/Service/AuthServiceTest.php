@@ -137,7 +137,7 @@ class AuthServiceTest extends TestCase
 
         $this->auth->isLoggedIn();
 
-        $this->assertGreaterThan($before, $_SESSION['last_activity'] ?? 0);
+        $this->assertGreaterThan($before, $_SESSION['last_activity']);
     }
 
     // -------------------------------------------------------------------------
