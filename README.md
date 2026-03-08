@@ -10,5 +10,4 @@ Il s'agit d'un outil de galeries d'illustrations simple et léger utilisant prin
 ![image](https://concepts.esenjin.xyz/cyla/v2/file/381D93.png)
 
 ### Crédits
-Le code d'**ICO** a été réalisé en grande partie grâce à l'aide de [Claude.ia](https://claude.ai/).
 Le logo vient de [Freepik.com](https://fr.freepik.com/).
