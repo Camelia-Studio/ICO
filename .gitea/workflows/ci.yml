@@ -1,0 +1,116 @@
+name: CI
+
+on:
+  push:
+
+jobs:
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+    container:
+      image: php:8.3-cli
+
+    steps:
+      - name: Install system dependencies
+        run: |
+          apt-get update -qq
+          apt-get install -y --no-install-recommends unzip git ca-certificates
+
+      - name: Checkout
+        run: git clone --depth=1 --branch="${GITHUB_REF_NAME}" "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git" .
+
+      - name: Install Composer
+        run: |
+          php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+          php composer-setup.php --install-dir=/usr/local/bin --filename=composer
+          rm composer-setup.php
+
+      - name: Validate composer.json
+        run: composer validate --strict
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Run PHPUnit tests
+        run: php vendor/bin/phpunit --no-coverage
+
+  phpstan:
+    name: PHPStan
+    runs-on: ubuntu-latest
+    container:
+      image: php:8.3-cli
+
+    steps:
+      - name: Install system dependencies
+        run: |
+          apt-get update -qq
+          apt-get install -y --no-install-recommends unzip git ca-certificates
+
+      - name: Checkout
+        run: git clone --depth=1 --branch="${GITHUB_REF_NAME}" "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git" .
+
+      - name: Install Composer
+        run: |
+          php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+          php composer-setup.php --install-dir=/usr/local/bin --filename=composer
+          rm composer-setup.php
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Run PHPStan
+        run: php vendor/bin/phpstan analyse --no-progress --memory-limit=512M
+
+  cs-fixer:
+    name: PHP-CS-Fixer
+    runs-on: ubuntu-latest
+    container:
+      image: php:8.3-cli
+
+    steps:
+      - name: Install system dependencies
+        run: |
+          apt-get update -qq
+          apt-get install -y --no-install-recommends unzip git ca-certificates
+
+      - name: Checkout
+        run: git clone --depth=1 --branch="${GITHUB_REF_NAME}" "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git" .
+
+      - name: Install Composer
+        run: |
+          php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+          php composer-setup.php --install-dir=/usr/local/bin --filename=composer
+          rm composer-setup.php
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Check code style
+        run: php vendor/bin/php-cs-fixer check --diff --no-interaction
+
+  rector:
+    name: Rector
+    runs-on: ubuntu-latest
+    container:
+      image: php:8.3-cli
+
+    steps:
+      - name: Install system dependencies
+        run: |
+          apt-get update -qq
+          apt-get install -y --no-install-recommends unzip git ca-certificates
+
+      - name: Checkout
+        run: git clone --depth=1 --branch="${GITHUB_REF_NAME}" "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git" .
+
+      - name: Install Composer
+        run: |
+          php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+          php composer-setup.php --install-dir=/usr/local/bin --filename=composer
+          rm composer-setup.php
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Run Rector (dry-run)
+        run: php vendor/bin/rector --dry-run --no-progress-bar

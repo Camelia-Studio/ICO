@@ -607,6 +607,11 @@ body {
     transform: scale(1.1) !important;
 }
 
+.carousel-folder.active > .tree-item-content {
+    background: rgba(255, 140, 0, 0.3);
+    border-left-color: #ff8c00;
+}
+
 .folder-icon {
     font-size: 1.2rem;
 }

@@ -1,0 +1,13 @@
+includes:
+    - phpstan-baseline.neon
+
+parameters:
+    level: 5
+    paths:
+        - src
+        - tests
+    excludePaths:
+        - src/View/pages
+        - src/View/layout
+        - src/View/partials
+    phpVersion: 80300
