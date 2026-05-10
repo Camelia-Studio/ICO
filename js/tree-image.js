@@ -57,6 +57,24 @@ function toggleTop(imageName) {
 document.addEventListener('DOMContentLoaded', function () {
     updateActionButtons();
 
+    let lastChecked = null;
+
+    document.querySelectorAll('.image-checkbox').forEach(function (checkbox) {
+        checkbox.addEventListener('click', function (e) {
+            if (e.shiftKey && lastChecked && lastChecked !== this) {
+                const checkboxes = Array.from(document.querySelectorAll('.image-checkbox'));
+                const currentIndex = checkboxes.indexOf(this);
+                const lastIndex   = checkboxes.indexOf(lastChecked);
+                const [start, end] = currentIndex < lastIndex
+                    ? [currentIndex, lastIndex]
+                    : [lastIndex, currentIndex];
+                checkboxes.slice(start, end + 1).forEach(cb => { cb.checked = this.checked; });
+            }
+            lastChecked = this;
+            updateActionButtons();
+        });
+    });
+
     const modal           = document.getElementById('uploadModal');
     const dropZone        = document.getElementById('dropZone');
     const uploadForm      = document.getElementById('uploadForm');
