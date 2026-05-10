@@ -44,7 +44,7 @@ if ($count === 0) {
     $stmt->bindValue(':password_hash', $password_hash, SQLITE3_TEXT);
     $stmt->execute();
     
-    echo "Admin par défaut créé (username: admin, password: admin). Pensez à changer ces identifiants !";
+    echo "Admin par défaut créé (username: {$default_username}, password: {$default_password}). Pensez à changer ces identifiants !\n";
 }
 
 // Après la création des tables existantes, ajouter :
