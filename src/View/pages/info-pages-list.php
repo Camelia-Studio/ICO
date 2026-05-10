@@ -68,8 +68,12 @@
                         <td><?php echo date('d/m/Y', strtotime((string) $page['updated_at'])); ?></td>
                         <td class="actions-cell">
                             <?php if ($page['is_published']): ?>
-                            <a href="<?php echo htmlspecialchars($base_url); ?>/page.php?slug=<?php echo urlencode((string) $page['slug']); ?>"
+                            <?php $pageUrl = htmlspecialchars($base_url) . '/page.php?slug=' . urlencode((string) $page['slug']); ?>
+                            <a href="<?php echo $pageUrl; ?>"
                                target="_blank" class="tree-button" title="Voir la page">👁</a>
+                            <button type="button" class="tree-button"
+                                    title="Copier le lien"
+                                    onclick="copyPageUrl(this, '<?php echo htmlspecialchars($base_url . '/page.php?slug=' . urlencode((string) $page['slug']), ENT_QUOTES); ?>')">📋</button>
                             <?php endif; ?>
                             <a href="pages-info.php?action=edit&id=<?php echo (int) $page['id']; ?>"
                                class="tree-button" title="Modifier">✏️</a>
@@ -94,4 +98,17 @@
 
     <button class="scroll-top" title="Retour en haut">↑</button>
     <script src="js/scroll-top.js"></script>
+    <script>
+    function copyPageUrl(button, url) {
+        navigator.clipboard.writeText(url).then(() => {
+            const original = button.innerHTML;
+            button.innerHTML = '✓';
+            button.classList.add('copied');
+            setTimeout(() => {
+                button.innerHTML = original;
+                button.classList.remove('copied');
+            }, 2000);
+        });
+    }
+    </script>
 <?php $renderer->renderLayout('layout/footer', ['version' => $version]); ?>
