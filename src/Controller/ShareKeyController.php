@@ -72,6 +72,7 @@ class ShareKeyController
                 'album_mature'   => $albumInfo['mature_content'],
                 'share_url'      => $this->baseUrl . '/galeries-privees.php?key=' . urlencode((string) $key['key_value']),
                 'is_expired'     => strtotime((string) $key['expires_at']) <= time(),
+                'options'        => $this->decodeOptions((string) ($key['options'] ?? '')),
             ]);
         }
 
@@ -124,6 +125,20 @@ class ShareKeyController
         }
 
         return ['Clé supprimée avec succès.', ''];
+    }
+
+    /**
+     * @return array{download: bool, source: bool, share: bool}
+     */
+    private function decodeOptions(string $json): array
+    {
+        $defaults = ['download' => true, 'source' => true, 'share' => true];
+        if ($json === '') {
+            return $defaults;
+        }
+        $decoded = json_decode($json, true);
+
+        return is_array($decoded) ? array_merge($defaults, $decoded) : $defaults;
     }
 
     /** @return array{0: string, 1: string} */

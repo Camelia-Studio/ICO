@@ -22,6 +22,25 @@
 /** @var string $error_message */
 /** @var string $site_title */
 /** @var string $version */
+<?php
+/**
+ * @param array{download: bool, source: bool, share: bool} $opts
+ */
+function renderOptionsCell(array $opts): string
+{
+    $items = [
+        ['label' => '⬇️', 'title' => 'Téléchargement', 'enabled' => $opts['download']],
+        ['label' => '🔍', 'title' => 'Source',          'enabled' => $opts['source']],
+        ['label' => '🔗', 'title' => 'Partager',        'enabled' => $opts['share']],
+    ];
+    $parts = [];
+    foreach ($items as $item) {
+        $class  = $item['enabled'] ? 'opt-badge opt-on' : 'opt-badge opt-off';
+        $parts[] = '<span class="' . $class . '" title="' . $item['title'] . '">' . $item['label'] . '</span>';
+    }
+    return implode(' ', $parts);
+}
+?>
 ?>
 <?php $renderer->renderLayout('layout/header', [
     'pageTitle' => 'Gestion des clés de partage - ' . $site_title,
@@ -77,6 +96,7 @@
                         <th>Créée le</th>
                         <th>Expire le</th>
                         <th>Commentaire</th>
+                        <th>Options</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -103,6 +123,7 @@
                         <td><?php echo date('d/m/Y H:i', strtotime($key['created_at'])); ?></td>
                         <td><?php echo date('d/m/Y H:i', strtotime($key['expires_at'])); ?></td>
                         <td><?php echo htmlspecialchars($key['comment']); ?></td>
+                        <td class="options-cell"><?php echo renderOptionsCell($key['options']); ?></td>
                         <td>
                             <form method="post" style="display: inline;">
                                 <input type="hidden" name="action" value="delete_key">
@@ -117,7 +138,7 @@
                     <?php endforeach; ?>
                     <?php if (empty($keys)): ?>
                     <tr>
-                        <td colspan="6" class="no-data">Aucune clé trouvée</td>
+                        <td colspan="7" class="no-data">Aucune clé trouvée</td>
                     </tr>
                     <?php endif; ?>
                 </tbody>

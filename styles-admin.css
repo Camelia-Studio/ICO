@@ -1199,3 +1199,36 @@ input:focus-visible {
         scroll-behavior: auto !important;
     }
 }
+
+/* Badges d'options de clé de partage */
+.opt-badge {
+    display: inline-block;
+    font-size: 1rem;
+    line-height: 1;
+    opacity: 1;
+}
+
+.opt-off {
+    opacity: 0.25;
+    filter: grayscale(1);
+}
+
+.options-cell {
+    white-space: nowrap;
+    letter-spacing: 0.15rem;
+}
+
+/* Options de partage dans le modal */
+.share-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+    color: #ccc;
+}

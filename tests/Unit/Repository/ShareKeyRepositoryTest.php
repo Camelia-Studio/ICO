@@ -109,7 +109,7 @@ class ShareKeyRepositoryTest extends TestCase
 
     public function testCreateInsertsKeyAndReturnsValue(): void
     {
-        $key = $this->repo->create('album-uuid', 24, 'test comment', fn (): string => 'fixed-key-value');
+        $key = $this->repo->create('album-uuid', 24, 'test comment', [], fn (): string => 'fixed-key-value');
 
         $this->assertSame('fixed-key-value', $key);
         $this->assertNotNull($this->repo->findValidByKey('fixed-key-value'));
@@ -121,6 +121,33 @@ class ShareKeyRepositoryTest extends TestCase
 
         $this->assertNotEmpty($key);
         $this->assertSame(64, strlen($key)); // bin2hex(random_bytes(32)) = 64 chars
+    }
+
+    public function testCreateStoresOptionsAsJson(): void
+    {
+        $options = ['download' => false, 'source' => true, 'share' => false];
+        $key     = $this->repo->create('album-uuid', 24, '', $options, fn (): string => 'opts-key');
+
+        $row = $this->pdo->query("SELECT options FROM share_keys WHERE key_value = 'opts-key'")->fetch();
+        $this->assertNotFalse($row);
+
+        $decoded = json_decode($row['options'], true);
+        $this->assertFalse($decoded['download']);
+        $this->assertTrue($decoded['source']);
+        $this->assertFalse($decoded['share']);
+    }
+
+    public function testFindValidByKeyReturnsOptions(): void
+    {
+        $options = ['download' => false, 'source' => true, 'share' => true];
+        $this->repo->create('album-uuid', 24, '', $options, fn (): string => 'opts-key2');
+
+        $result = $this->repo->findValidByKey('opts-key2');
+
+        $this->assertNotNull($result);
+        $this->assertArrayHasKey('options', $result);
+        $decoded = json_decode($result['options'], true);
+        $this->assertFalse($decoded['download']);
     }
 
     // --- deleteById ---

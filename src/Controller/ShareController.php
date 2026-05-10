@@ -46,6 +46,7 @@ class ShareController
 
         $isPrivateImage = false;
         $filename       = basename((string) parse_url($imageUrl, PHP_URL_PATH));
+        $shareOptions   = ['download' => true, 'source' => true, 'share' => true];
 
         // Image privée (proxy images.php)
         if (str_contains($imageUrl, 'images.php')) {
@@ -61,10 +62,22 @@ class ShareController
             if (str_contains($path, 'liste_albums_prives')) {
                 $isPrivateImage = true;
 
-                // Vérification de la clé de partage
-                if (!isset($_SESSION['admin_id']) && ($key === '' || $this->shareKeyRepo->findValidByKey($key) === null)) {
-                    Response::redirect('index.php')->send();
-                    throw new TerminateException();
+                if (!isset($_SESSION['admin_id'])) {
+                    if ($key === '') {
+                        Response::redirect('index.php')->send();
+                        throw new TerminateException();
+                    }
+
+                    $shareKeyData = $this->shareKeyRepo->findValidByKey($key);
+                    if ($shareKeyData === null) {
+                        Response::redirect('index.php')->send();
+                        throw new TerminateException();
+                    }
+
+                    $decoded = json_decode((string) ($shareKeyData['options'] ?? '{}'), true);
+                    if (is_array($decoded)) {
+                        $shareOptions = array_merge($shareOptions, $decoded);
+                    }
                 }
             }
         }
@@ -73,6 +86,9 @@ class ShareController
             'image_url'        => $imageUrl,
             'filename'         => $filename,
             'is_private_image' => $isPrivateImage,
+            'allow_download'   => (bool) ($shareOptions['download'] ?? true),
+            'allow_source'     => (bool) ($shareOptions['source'] ?? true),
+            'allow_share'      => (bool) ($shareOptions['share'] ?? true),
             'site_title'       => $this->config->getSiteTitle(),
             'site_description' => $this->config->getSiteDescription(),
         ]);

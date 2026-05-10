@@ -11,15 +11,26 @@ $db->exec('CREATE TABLE IF NOT EXISTS admins (
 )');
 
 // Créer la nouvelle table des clés de partage
-$db->exec('CREATE TABLE IF NOT EXISTS share_keys (
+$db->exec("CREATE TABLE IF NOT EXISTS share_keys (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     key_value TEXT UNIQUE NOT NULL,
     album_identifier TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     expires_at DATETIME NOT NULL,
     comment TEXT,
+    options TEXT NOT NULL DEFAULT '{\"download\":true,\"source\":true,\"share\":true}',
     FOREIGN KEY (album_identifier) REFERENCES album_identifiers(identifier)
-)');
+)");
+
+// Migration : ajout de la colonne options si elle n'existe pas encore
+$columns = [];
+$result = $db->query('PRAGMA table_info(share_keys)');
+while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+    $columns[] = $row['name'];
+}
+if (!in_array('options', $columns)) {
+    $db->exec("ALTER TABLE share_keys ADD COLUMN options TEXT NOT NULL DEFAULT '{\"download\":true,\"source\":true,\"share\":true}'");
+}
 
 // Créer la table des identifiants d'albums
 $db->exec('CREATE TABLE IF NOT EXISTS album_identifiers (

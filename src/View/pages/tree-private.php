@@ -159,6 +159,23 @@
                     <textarea name="comment" id="comment" rows="3" class="form-textarea"
                         placeholder="Ex: Partage avec le client X"></textarea>
                 </div>
+                <div class="form-group">
+                    <label class="form-label">Options de la page de partage :</label>
+                    <div class="share-options">
+                        <label class="toggle-label">
+                            <input type="checkbox" name="opt_download" id="opt_download" checked>
+                            <span class="toggle-text">Autoriser le téléchargement</span>
+                        </label>
+                        <label class="toggle-label">
+                            <input type="checkbox" name="opt_source" id="opt_source" checked>
+                            <span class="toggle-text">Afficher le bouton "Source ?"</span>
+                        </label>
+                        <label class="toggle-label">
+                            <input type="checkbox" name="opt_share" id="opt_share" checked>
+                            <span class="toggle-text">Afficher le bouton "Partager"</span>
+                        </label>
+                    </div>
+                </div>
                 <div class="form-actions">
                     <button type="button" onclick="closeModal()" class="action-button action-button-secondary">Annuler</button>
                     <button type="submit" class="action-button action-button-share">Générer le lien</button>

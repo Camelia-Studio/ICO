@@ -209,7 +209,13 @@ class TreeController
 
         $albumIdentifier = $this->albumIdentRepo->ensure($albumPath);
 
-        $key = $this->shareKeyRepo->create($albumIdentifier, $duration, $comment);
+        $options = [
+            'download' => isset($_POST['opt_download']),
+            'source'   => isset($_POST['opt_source']),
+            'share'    => isset($_POST['opt_share']),
+        ];
+
+        $key = $this->shareKeyRepo->create($albumIdentifier, $duration, $comment, $options);
 
         $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
         $basePath  = $this->config->getBasePath();

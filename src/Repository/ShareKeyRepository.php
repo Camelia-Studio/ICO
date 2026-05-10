@@ -57,12 +57,12 @@ class ShareKeyRepository
      * Valide une clé de partage et retourne les infos de l'album associé.
      * Retourne null si la clé est invalide ou expirée.
      *
-     * @return array<string, mixed>|null ['path', 'identifier']
+     * @return array<string, mixed>|null ['path', 'identifier', 'options']
      */
     public function findValidByKey(string $key): ?array
     {
         $stmt = $this->pdo->prepare(
-            'SELECT a.path, a.identifier
+            'SELECT a.path, a.identifier, s.options
              FROM share_keys s
              JOIN album_identifiers a ON s.album_identifier = a.identifier
              WHERE s.key_value = :key
@@ -78,29 +78,34 @@ class ShareKeyRepository
     /**
      * Crée une nouvelle clé de partage. Retourne la valeur de la clé générée.
      *
-     * @param int    $durationHours Durée de validité en heures
+     * @param int                      $durationHours Durée de validité en heures
+     * @param array<string, bool>      $options       Options d'affichage (download, source, share)
      */
     public function create(
         string $albumIdentifier,
         int $durationHours,
         string $comment = '',
+        array $options = [],
         ?callable $keyGenerator = null
     ): string {
         $key = $keyGenerator !== null
             ? ($keyGenerator)()
             : bin2hex(random_bytes(32));
 
-        $expiresAt = date('Y-m-d H:i:s', strtotime(sprintf('+%d hours', $durationHours)));
+        $defaults        = ['download' => true, 'source' => true, 'share' => true];
+        $resolvedOptions = array_merge($defaults, $options);
+        $expiresAt       = date('Y-m-d H:i:s', strtotime(sprintf('+%d hours', $durationHours)));
 
         $stmt = $this->pdo->prepare(
-            'INSERT INTO share_keys (key_value, album_identifier, expires_at, comment)
-             VALUES (:key, :identifier, :expires, :comment)'
+            'INSERT INTO share_keys (key_value, album_identifier, expires_at, comment, options)
+             VALUES (:key, :identifier, :expires, :comment, :options)'
         );
         $stmt->execute([
             ':key'        => $key,
             ':identifier' => $albumIdentifier,
             ':expires'    => $expiresAt,
             ':comment'    => $comment,
+            ':options'    => json_encode($resolvedOptions),
         ]);
 
         return $key;

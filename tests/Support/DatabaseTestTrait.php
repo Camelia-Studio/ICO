@@ -35,15 +35,16 @@ trait DatabaseTestTrait
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )');
 
-        $this->pdo->exec('CREATE TABLE share_keys (
+        $this->pdo->exec("CREATE TABLE share_keys (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             key_value TEXT UNIQUE NOT NULL,
             album_identifier TEXT NOT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             expires_at DATETIME NOT NULL,
             comment TEXT,
+            options TEXT NOT NULL DEFAULT '{\"download\":true,\"source\":true,\"share\":true}',
             FOREIGN KEY (album_identifier) REFERENCES album_identifiers(identifier)
-        )');
+        )");
 
         $this->pdo->exec('CREATE TABLE admin_logs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,

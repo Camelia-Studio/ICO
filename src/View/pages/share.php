@@ -6,6 +6,9 @@
  *   string $image_url         URL de l'image à afficher
  *   string $filename          Nom du fichier pour le téléchargement
  *   bool   $is_private_image  True si image privée (masque le bouton "Intégrer")
+ *   bool   $allow_download    Affiche le bouton "Télécharger"
+ *   bool   $allow_source      Affiche le bouton "Source ?"
+ *   bool   $allow_share       Affiche le bouton "Partager"
  *   string $site_title        Titre du site
  *   string $version           Version pour le footer
  */
@@ -14,6 +17,9 @@
 /** @var string $image_url */
 /** @var string $filename */
 /** @var bool $is_private_image */
+/** @var bool $allow_download */
+/** @var bool $allow_source */
+/** @var bool $allow_share */
 /** @var string $site_title */
 /** @var string $site_description */
 /** @var string $version */
@@ -56,6 +62,7 @@ $_ogDescription  = $site_description !== '' ? $site_description : $site_title;
         </div>
 
         <div class="share-actions">
+            <?php if ($allow_share): ?>
             <button class="action-button" onclick="shareImage()">
                 <svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
@@ -64,6 +71,7 @@ $_ogDescription  = $site_description !== '' ? $site_description : $site_title;
                 </svg>
                 Partager
             </button>
+            <?php endif; ?>
 
             <?php if (!$is_private_image): ?>
             <button class="action-button" onclick="embedImage()">
@@ -75,6 +83,7 @@ $_ogDescription  = $site_description !== '' ? $site_description : $site_title;
             </button>
             <?php endif; ?>
 
+            <?php if ($allow_download): ?>
             <a href="<?php echo htmlspecialchars($image_url); ?>"
                download="<?php echo htmlspecialchars($filename); ?>"
                class="action-button">
@@ -85,7 +94,9 @@ $_ogDescription  = $site_description !== '' ? $site_description : $site_title;
                 </svg>
                 Télécharger
             </a>
+            <?php endif; ?>
 
+            <?php if ($allow_source): ?>
             <a href="https://saucenao.com/search.php?url=<?php echo urlencode($image_url); ?>"
                target="_blank"
                class="action-button">
@@ -97,6 +108,7 @@ $_ogDescription  = $site_description !== '' ? $site_description : $site_title;
                 </svg>
                 Source ?
             </a>
+            <?php endif; ?>
         </div>
     </div>
 
