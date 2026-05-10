@@ -596,6 +596,51 @@ body {
     transform: translateY(-2px);
 }
 
+/* Fil d'Ariane */
+.breadcrumb {
+    position: fixed;
+    top: 2rem;
+    left: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.7rem 1.4rem;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 2rem;
+    backdrop-filter: blur(10px);
+    z-index: 100;
+    max-width: calc(100vw - 4rem);
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: none;
+}
+
+.breadcrumb::-webkit-scrollbar {
+    display: none;
+}
+
+.breadcrumb-item {
+    color: rgba(255, 255, 255, 0.65);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.2s;
+}
+
+a.breadcrumb-item:hover {
+    color: white;
+}
+
+.breadcrumb-current {
+    color: white;
+    font-weight: 500;
+}
+
+.breadcrumb-separator {
+    color: rgba(255, 255, 255, 0.35);
+    font-size: 0.8rem;
+    user-select: none;
+}
+
 /* Galeries privées */
 .error-container {
     min-height: 100vh;
@@ -921,6 +966,17 @@ body {
         left: 1rem;
         padding: 0.6rem 1.2rem;
         font-size: 0.9rem;
+    }
+
+    .breadcrumb {
+        top: 1rem;
+        left: 1rem;
+        max-width: calc(100vw - 2rem);
+        padding: 0.5rem 1rem;
+    }
+
+    .breadcrumb-item {
+        font-size: 0.82rem;
     }
 
     .mature-content {

@@ -9,6 +9,7 @@
  *   }>  $albums              Liste des sous-albums
  *   array{title: string, description: string} $current_album_info  Infos de l'album courant
  *   string|null $parent_path   Chemin du parent (null = racine)
+ *   list<array{label: string, url: string|null}> $breadcrumbs  Fil d'Ariane
  *   string      $site_title    Titre du site
  *   string      $version       Version pour le footer
  */
@@ -17,6 +18,7 @@
 /** @var array<int, array<string, mixed>> $albums */
 /** @var array<string, mixed> $current_album_info */
 /** @var string|null $parent_path */
+/** @var list<array{label: string, url: string|null}> $breadcrumbs */
 /** @var string $site_title */
 /** @var string $version */
 ?>
@@ -30,11 +32,7 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body class="albums-page">
-    <?php if ($parent_path !== null): ?>
-    <a href="albums.php?path=<?php echo urlencode($parent_path); ?>" class="back-button">Retour</a>
-    <?php else: ?>
-    <a href="index.php" class="back-button">Retour</a>
-    <?php endif; ?>
+    <?php $renderer->renderLayout('partials/breadcrumb', ['breadcrumbs' => $breadcrumbs]); ?>
 
     <div class="album-info">
         <h1 class="current-album-title"><?php echo htmlspecialchars($current_album_info['title']); ?></h1>

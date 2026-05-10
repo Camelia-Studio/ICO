@@ -75,6 +75,7 @@ class GalleryController
             'images'       => $images,
             'header_image' => $images === [] ? null : $images[0]['url'],
             'parent_path'  => $this->pathService->toRelative($parentAbsolute),
+            'breadcrumbs'  => $this->buildBreadcrumbs($currentPath),
             'site_title'   => $this->config->getSiteTitle(),
         ]);
     }
@@ -228,6 +229,38 @@ class GalleryController
         });
 
         return $items;
+    }
+
+    /**
+     * Construit le fil d'Ariane depuis la racine des albums jusqu'au chemin courant.
+     *
+     * @return list<array{label: string, url: string|null}>
+     */
+    private function buildBreadcrumbs(string $currentAbsolutePath): array
+    {
+        $relativePart = ltrim(substr($currentAbsolutePath, strlen($this->albumsRoot)), DIRECTORY_SEPARATOR);
+
+        if ($relativePart === '') {
+            return [['label' => 'Accueil', 'url' => null]];
+        }
+
+        $breadcrumbs = [['label' => 'Accueil', 'url' => 'index.php']];
+        $segments    = explode(DIRECTORY_SEPARATOR, $relativePart);
+        $accum       = $this->albumsRoot;
+
+        foreach ($segments as $i => $segment) {
+            $accum  .= DIRECTORY_SEPARATOR . $segment;
+            $info    = $this->albumService->getAlbumInfo($accum);
+            $isLast  = $i === count($segments) - 1;
+            $relPath = $this->pathService->toRelative($accum);
+
+            $breadcrumbs[] = [
+                'label' => $info['title'],
+                'url'   => $isLast ? null : 'albums.php?path=' . urlencode($relPath),
+            ];
+        }
+
+        return $breadcrumbs;
     }
 
     /**

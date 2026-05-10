@@ -7,6 +7,7 @@
  *   list<array{url: string, is_top: bool, aspect_ratio: float}> $images
  *   string|null $header_image   URL de la première image (ou null)
  *   string      $parent_path    Chemin du dossier parent (pour retour)
+ *   list<array{label: string, url: string|null}> $breadcrumbs  Fil d'Ariane
  *   string      $site_title     Titre du site
  *   string      $version        Version pour le footer
  */
@@ -16,6 +17,7 @@
 /** @var list<array{url: string, is_top: bool, aspect_ratio: float}> $images */
 /** @var string|null $header_image */
 /** @var string $parent_path */
+/** @var list<array{label: string, url: string|null}> $breadcrumbs */
 /** @var string $site_title */
 /** @var string $version */
 ?>
@@ -39,7 +41,7 @@
     </div>
     <?php endif; ?>
 
-    <a href="albums.php?path=<?php echo urlencode($parent_path); ?>" class="back-button">Retour</a>
+    <?php $renderer->renderLayout('partials/breadcrumb', ['breadcrumbs' => $breadcrumbs]); ?>
 
     <?php if ($header_image !== null): ?>
     <div class="gallery-header">
