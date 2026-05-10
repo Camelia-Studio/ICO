@@ -80,6 +80,16 @@ $db->exec('CREATE TABLE IF NOT EXISTS info_pages (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 )');
 
+// Créer la table des liens sociaux
+$db->exec('CREATE TABLE IF NOT EXISTS social_links (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    label TEXT NOT NULL,
+    url TEXT NOT NULL,
+    display_order INTEGER NOT NULL DEFAULT 0,
+    is_active INTEGER NOT NULL DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+)');
+
 // Créer les index nécessaires
 $db->exec('CREATE INDEX IF NOT EXISTS idx_share_keys_expires_at ON share_keys(expires_at)');
 $db->exec('CREATE INDEX IF NOT EXISTS idx_share_keys_album_identifier ON share_keys(album_identifier)');

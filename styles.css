@@ -786,6 +786,32 @@ a.breadcrumb-item:hover {
     z-index: 1000;
 }
 
+/* Liens sociaux dans le footer */
+.social-links {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+    margin-bottom: 0.25rem;
+    pointer-events: auto;
+}
+
+.social-link {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.8rem;
+    text-decoration: none;
+    transition: color 0.3s ease;
+    pointer-events: auto;
+}
+
+.social-link:hover {
+    color: rgba(255, 255, 255, 1);
+}
+
+.admin-page .social-links {
+    display: none;
+}
+
 /* Media Queries */
 @media (min-width: 1400px) {
     .albums-grid {

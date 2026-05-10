@@ -16,6 +16,7 @@ use ICO\Controller\PublicPageController;
 use ICO\Controller\SettingsController;
 use ICO\Controller\ShareController;
 use ICO\Controller\ShareKeyController;
+use ICO\Controller\SocialLinkController;
 use ICO\Controller\TreeController;
 use ICO\Controller\TreeImageController;
 use ICO\Controller\UserController;
@@ -25,6 +26,7 @@ use ICO\Repository\AlbumIdentifierRepository;
 use ICO\Repository\InfoPageRepository;
 use ICO\Repository\LogRepository;
 use ICO\Repository\ShareKeyRepository;
+use ICO\Repository\SocialLinkRepository;
 use ICO\Service\AlbumService;
 use ICO\Service\AuthService;
 use ICO\Service\FileService;
@@ -109,6 +111,10 @@ final class Container
             ->addArgument(new Reference(PDO::class));
 
         $container->register(InfoPageRepository::class)
+            ->addArgument(new Reference(PDO::class));
+
+        $container->register(SocialLinkRepository::class)
+            ->setPublic(true)
             ->addArgument(new Reference(PDO::class));
 
         // -------------------------------------------------------------------------
@@ -251,6 +257,14 @@ final class Container
             ->setPublic(true)
             ->addArgument(new Reference(Config::class))
             ->addArgument(new Reference(InfoPageRepository::class))
+            ->addArgument(new Reference(ViewRenderer::class));
+
+        $container->register(SocialLinkController::class)
+            ->setPublic(true)
+            ->addArgument(new Reference(Config::class))
+            ->addArgument(new Reference(AuthService::class))
+            ->addArgument(new Reference(SocialLinkRepository::class))
+            ->addArgument(new Reference(LogRepository::class))
             ->addArgument(new Reference(ViewRenderer::class));
 
         $container->compile();

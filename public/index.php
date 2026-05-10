@@ -24,6 +24,7 @@ use ICO\Http\Request;
 use ICO\Http\Response;
 use ICO\Http\Router;
 use ICO\Http\TerminateException;
+use ICO\Repository\SocialLinkRepository;
 use ICO\View\ViewRenderer;
 
 // --- Configuration -----------------------------------------------------------
@@ -50,7 +51,15 @@ $container = Container::build($projectRoot, $config);
 
 // --- Globales de vues --------------------------------------------------------
 
-$container->get(ViewRenderer::class)->addGlobal('version', $config->getVersion());
+$view = $container->get(ViewRenderer::class);
+$view->addGlobal('version', $config->getVersion());
+
+try {
+    $socialLinks = $container->get(SocialLinkRepository::class)->findActive();
+} catch (\Exception) {
+    $socialLinks = [];
+}
+$view->addGlobal('social_links', $socialLinks);
 
 // --- Routeur -----------------------------------------------------------------
 

@@ -13,6 +13,7 @@ use ICO\Controller\PublicPageController;
 use ICO\Controller\SettingsController;
 use ICO\Controller\ShareController;
 use ICO\Controller\ShareKeyController;
+use ICO\Controller\SocialLinkController;
 use ICO\Controller\TreeController;
 use ICO\Controller\TreeImageController;
 use ICO\Controller\UserController;
@@ -56,6 +57,8 @@ return static function (Router $router): void {
     $router->get('/logs.php',               [LogController::class,       'index']);
     $router->get('/personnalisation.php',   [SettingsController::class,  'index']);
     $router->post('/personnalisation.php',  [SettingsController::class,  'index']);
-    $router->get('/pages-info.php',         [InfoPageController::class,  'handle']);
-    $router->post('/pages-info.php',        [InfoPageController::class,  'handle']);
+    $router->get('/pages-info.php',         [InfoPageController::class,   'handle']);
+    $router->post('/pages-info.php',        [InfoPageController::class,   'handle']);
+    $router->get('/liens-sociaux.php',      [SocialLinkController::class, 'handle']);
+    $router->post('/liens-sociaux.php',     [SocialLinkController::class, 'handle']);
 };
