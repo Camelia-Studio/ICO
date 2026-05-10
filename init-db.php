@@ -58,12 +58,24 @@ $db->exec('CREATE TABLE IF NOT EXISTS admin_logs (
     FOREIGN KEY (admin_id) REFERENCES admins(id)
 )');
 
+// Créer la table des pages "en savoir plus"
+$db->exec('CREATE TABLE IF NOT EXISTS info_pages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    slug TEXT UNIQUE NOT NULL,
+    content TEXT NOT NULL DEFAULT \'\',
+    is_published INTEGER NOT NULL DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+)');
+
 // Créer les index nécessaires
 $db->exec('CREATE INDEX IF NOT EXISTS idx_share_keys_expires_at ON share_keys(expires_at)');
 $db->exec('CREATE INDEX IF NOT EXISTS idx_share_keys_album_identifier ON share_keys(album_identifier)');
 $db->exec('CREATE INDEX IF NOT EXISTS idx_album_identifiers_identifier ON album_identifiers(identifier)');
 $db->exec('CREATE INDEX IF NOT EXISTS idx_admin_logs_admin_id ON admin_logs(admin_id)');
 $db->exec('CREATE INDEX IF NOT EXISTS idx_admin_logs_created_at ON admin_logs(created_at)');
+$db->exec('CREATE INDEX IF NOT EXISTS idx_info_pages_slug ON info_pages(slug)');
 
 $db->close();
 echo "Base de données initialisée avec succès !";

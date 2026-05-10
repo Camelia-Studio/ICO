@@ -1140,6 +1140,49 @@ body[data-page="carrousel"] .admin-header {
     }
 }
 
+/* Badges de statut */
+.status-badge {
+    display: inline-block;
+    padding: .2rem .6rem;
+    border-radius: 1rem;
+    font-size: .8rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.status-active {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-expired {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* Formulaire — case à cocher avec label */
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    cursor: pointer;
+    font-size: .95rem;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 1.1rem;
+    height: 1.1rem;
+    cursor: pointer;
+}
+
+/* Cellule d'actions dans les tableaux */
+.actions-cell {
+    display: flex;
+    gap: .4rem;
+    align-items: center;
+    white-space: nowrap;
+}
+
 /* Accessibilité */
 a:focus-visible,
 button:focus-visible,

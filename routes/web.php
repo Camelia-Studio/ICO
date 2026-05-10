@@ -7,7 +7,9 @@ use ICO\Controller\AlbumController;
 use ICO\Controller\GalleryController;
 use ICO\Controller\HomeController;
 use ICO\Controller\ImageController;
+use ICO\Controller\InfoPageController;
 use ICO\Controller\LogController;
+use ICO\Controller\PublicPageController;
 use ICO\Controller\SettingsController;
 use ICO\Controller\ShareController;
 use ICO\Controller\ShareKeyController;
@@ -32,6 +34,7 @@ return static function (Router $router): void {
     $router->get('/galeries-privees.php',   [GalleryController::class,  'showPrivate']);
     $router->get('/images.php',             [ImageController::class,    'serve']);
     $router->get('/partage.php',            [ShareController::class,    'show']);
+    $router->get('/page.php',               [PublicPageController::class, 'show']);
 
     // --- Admin — arbre -----------------------------------------------------------
     $router->get('/arbre.php',              [TreeController::class,      'handlePublic']);
@@ -53,4 +56,6 @@ return static function (Router $router): void {
     $router->get('/logs.php',               [LogController::class,       'index']);
     $router->get('/personnalisation.php',   [SettingsController::class,  'index']);
     $router->post('/personnalisation.php',  [SettingsController::class,  'index']);
+    $router->get('/pages-info.php',         [InfoPageController::class,  'handle']);
+    $router->post('/pages-info.php',        [InfoPageController::class,  'handle']);
 };

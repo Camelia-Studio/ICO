@@ -10,7 +10,9 @@ use ICO\Controller\AlbumController;
 use ICO\Controller\GalleryController;
 use ICO\Controller\HomeController;
 use ICO\Controller\ImageController;
+use ICO\Controller\InfoPageController;
 use ICO\Controller\LogController;
+use ICO\Controller\PublicPageController;
 use ICO\Controller\SettingsController;
 use ICO\Controller\ShareController;
 use ICO\Controller\ShareKeyController;
@@ -20,6 +22,7 @@ use ICO\Controller\UserController;
 use ICO\Database\Database;
 use ICO\Repository\AdminRepository;
 use ICO\Repository\AlbumIdentifierRepository;
+use ICO\Repository\InfoPageRepository;
 use ICO\Repository\LogRepository;
 use ICO\Repository\ShareKeyRepository;
 use ICO\Service\AlbumService;
@@ -103,6 +106,9 @@ final class Container
             ->addArgument(new Reference(PDO::class));
 
         $container->register(LogRepository::class)
+            ->addArgument(new Reference(PDO::class));
+
+        $container->register(InfoPageRepository::class)
             ->addArgument(new Reference(PDO::class));
 
         // -------------------------------------------------------------------------
@@ -230,6 +236,21 @@ final class Container
             ->setPublic(true)
             ->addArgument(new Reference(Config::class))
             ->addArgument(new Reference(ShareKeyRepository::class))
+            ->addArgument(new Reference(ViewRenderer::class));
+
+        $container->register(InfoPageController::class)
+            ->setPublic(true)
+            ->addArgument(new Reference(Config::class))
+            ->addArgument(new Reference(AuthService::class))
+            ->addArgument(new Reference(InfoPageRepository::class))
+            ->addArgument(new Reference(LogRepository::class))
+            ->addArgument('%base_url%')
+            ->addArgument(new Reference(ViewRenderer::class));
+
+        $container->register(PublicPageController::class)
+            ->setPublic(true)
+            ->addArgument(new Reference(Config::class))
+            ->addArgument(new Reference(InfoPageRepository::class))
             ->addArgument(new Reference(ViewRenderer::class));
 
         $container->compile();
