@@ -87,7 +87,7 @@ class TreeControllerTest extends TestCase
         $viewMock->expects($this->once())->method('render')
             ->with('pages/tree-public', $this->callback(fn (array $d): bool => isset($d['tree'])));
 
-        $_GET['path'] = $this->albumsRoot;
+        $_GET['path'] = 'liste_albums';
 
         $controller = $this->makeController($authMock, $viewMock);
         $controller->handlePublic();
@@ -110,7 +110,7 @@ class TreeControllerTest extends TestCase
 
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $_POST['action']           = 'create_folder';
-        $_POST['path']             = $this->albumsRoot;
+        $_POST['path']             = 'liste_albums';
         $_POST['new_name']         = 'mon-album';
         $_POST['description']      = 'desc';
         $_POST['more_info_url']    = '';
@@ -135,11 +135,11 @@ class TreeControllerTest extends TestCase
         $authMock->method('isLoggedIn')->willReturn(true);
 
         $fileSvc = $this->createMock(FileService::class);
-        $fileSvc->expects($this->once())->method('deleteDirectoryRecursively')->with($toDelete);
+        $fileSvc->expects($this->once())->method('deleteDirectoryRecursively')->with(realpath($toDelete));
 
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $_POST['action']           = 'delete_folder';
-        $_POST['path']             = $toDelete;
+        $_POST['path']             = 'liste_albums/to-delete';
 
         $this->expectException(TerminateException::class);
 
@@ -162,7 +162,7 @@ class TreeControllerTest extends TestCase
 
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $_POST['action']           = 'edit_folder';
-        $_POST['path']             = $albumPath;
+        $_POST['path']             = 'liste_albums/editable';
         $_POST['new_name']         = 'New Title';
         $_POST['description']      = 'New Desc';
         $_POST['more_info_url']    = '';
@@ -206,7 +206,7 @@ class TreeControllerTest extends TestCase
         $viewMock->expects($this->once())->method('render')
             ->with('pages/tree-private', $this->callback(fn (array $d): bool => isset($d['tree'])));
 
-        $_GET['path'] = $this->privateRoot;
+        $_GET['path'] = 'liste_albums_prives';
 
         $controller = $this->makeController($authMock, $viewMock);
         $controller->handlePrivate();
@@ -226,7 +226,7 @@ class TreeControllerTest extends TestCase
 
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $_POST['action']           = 'create_folder';
-        $_POST['path']             = $this->privateRoot;
+        $_POST['path']             = 'liste_albums_prives';
         $_POST['new_name']         = 'album-secret';
         $_POST['description']      = 'desc';
         $_POST['more_info_url']    = '';
@@ -251,11 +251,11 @@ class TreeControllerTest extends TestCase
         $authMock->method('isLoggedIn')->willReturn(true);
 
         $fileSvc = $this->createMock(FileService::class);
-        $fileSvc->expects($this->once())->method('deleteDirectoryRecursively')->with($toDelete);
+        $fileSvc->expects($this->once())->method('deleteDirectoryRecursively')->with(realpath($toDelete));
 
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $_POST['action']           = 'delete_folder';
-        $_POST['path']             = $toDelete;
+        $_POST['path']             = 'liste_albums_prives/to-delete';
 
         $this->expectException(TerminateException::class);
 
@@ -278,7 +278,7 @@ class TreeControllerTest extends TestCase
 
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $_POST['action']           = 'edit_folder';
-        $_POST['path']             = $albumPath;
+        $_POST['path']             = 'liste_albums_prives/editable';
         $_POST['new_name']         = 'New Title';
         $_POST['description']      = 'New Desc';
         $_POST['more_info_url']    = '';
@@ -321,7 +321,7 @@ class TreeControllerTest extends TestCase
         $viewMock->expects($this->once())->method('render')
             ->with('pages/tree-public', $this->callback(fn (array $d): bool => isset($d['tree'])));
 
-        $_GET['path'] = $this->albumsRoot;
+        $_GET['path'] = 'liste_albums';
 
         $controller = $this->makeController($authMock, $viewMock);
         $controller->handlePublic();
@@ -353,7 +353,7 @@ class TreeControllerTest extends TestCase
         $viewMock->expects($this->once())->method('render')
             ->with('pages/tree-private', $this->callback(fn (array $d): bool => isset($d['tree'])));
 
-        $_GET['path'] = $this->privateRoot;
+        $_GET['path'] = 'liste_albums_prives';
 
         $controller = $this->makeController($authMock, $viewMock);
         $controller->handlePrivate();
@@ -377,7 +377,7 @@ class TreeControllerTest extends TestCase
 
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $_POST['action']           = 'create_folder';
-        $_POST['path']             = $this->albumsRoot;
+        $_POST['path']             = 'liste_albums';
         $_POST['new_name']         = 'existing';
         $_POST['description']      = '';
         $_POST['more_info_url']    = '';
@@ -415,7 +415,7 @@ class TreeControllerTest extends TestCase
         $_SERVER['HTTP_HOST']      = 'localhost';
         $_SERVER['HTTPS']          = '';
         $_POST['action']           = 'generate_link';
-        $_POST['path']             = $albumPath;
+        $_POST['path']             = 'liste_albums_prives/shared-album';
         $_POST['duration']         = '24';
         $_POST['comment']          = 'test';
 

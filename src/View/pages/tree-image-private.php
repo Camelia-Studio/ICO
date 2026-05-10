@@ -4,7 +4,7 @@
  *
  * Variables :
  *   string                      $siteTitle    Titre du site
- *   string                      $currentPath  Chemin absolu du dossier courant
+ *   string                      $backUrl      URL du bouton "Retour" (parent dans l'arbre)
  *   array<string,mixed>         $albumInfo    Infos de l'album (title, description, …)
  *   array<int, array{name: string, url: string, isTop: bool}> $imageData  Images pré-calculées
  *   string                      $version      Version de l'application (pour le footer)
@@ -12,7 +12,7 @@
 
 /** @var \ICO\View\ViewRenderer $renderer */
 /** @var string $siteTitle */
-/** @var string $currentPath */
+/** @var string $backUrl */
 /** @var array<string,mixed> $albumInfo */
 /** @var array<int, array{name: string, url: string, isTop: bool}> $imageData */
 /** @var string $version */
@@ -35,7 +35,7 @@
             <button onclick="toggleSelectAll()" id="selectAllBtn" class="action-button">
                 Tout sélectionner
             </button>
-            <a href="arbre-prive.php?path=<?php echo urlencode($currentPath); ?>" class="action-button action-button-secondary">
+            <a href="<?php echo htmlspecialchars($backUrl); ?>" class="action-button action-button-secondary">
                 Retour
             </a>
         </div>

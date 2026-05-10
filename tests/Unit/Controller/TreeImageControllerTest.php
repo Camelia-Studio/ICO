@@ -106,7 +106,7 @@ class TreeImageControllerTest extends TestCase
         $viewMock->expects($this->once())->method('render')
             ->with('pages/tree-image-public', $this->callback(fn (array $d): bool => isset($d['imageData'], $d['siteTitle'])));
 
-        $_GET['path'] = $this->albumsRoot . '/album1';
+        $_GET['path'] = 'liste_albums/album1';
 
         $controller = $this->makeController($authMock, $viewMock);
         $controller->handlePublic();
@@ -124,7 +124,7 @@ class TreeImageControllerTest extends TestCase
         $authMock->method('isLoggedIn')->willReturn(true);
 
         $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_GET['path']              = $this->albumsRoot . '/album1';
+        $_GET['path']              = 'liste_albums/album1';
         $_POST['action']           = 'toggle_top';
         $_POST['image']            = 'photo.jpg';
 
@@ -149,7 +149,7 @@ class TreeImageControllerTest extends TestCase
         $logMock->expects($this->once())->method('log');
 
         $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_GET['path']              = $this->albumsRoot . '/album1';
+        $_GET['path']              = 'liste_albums/album1';
         $_POST['action']           = 'delete';
         $_POST['images']           = ['to-delete.jpg'];
 
@@ -171,7 +171,7 @@ class TreeImageControllerTest extends TestCase
         $authMock->method('isLoggedIn')->willReturn(true);
 
         $_SERVER['REQUEST_METHOD']  = 'POST';
-        $_GET['path']               = $this->albumsRoot . '/album1';
+        $_GET['path']               = 'liste_albums/album1';
         $_POST['action']            = 'move';
         $_POST['images']            = ['img.jpg'];
         $_POST['destination_path']  = '/tmp/nonexistent-outside';
@@ -232,7 +232,7 @@ class TreeImageControllerTest extends TestCase
         $viewMock->expects($this->once())->method('render')
             ->with('pages/tree-image-private', $this->callback(fn (array $d): bool => isset($d['imageData'], $d['siteTitle'])));
 
-        $_GET['path'] = $this->privateRoot . '/secret';
+        $_GET['path'] = 'liste_albums_prives/secret';
 
         $controller = $this->makeController($authMock, $viewMock);
         $controller->handlePrivate();
@@ -250,7 +250,7 @@ class TreeImageControllerTest extends TestCase
         $authMock->method('isLoggedIn')->willReturn(true);
 
         $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_GET['path']              = $this->privateRoot . '/secret';
+        $_GET['path']              = 'liste_albums_prives/secret';
         $_POST['action']           = 'toggle_top';
         $_POST['image']            = 'img.png';
 
@@ -275,7 +275,7 @@ class TreeImageControllerTest extends TestCase
         $logMock->expects($this->once())->method('log');
 
         $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_GET['path']              = $this->privateRoot . '/secret';
+        $_GET['path']              = 'liste_albums_prives/secret';
         $_POST['action']           = 'delete';
         $_POST['images']           = ['to-delete.png'];
 
@@ -303,10 +303,10 @@ class TreeImageControllerTest extends TestCase
         $logMock->expects($this->once())->method('log');
 
         $_SERVER['REQUEST_METHOD']  = 'POST';
-        $_GET['path']               = $this->albumsRoot . '/album1';
+        $_GET['path']               = 'liste_albums/album1';
         $_POST['action']            = 'move';
         $_POST['images']            = ['img.jpg'];
-        $_POST['destination_path']  = $destDir;
+        $_POST['destination_path']  = 'liste_albums/album2';
 
         $this->expectException(TerminateException::class);
 
@@ -324,7 +324,7 @@ class TreeImageControllerTest extends TestCase
         $authMock->method('isLoggedIn')->willReturn(true);
 
         $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_GET['path']              = $this->albumsRoot . '/album1';
+        $_GET['path']              = 'liste_albums/album1';
         $_POST['action']           = 'upload';
         $_FILES                    = [];
 
@@ -340,7 +340,7 @@ class TreeImageControllerTest extends TestCase
         $authMock->method('isLoggedIn')->willReturn(true);
 
         $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_GET['path']              = $this->privateRoot . '/secret';
+        $_GET['path']              = 'liste_albums_prives/secret';
         $_POST['action']           = 'upload';
         $_FILES                    = [];
 

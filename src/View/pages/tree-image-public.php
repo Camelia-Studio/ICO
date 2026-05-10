@@ -4,7 +4,7 @@
  *
  * Variables :
  *   string   $siteTitle      Titre du site
- *   string   $currentPath    Chemin absolu du dossier courant
+ *   string   $backUrl        URL du bouton "Retour" (parent dans l'arbre)
  *   string[] $images         Noms des fichiers images
  *   string   $pageTitle      Titre H1 de la page
  *   string   $folderOptions  HTML des <option> pour la modale de déplacement
@@ -18,11 +18,12 @@
 
 /** @var \ICO\View\ViewRenderer $renderer */
 /** @var string $siteTitle */
-/** @var string $currentPath */
+/** @var string $backUrl */
 /** @var array<int, array{name: string, url: string, isTop: bool}> $imageData */
 /** @var string $pageTitle */
 /** @var string $folderOptions */
 /** @var bool $isCarousel */
+/** @var string|null $galleryUrl */
 /** @var string $version */
 ?>
 <?php $renderer->renderLayout('layout/header', [
@@ -44,7 +45,12 @@
             <button onclick="toggleSelectAll()" id="selectAllBtn" class="action-button">
                 Tout sélectionner
             </button>
-            <a href="arbre.php?path=<?php echo urlencode($currentPath); ?>" class="action-button action-button-secondary">
+            <?php if ($galleryUrl !== null): ?>
+                <a href="<?php echo htmlspecialchars($galleryUrl); ?>" class="action-button action-button-secondary" target="_blank">
+                    Voir en mode public
+                </a>
+            <?php endif; ?>
+            <a href="<?php echo htmlspecialchars($backUrl); ?>" class="action-button action-button-secondary">
                 Retour
             </a>
         </div>

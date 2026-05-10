@@ -43,6 +43,20 @@ class TreeController
     }
 
     // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+
+    private function relPath(string $absPath): string
+    {
+        return substr($absPath, strlen($this->projectRoot) + 1);
+    }
+
+    private function absPath(string $relPath): string
+    {
+        return realpath($this->projectRoot . '/' . ltrim($relPath, '/')) ?: '';
+    }
+
+    // -------------------------------------------------------------------------
     // arbre.php — albums publics
     // -------------------------------------------------------------------------
 
@@ -59,7 +73,8 @@ class TreeController
             throw new TerminateException();
         }
 
-        $currentPath = realpath($_GET['path'] ?? $this->albumsRoot) ?: realpath($this->albumsRoot);
+        $rawPath     = $_GET['path'] ?? '';
+        $currentPath = ($rawPath !== '' ? $this->absPath($rawPath) : '') ?: (realpath($this->albumsRoot) ?: '');
         if (!$currentPath || !$this->albumService->isSecurePath($currentPath)) {
             header('Location: arbre.php');
             throw new TerminateException();
@@ -72,10 +87,10 @@ class TreeController
 
     private function handlePublicPost(): void
     {
-        $action      = $_POST['action']      ?? '';
-        $path        = $_POST['path']        ?? '';
-        $newName     = $_POST['new_name']    ?? '';
-        $description = $_POST['description'] ?? '';
+        $action        = $_POST['action']      ?? '';
+        $path          = $this->absPath($_POST['path'] ?? '');
+        $newName       = $_POST['new_name']    ?? '';
+        $description   = $_POST['description'] ?? '';
         $matureContent = isset($_POST['mature_content']) ? '18+' : '18-';
 
         switch ($action) {
@@ -168,7 +183,8 @@ class TreeController
             throw new TerminateException();
         }
 
-        $currentPath = realpath($_GET['path'] ?? $this->albumsPrivateRoot) ?: realpath($this->albumsPrivateRoot);
+        $rawPath     = $_GET['path'] ?? '';
+        $currentPath = ($rawPath !== '' ? $this->absPath($rawPath) : '') ?: (realpath($this->albumsPrivateRoot) ?: '');
         if (!$currentPath || !$this->albumService->isSecurePrivatePath($currentPath)) {
             header('Location: arbre-prive.php');
             throw new TerminateException();
@@ -182,7 +198,7 @@ class TreeController
 
     private function handleGenerateLink(): void
     {
-        $albumPath = $_POST['path']    ?? '';
+        $albumPath = $this->absPath($_POST['path'] ?? '');
         $duration  = intval($_POST['duration'] ?? 24);
         $comment   = $_POST['comment'] ?? '';
 
@@ -211,10 +227,10 @@ class TreeController
 
     private function handlePrivatePost(): void
     {
-        $action      = $_POST['action']      ?? '';
-        $path        = $_POST['path']        ?? '';
-        $newName     = $_POST['new_name']    ?? '';
-        $description = $_POST['description'] ?? '';
+        $action        = $_POST['action']      ?? '';
+        $path          = $this->absPath($_POST['path'] ?? '');
+        $newName       = $_POST['new_name']    ?? '';
+        $description   = $_POST['description'] ?? '';
         $matureContent = isset($_POST['mature_content']) ? '18+' : '18-';
 
         switch ($action) {
@@ -297,7 +313,7 @@ class TreeController
                 $output .= '<div class="tree-item-content">';
                 $output .= '<span class="tree-link"><span class="folder-icon">🎞️</span> Images du carrousel</span>';
                 $output .= '<div class="tree-actions">';
-                $output .= '<a href="arbre-img.php?path=' . urlencode($carouselPath) . '" class="tree-button carousel-button" title="Gérer les images">🖼️</a>';
+                $output .= '<a href="arbre-img.php?path=' . urlencode($this->relPath($carouselPath)) . '" class="tree-button carousel-button" title="Gérer les images">🖼️</a>';
                 $output .= '</div></div></li>';
             }
 
@@ -310,10 +326,11 @@ class TreeController
             }
 
             $output .= '</span>';
+            $rootRelPath = $this->relPath($path);
             $output .= '<div class="tree-actions">';
-            $output .= '<a href="albums.php?path=' . urlencode(basename($this->albumsRoot)) . '" class="tree-button" target="_blank" title="Voir en mode public" style="text-decoration: none">👁️</a>';
-            $output .= '<button onclick="editFolder(\'' . htmlspecialchars($path) . "', '" . rawurlencode($info['title']) . "', '" . rawurlencode($info['description']) . "', " . ($info['mature_content'] ? 'true' : 'false') . ", '" . rawurlencode($info['more_info_url']) . "', " . ($this->albumService->hasImages($path) ? 'true' : 'false') . ')" class="tree-button">✏️</button>';
-            $output .= '<button onclick="createSubfolder(\'' . htmlspecialchars($path) . '\')" class="tree-button">➕</button>';
+            $output .= '<a href="albums.php?path=' . urlencode($rootRelPath) . '" class="tree-button" target="_blank" title="Voir en mode public" style="text-decoration: none">👁️</a>';
+            $output .= '<button onclick="editFolder(\'' . htmlspecialchars($rootRelPath) . "', '" . rawurlencode($info['title']) . "', '" . rawurlencode($info['description']) . "', " . ($info['mature_content'] ? 'true' : 'false') . ", '" . rawurlencode($info['more_info_url']) . "', " . ($this->albumService->hasImages($path) ? 'true' : 'false') . ')" class="tree-button">✏️</button>';
+            $output .= '<button onclick="createSubfolder(\'' . htmlspecialchars($rootRelPath) . '\')" class="tree-button">➕</button>';
             $output .= '</div></div>';
         }
 
@@ -354,20 +371,20 @@ class TreeController
             }
 
             if (!$hasSubfolders) {
-                $output .= '<a href="arbre-img.php?path=' . urlencode($fullPath) . '" class="tree-button" style="text-decoration: none">🖼️</a>';
+                $output .= '<a href="arbre-img.php?path=' . urlencode($relativePath) . '" class="tree-button" style="text-decoration: none">🖼️</a>';
             }
 
             if (!$hasSubfolders) {
-                $output .= '<button onclick="editFolder(\'' . htmlspecialchars($fullPath) . "', '" . rawurlencode($info['title']) . "', '" . rawurlencode($info['description']) . "', " . ($info['mature_content'] ? 'true' : 'false') . ", '" . rawurlencode($info['more_info_url']) . "', " . ($hasImages ? 'true' : 'false') . ')" class="tree-button">✏️</button>';
+                $output .= '<button onclick="editFolder(\'' . htmlspecialchars($relativePath) . "', '" . rawurlencode($info['title']) . "', '" . rawurlencode($info['description']) . "', " . ($info['mature_content'] ? 'true' : 'false') . ", '" . rawurlencode($info['more_info_url']) . "', " . ($hasImages ? 'true' : 'false') . ')" class="tree-button">✏️</button>';
             } else {
-                $output .= '<button onclick="editFolder(\'' . htmlspecialchars($fullPath) . "', '" . rawurlencode($info['title']) . "', '" . rawurlencode($info['description']) . "', " . ($info['mature_content'] ? 'true' : 'false') . ', \'\', false)" class="tree-button">✏️</button>';
+                $output .= '<button onclick="editFolder(\'' . htmlspecialchars($relativePath) . "', '" . rawurlencode($info['title']) . "', '" . rawurlencode($info['description']) . "', " . ($info['mature_content'] ? 'true' : 'false') . ', \'\', false)" class="tree-button">✏️</button>';
             }
 
             if (!$hasImages) {
-                $output .= '<button onclick="createSubfolder(\'' . htmlspecialchars($fullPath) . '\')" class="tree-button">➕</button>';
+                $output .= '<button onclick="createSubfolder(\'' . htmlspecialchars($relativePath) . '\')" class="tree-button">➕</button>';
             }
 
-            $output .= '<button onclick="deleteFolder(\'' . htmlspecialchars($fullPath) . '\')" class="tree-button tree-button-danger">🗑️</button>';
+            $output .= '<button onclick="deleteFolder(\'' . htmlspecialchars($relativePath) . '\')" class="tree-button tree-button-danger">🗑️</button>';
             $output .= '</div></div>';
             $output .= $this->generatePublicTree($fullPath, $currentPath);
             $output .= '</li>';
@@ -395,9 +412,10 @@ class TreeController
             }
 
             $output .= '</span>';
+            $privateRootRelPath = $this->relPath($path);
             $output .= '<div class="tree-actions">';
-            $output .= '<button onclick="editFolder(\'' . htmlspecialchars($path) . "', '" . rawurlencode($info['title']) . "', '" . rawurlencode($info['description']) . "', " . ($info['mature_content'] ? 'true' : 'false') . ", '" . rawurlencode($info['more_info_url']) . "', " . ($this->albumService->hasImages($path) ? 'true' : 'false') . ')" class="tree-button">✏️</button>';
-            $output .= '<button onclick="createSubfolder(\'' . htmlspecialchars($path) . '\')" class="tree-button">➕</button>';
+            $output .= '<button onclick="editFolder(\'' . htmlspecialchars($privateRootRelPath) . "', '" . rawurlencode($info['title']) . "', '" . rawurlencode($info['description']) . "', " . ($info['mature_content'] ? 'true' : 'false') . ", '" . rawurlencode($info['more_info_url']) . "', " . ($this->albumService->hasImages($path) ? 'true' : 'false') . ')" class="tree-button">✏️</button>';
+            $output .= '<button onclick="createSubfolder(\'' . htmlspecialchars($privateRootRelPath) . '\')" class="tree-button">➕</button>';
             $output .= '</div></div>';
         }
 
@@ -419,6 +437,7 @@ class TreeController
             $isCurrentPath = realpath($fullPath) === $currentPath;
             $hasSubfolders = $this->albumService->hasSubfolders($fullPath);
             $hasImages     = $this->albumService->hasImages($fullPath);
+            $relPath       = $this->relPath($fullPath);
 
             $output .= '<li class="tree-item' . ($isCurrentPath ? ' active' : '') . '">';
             $output .= '<div class="tree-item-content">';
@@ -430,25 +449,25 @@ class TreeController
             $output .= '</span>';
             $output .= '<div class="tree-actions">';
             if (!$hasSubfolders) {
-                $output .= '<a href="arbre-img-prive.php?path=' . urlencode($fullPath) . '&private=1" class="tree-button" style="text-decoration: none">🖼️</a>';
+                $output .= '<a href="arbre-img-prive.php?path=' . urlencode($relPath) . '&private=1" class="tree-button" style="text-decoration: none">🖼️</a>';
                 if ($hasImages) {
-                    $encodedPath  = htmlspecialchars(addslashes($fullPath));
+                    $encodedPath  = htmlspecialchars(addslashes($relPath));
                     $encodedTitle = htmlspecialchars(addslashes($info['title']));
                     $output .= '<button onclick="generateShareLink(\'' . $encodedPath . "', '" . $encodedTitle . '\')" class="tree-button tree-button-share" title="Générer un lien de partage">🔗</button>';
                 }
             }
 
             if (!$hasSubfolders) {
-                $output .= '<button onclick="editFolder(\'' . htmlspecialchars($fullPath) . "', '" . rawurlencode($info['title']) . "', '" . rawurlencode($info['description']) . "', " . ($info['mature_content'] ? 'true' : 'false') . ", '" . rawurlencode($info['more_info_url']) . "', " . ($hasImages ? 'true' : 'false') . ')" class="tree-button">✏️</button>';
+                $output .= '<button onclick="editFolder(\'' . htmlspecialchars($relPath) . "', '" . rawurlencode($info['title']) . "', '" . rawurlencode($info['description']) . "', " . ($info['mature_content'] ? 'true' : 'false') . ", '" . rawurlencode($info['more_info_url']) . "', " . ($hasImages ? 'true' : 'false') . ')" class="tree-button">✏️</button>';
             } else {
-                $output .= '<button onclick="editFolder(\'' . htmlspecialchars($fullPath) . "', '" . rawurlencode($info['title']) . "', '" . rawurlencode($info['description']) . "', " . ($info['mature_content'] ? 'true' : 'false') . ', \'\', false)" class="tree-button">✏️</button>';
+                $output .= '<button onclick="editFolder(\'' . htmlspecialchars($relPath) . "', '" . rawurlencode($info['title']) . "', '" . rawurlencode($info['description']) . "', " . ($info['mature_content'] ? 'true' : 'false') . ', \'\', false)" class="tree-button">✏️</button>';
             }
 
             if (!$hasImages) {
-                $output .= '<button onclick="createSubfolder(\'' . htmlspecialchars($fullPath) . '\')" class="tree-button">➕</button>';
+                $output .= '<button onclick="createSubfolder(\'' . htmlspecialchars($relPath) . '\')" class="tree-button">➕</button>';
             }
 
-            $output .= '<button onclick="deleteFolder(\'' . htmlspecialchars($fullPath) . '\')" class="tree-button tree-button-danger">🗑️</button>';
+            $output .= '<button onclick="deleteFolder(\'' . htmlspecialchars($relPath) . '\')" class="tree-button tree-button-danger">🗑️</button>';
             $output .= '</div></div>';
             $output .= $this->generatePrivateTree($fullPath, $currentPath);
             $output .= '</li>';

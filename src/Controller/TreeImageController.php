@@ -51,7 +51,8 @@ class TreeImageController
             throw new TerminateException();
         }
 
-        $currentPath = realpath($_GET['path'] ?? $this->albumsRoot) ?: '';
+        $rawPath     = $_GET['path'] ?? '';
+        $currentPath = realpath($rawPath !== '' ? $this->pathService->toAbsolute($rawPath) : $this->albumsRoot) ?: '';
         if (!$currentPath || !$this->albumService->isSecurePath($currentPath)) {
             header('Location: arbre.php');
             throw new TerminateException();
@@ -59,7 +60,7 @@ class TreeImageController
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->handlePublicPost($currentPath);
-            header('Location: arbre-img.php?path=' . urlencode($currentPath));
+            header('Location: arbre-img.php?path=' . urlencode($this->pathService->toRelative($currentPath)));
             throw new TerminateException();
         }
 
@@ -102,7 +103,8 @@ class TreeImageController
             throw new TerminateException();
         }
 
-        $currentPath = realpath($_GET['path'] ?? $this->privateRoot) ?: '';
+        $rawPath     = $_GET['path'] ?? '';
+        $currentPath = realpath($rawPath !== '' ? $this->pathService->toAbsolute($rawPath) : $this->privateRoot) ?: '';
         if (!$currentPath || !$this->albumService->isSecurePrivatePath($currentPath)) {
             header('Location: arbre-prive.php');
             throw new TerminateException();
@@ -110,7 +112,7 @@ class TreeImageController
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->handlePrivatePost($currentPath);
-            header('Location: arbre-img-prive.php?path=' . urlencode($currentPath));
+            header('Location: arbre-img-prive.php?path=' . urlencode($this->pathService->toRelative($currentPath)));
             throw new TerminateException();
         }
 
@@ -269,7 +271,7 @@ class TreeImageController
     private function handleMove(string $currentPath): void
     {
         $images          = $_POST['images'] ?? [];
-        $destinationPath = $_POST['destination_path'] ?? '';
+        $destinationPath = realpath($this->pathService->toAbsolute($_POST['destination_path'] ?? '')) ?: '';
         $moveCount       = 0;
         $errors          = [];
 
@@ -379,7 +381,7 @@ class TreeImageController
 
             if (!$this->albumService->hasSubfolders($fullPath)) {
                 $info    = $this->albumService->getAlbumInfo($fullPath);
-                $output .= '<option value="' . htmlspecialchars($fullPath) . '">'
+                $output .= '<option value="' . htmlspecialchars($this->pathService->toRelative($fullPath)) . '">'
                     . $indent . htmlspecialchars($info['title'])
                     . '</option>';
             }
@@ -439,13 +441,19 @@ class TreeImageController
             'isTop' => str_contains($image, '--top--'),
         ], $images);
 
+        $relativePath  = $this->pathService->toRelative($currentPath);
+        $parentRelPath = ltrim(dirname($relativePath), '.');
+        $backUrl       = 'arbre.php' . ($parentRelPath !== '' ? '?path=' . urlencode($parentRelPath) : '');
+        $galleryUrl    = $isCarousel ? null : 'galeries.php?path=' . urlencode($relativePath);
+
         $this->view->render('pages/tree-image-public', [
             'siteTitle'     => $siteTitle,
-            'currentPath'   => $currentPath,
+            'backUrl'       => $backUrl,
             'imageData'     => $imageData,
             'pageTitle'     => $pageTitle,
             'folderOptions' => $this->generateFolderOptions($this->albumsRoot, $currentPath),
             'isCarousel'    => $isCarousel,
+            'galleryUrl'    => $galleryUrl,
             'version'       => $this->config->getVersion(),
         ]);
     }
@@ -462,9 +470,12 @@ class TreeImageController
             'isTop' => str_contains($image, '--top--'),
         ], $images);
 
+        $parentRelPath = ltrim(dirname($this->pathService->toRelative($currentPath)), '.');
+        $backUrl       = 'arbre-prive.php' . ($parentRelPath !== '' ? '?path=' . urlencode($parentRelPath) : '');
+
         $this->view->render('pages/tree-image-private', [
             'siteTitle'    => $siteTitle,
-            'currentPath'  => $currentPath,
+            'backUrl'      => $backUrl,
             'albumInfo'    => $albumInfo,
             'imageData'    => $imageData,
             'version'      => $this->config->getVersion(),
