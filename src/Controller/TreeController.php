@@ -28,7 +28,7 @@ class TreeController
 
     public function __construct(
         private readonly Config                     $config,
-        string                     $projectRoot,
+        private readonly string                     $projectRoot,
         private readonly AuthService                $auth,
         private readonly AlbumService               $albumService,
         private readonly FileService                $fileService,
@@ -311,6 +311,7 @@ class TreeController
 
             $output .= '</span>';
             $output .= '<div class="tree-actions">';
+            $output .= '<a href="albums.php?path=' . urlencode(basename($this->albumsRoot)) . '" class="tree-button" target="_blank" title="Voir en mode public" style="text-decoration: none">👁️</a>';
             $output .= '<button onclick="editFolder(\'' . htmlspecialchars($path) . "', '" . rawurlencode($info['title']) . "', '" . rawurlencode($info['description']) . "', " . ($info['mature_content'] ? 'true' : 'false') . ", '" . rawurlencode($info['more_info_url']) . "', " . ($this->albumService->hasImages($path) ? 'true' : 'false') . ')" class="tree-button">✏️</button>';
             $output .= '<button onclick="createSubfolder(\'' . htmlspecialchars($path) . '\')" class="tree-button">➕</button>';
             $output .= '</div></div>';
@@ -344,7 +345,14 @@ class TreeController
             }
 
             $output .= '</span>';
+            $relativePath = substr($fullPath, strlen($this->projectRoot) + 1);
             $output .= '<div class="tree-actions">';
+            if ($hasSubfolders) {
+                $output .= '<a href="albums.php?path=' . urlencode($relativePath) . '" class="tree-button" target="_blank" title="Voir en mode public" style="text-decoration: none">👁️</a>';
+            } elseif ($hasImages) {
+                $output .= '<a href="galeries.php?path=' . urlencode($relativePath) . '" class="tree-button" target="_blank" title="Voir en mode public" style="text-decoration: none">👁️</a>';
+            }
+
             if (!$hasSubfolders) {
                 $output .= '<a href="arbre-img.php?path=' . urlencode($fullPath) . '" class="tree-button" style="text-decoration: none">🖼️</a>';
             }
