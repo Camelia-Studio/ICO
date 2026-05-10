@@ -1,0 +1,62 @@
+name: Release
+
+on:
+  release:
+    types: [created, edited]
+
+jobs:
+  build:
+    name: Build release ZIP
+    runs-on: ubuntu-latest
+    container:
+      image: php:8.3-cli
+
+    steps:
+      - name: Install system dependencies
+        run: |
+          apt-get update -qq
+          apt-get install -y --no-install-recommends unzip git ca-certificates curl zip
+
+      - name: Checkout
+        run: git clone --depth=1 --branch="${GITHUB_REF_NAME}" "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git" .
+
+      - name: Install Composer
+        run: |
+          php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+          php composer-setup.php --install-dir=/usr/local/bin --filename=composer
+          rm composer-setup.php
+
+      - name: Install production dependencies
+        run: composer install --no-dev --optimize-autoloader --prefer-dist --no-progress --no-interaction
+
+      - name: Build ZIP
+        run: |
+          ZIP_NAME="ico-${GITHUB_REF_NAME}.zip"
+
+          mkdir -p staging/ico
+
+          cp -r public routes src js vendor staging/ico/
+          cp styles.css styles-admin.css favicon.png .htaccess staging/ico/
+          cp init-db.php version.txt README.md LICENSE composer.json composer.lock staging/ico/
+
+          mkdir -p staging/ico/img_carrousel staging/ico/liste_albums staging/ico/liste_albums_prives
+          cp img_carrousel/infos.txt staging/ico/img_carrousel/
+          cp liste_albums/infos.txt staging/ico/liste_albums/
+          cp liste_albums_prives/infos.txt staging/ico/liste_albums_prives/
+
+          cd staging && zip -r "../${ZIP_NAME}" ico/
+          echo "ZIP_NAME=${ZIP_NAME}" >> "${GITHUB_ENV}"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ico-${{ github.ref_name }}
+          path: "*.zip"
+          retention-days: 30
+
+      - name: Publish on release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: "*.zip"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
