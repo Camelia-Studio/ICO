@@ -24,6 +24,7 @@
         <h1>
             Images de : <?php echo htmlspecialchars($albumInfo['title']); ?>
             <span class="private-badge">Privé</span>
+            <span class="image-count-total"><?php echo count($imageData); ?> illustration<?php echo count($imageData) !== 1 ? 's' : ''; ?></span>
         </h1>
         <div class="admin-actions">
             <button onclick="document.getElementById('imageUploadForm').click()" class="action-button action-button-success">

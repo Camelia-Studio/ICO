@@ -353,12 +353,17 @@ class TreeController
             $isCurrentPath = realpath($fullPath) === $currentPath;
             $hasSubfolders = $this->albumService->hasSubfolders($fullPath);
             $hasImages     = $this->albumService->hasImages($fullPath);
+            $imageCount    = $hasImages ? $this->albumService->countImages($fullPath) : 0;
 
             $output .= '<li class="tree-item' . ($isCurrentPath ? ' active' : '') . '">';
             $output .= '<div class="tree-item-content">';
             $output .= '<span class="tree-link"><span class="folder-icon">📁</span> ' . htmlspecialchars($info['title']);
             if ($info['mature_content']) {
                 $output .= ' <span class="mature-warning">🔞</span>';
+            }
+
+            if ($imageCount > 0) {
+                $output .= ' <span class="image-count">' . $imageCount . '</span>';
             }
 
             $output .= '</span>';
@@ -437,6 +442,7 @@ class TreeController
             $isCurrentPath = realpath($fullPath) === $currentPath;
             $hasSubfolders = $this->albumService->hasSubfolders($fullPath);
             $hasImages     = $this->albumService->hasImages($fullPath);
+            $imageCount    = $hasImages ? $this->albumService->countImages($fullPath) : 0;
             $relPath       = $this->relPath($fullPath);
 
             $output .= '<li class="tree-item' . ($isCurrentPath ? ' active' : '') . '">';
@@ -444,6 +450,10 @@ class TreeController
             $output .= '<span class="tree-link"><span class="folder-icon">🔒</span> ' . htmlspecialchars($info['title']);
             if ($info['mature_content']) {
                 $output .= ' <span class="mature-warning">🔞</span>';
+            }
+
+            if ($imageCount > 0) {
+                $output .= ' <span class="image-count">' . $imageCount . '</span>';
             }
 
             $output .= '</span>';

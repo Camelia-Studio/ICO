@@ -163,6 +163,29 @@ class AlbumService
     }
 
     /**
+     * Retourne le nombre d'images autorisées dans le dossier (non récursif).
+     */
+    public function countImages(string $path): int
+    {
+        if (!is_dir($path)) {
+            return 0;
+        }
+
+        $count = 0;
+        foreach (new \DirectoryIterator($path) as $item) {
+            if ($item->isDot() || !$item->isFile()) {
+                continue;
+            }
+
+            if ($this->isAllowedExtension($item->getExtension())) {
+                ++$count;
+            }
+        }
+
+        return $count;
+    }
+
+    /**
      * Retourne true si le dossier contient au moins une image autorisée.
      */
     public function hasImages(string $path): bool

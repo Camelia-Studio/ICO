@@ -76,6 +76,33 @@ body {
     font-size: 1.1em;
 }
 
+/* Badge compteur d'images dans le H1 d'un dossier */
+.image-count-total {
+    display: inline-flex;
+    align-items: center;
+    background-color: #3a3a5c;
+    color: #a0a8d0;
+    padding: 0.2rem 0.65rem;
+    border-radius: 1rem;
+    font-size: 0.85rem;
+    margin-left: 0.75rem;
+    font-weight: normal;
+    vertical-align: middle;
+}
+
+/* Badge compteur d'images dans l'arbre */
+.image-count {
+    display: inline-flex;
+    align-items: center;
+    background-color: #2a2a4a;
+    color: #8888bb;
+    padding: 0.1rem 0.5rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: normal;
+    vertical-align: middle;
+}
+
 /* Zone de contenu principale */
 .admin-content {
     width: 100%;

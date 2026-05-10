@@ -31,7 +31,10 @@
     'dataPage'  => $isCarousel ? 'carrousel' : 'default',
 ]); ?>
     <div class="admin-header">
-        <h1><?php echo $pageTitle; ?></h1>
+        <h1>
+            <?php echo $pageTitle; ?>
+            <span class="image-count-total"><?php echo count($imageData); ?> illustration<?php echo count($imageData) !== 1 ? 's' : ''; ?></span>
+        </h1>
         <div class="admin-actions">
             <button onclick="document.getElementById('imageUploadForm').click()" class="action-button action-button-success">
                 Ajouter des images
