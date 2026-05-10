@@ -19,7 +19,7 @@
 /** @var \ICO\View\ViewRenderer $renderer */
 /** @var string $siteTitle */
 /** @var string $backUrl */
-/** @var array<int, array{name: string, url: string, isTop: bool}> $imageData */
+/** @var array<int, array{name: string, url: string, isTop: bool, shareUrl: string}> $imageData */
 /** @var string $pageTitle */
 /** @var string $folderOptions */
 /** @var bool $isCarousel */
@@ -78,8 +78,10 @@
                         <input type="checkbox" name="images[]" value="<?php echo htmlspecialchars($item['name']); ?>"
                                class="image-checkbox" onchange="updateActionButtons()">
                         <div class="image-wrapper">
-                            <img src="<?php echo htmlspecialchars($item['url']); ?>"
-                                 alt="<?php echo htmlspecialchars($item['name']); ?>" loading="lazy">
+                            <a href="<?php echo htmlspecialchars($item['shareUrl']); ?>" target="_blank" class="image-share-link">
+                                <img src="<?php echo htmlspecialchars($item['url']); ?>"
+                                     alt="<?php echo htmlspecialchars($item['name']); ?>" loading="lazy">
+                            </a>
                             <div class="image-actions">
                                 <button type="button" onclick="toggleTop('<?php echo htmlspecialchars($item['name']); ?>')"
                                     class="tree-button <?php echo $item['isTop'] ? 'tree-button-top' : ''; ?>"

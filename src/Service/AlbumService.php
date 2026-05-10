@@ -172,7 +172,7 @@ class AlbumService
         }
 
         $count = 0;
-        foreach (new \DirectoryIterator($path) as $item) {
+        foreach (new DirectoryIterator($path) as $item) {
             if ($item->isDot() || !$item->isFile()) {
                 continue;
             }

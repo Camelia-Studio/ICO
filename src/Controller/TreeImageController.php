@@ -228,6 +228,7 @@ class TreeImageController
                 if ($file->isDot() || !$file->isFile()) {
                     continue;
                 }
+
                 if ($file->getPathname() !== $imagePath && str_contains($file->getFilename(), '--top--')) {
                     $fileInfo = pathinfo($file->getPathname());
                     $cleaned  = str_replace('--top--', '', $fileInfo['filename']) . '.' . $fileInfo['extension'];
@@ -291,7 +292,7 @@ class TreeImageController
         $moveCount       = 0;
         $errors          = [];
 
-        if (empty($destinationPath) || !is_dir($destinationPath) || !$this->albumService->isSecurePath($destinationPath)) {
+        if ($destinationPath === '' || $destinationPath === '0' || !is_dir($destinationPath) || !$this->albumService->isSecurePath($destinationPath)) {
             $_SESSION['error_message'] = 'Dossier de destination invalide.';
             return;
         }
@@ -325,7 +326,7 @@ class TreeImageController
             $this->logRepo->log(
                 (int) $_SESSION['admin_id'],
                 'MOVE_IMAGES',
-                sprintf('Déplacement de %d image(s) vers ', $moveCount) . basename((string) $destinationPath),
+                sprintf('Déplacement de %d image(s) vers ', $moveCount) . basename($destinationPath),
                 $currentPath . ' -> ' . $destinationPath,
             );
             $_SESSION['success_message'] = $moveCount . ' image(s) déplacée(s) avec succès.';
@@ -451,11 +452,15 @@ class TreeImageController
             ? 'Images du carrousel'
             : 'Images de : ' . htmlspecialchars($this->albumService->getAlbumInfo($currentPath)['title']);
 
-        $imageData = array_map(fn (string $image): array => [
-            'name'  => $image,
-            'url'   => $this->buildPublicImageUrl($currentPath, $image),
-            'isTop' => str_contains($image, '--top--'),
-        ], $images);
+        $imageData = array_map(function (string $image) use ($currentPath): array {
+            $url = $this->buildPublicImageUrl($currentPath, $image);
+            return [
+                'name'     => $image,
+                'url'      => $url,
+                'isTop'    => str_contains($image, '--top--'),
+                'shareUrl' => 'partage.php?image=' . urlencode($url),
+            ];
+        }, $images);
 
         $relativePath  = $this->pathService->toRelative($currentPath);
         $parentRelPath = ltrim(dirname($relativePath), '.');
@@ -480,11 +485,15 @@ class TreeImageController
      */
     private function renderPrivate(string $siteTitle, string $currentPath, array $images, array $albumInfo): void
     {
-        $imageData = array_map(fn (string $image): array => [
-            'name'  => $image,
-            'url'   => $this->buildPrivateImageUrl($currentPath, $image),
-            'isTop' => str_contains($image, '--top--'),
-        ], $images);
+        $imageData = array_map(function (string $image) use ($currentPath): array {
+            $url = $this->buildPrivateImageUrl($currentPath, $image);
+            return [
+                'name'     => $image,
+                'url'      => $url,
+                'isTop'    => str_contains($image, '--top--'),
+                'shareUrl' => 'partage.php?image=' . urlencode($url),
+            ];
+        }, $images);
 
         $parentRelPath = ltrim(dirname($this->pathService->toRelative($currentPath)), '.');
         $backUrl       = 'arbre-prive.php' . ($parentRelPath !== '' ? '?path=' . urlencode($parentRelPath) : '');
