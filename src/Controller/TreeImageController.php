@@ -154,7 +154,13 @@ class TreeImageController
 
         $count = is_array($uploadedFiles['name'] ?? null) ? count($uploadedFiles['name']) : 0;
         for ($i = 0; $i < $count; $i++) {
-            if ($uploadedFiles['error'][$i] !== UPLOAD_ERR_OK) {
+            $uploadError = $uploadedFiles['error'][$i];
+            if ($uploadError !== UPLOAD_ERR_OK) {
+                if ($uploadError !== UPLOAD_ERR_NO_FILE) {
+                    $originalName = $uploadedFiles['name'][$i] ?? 'fichier inconnu';
+                    $errors[]     = $this->uploadErrorMessage($uploadError, $originalName);
+                }
+
                 continue;
             }
 
@@ -163,7 +169,12 @@ class TreeImageController
             $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
 
             if (!in_array($extension, $allowedExts, true)) {
-                $errors[] = 'Extension non autorisée pour ' . $fileName;
+                $errors[] = sprintf(
+                    '"%s" : extension ".%s" non autorisée (formats acceptés : %s).',
+                    $uploadedFiles['name'][$i],
+                    $extension,
+                    implode(', ', $allowedExts)
+                );
                 continue;
             }
 
@@ -183,7 +194,7 @@ class TreeImageController
             if (move_uploaded_file($tmpName, $destination)) {
                 $successCount++;
             } else {
-                $errors[] = 'Erreur lors du déplacement de ' . $fileName;
+                $errors[] = sprintf('"%s" : erreur lors de l\'enregistrement sur le serveur.', $uploadedFiles['name'][$i]);
             }
         }
 
@@ -426,6 +437,21 @@ class TreeImageController
         $absolutePath = $currentPath . '/' . $image;
         $relativePath = $this->pathService->toRelative($absolutePath);
         return $this->pathService->getBaseUrl() . '/images.php?path=' . urlencode($relativePath);
+    }
+
+    private function uploadErrorMessage(int $code, string $filename): string
+    {
+        $messages = [
+            UPLOAD_ERR_INI_SIZE   => 'dépasse la taille maximale autorisée par le serveur',
+            UPLOAD_ERR_FORM_SIZE  => 'dépasse la taille maximale autorisée par le formulaire',
+            UPLOAD_ERR_PARTIAL    => 'n\'a été que partiellement téléversé',
+            UPLOAD_ERR_NO_TMP_DIR => 'ne peut pas être stocké temporairement (dossier temporaire manquant)',
+            UPLOAD_ERR_CANT_WRITE => 'n\'a pas pu être écrit sur le disque',
+            UPLOAD_ERR_EXTENSION  => 'a été bloqué par une extension PHP',
+        ];
+
+        $reason = $messages[$code] ?? sprintf('a provoqué une erreur inconnue (code %d)', $code);
+        return sprintf('"%s" %s.', $filename, $reason);
     }
 
     /**
