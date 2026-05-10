@@ -61,19 +61,16 @@ class ShareController
 
             if (str_contains($path, 'liste_albums_prives')) {
                 $isPrivateImage = true;
+                $shareKeyData   = $key !== '' ? $this->shareKeyRepo->findValidByKey($key) : null;
 
-                if (!isset($_SESSION['admin_id'])) {
-                    if ($key === '') {
-                        Response::redirect('index.php')->send();
-                        throw new TerminateException();
-                    }
+                // Accès refusé aux non-admins sans clé valide
+                if (!isset($_SESSION['admin_id']) && ($key === '' || $shareKeyData === null)) {
+                    Response::redirect('index.php')->send();
+                    throw new TerminateException();
+                }
 
-                    $shareKeyData = $this->shareKeyRepo->findValidByKey($key);
-                    if ($shareKeyData === null) {
-                        Response::redirect('index.php')->send();
-                        throw new TerminateException();
-                    }
-
+                // Options de la clé appliquées quelle que soit la session
+                if ($shareKeyData !== null) {
                     $decoded = json_decode((string) ($shareKeyData['options'] ?? '{}'), true);
                     if (is_array($decoded)) {
                         $shareOptions = array_merge($shareOptions, $decoded);
