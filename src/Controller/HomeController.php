@@ -74,11 +74,13 @@ class HomeController
                 $images[] = [
                     'url'   => $this->pathService->toUrl($file->getPathname()),
                     'ctime' => $file->getCTime(),
+                    'isTop' => str_contains($file->getFilename(), '--top--'),
                 ];
             }
         }
 
-        usort($images, static fn (array $a, array $b): int => $b['ctime'] - $a['ctime']);
+        usort($images, static fn (array $a, array $b): int =>
+            $b['isTop'] <=> $a['isTop'] ?: $b['ctime'] - $a['ctime']);
 
         return array_slice(array_column($images, 'url'), 0, $limit);
     }

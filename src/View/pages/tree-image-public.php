@@ -83,7 +83,9 @@
                             <div class="image-actions">
                                 <button type="button" onclick="toggleTop('<?php echo htmlspecialchars($item['name']); ?>')"
                                     class="tree-button <?php echo $item['isTop'] ? 'tree-button-top' : ''; ?>"
-                                    title="<?php echo $item['isTop'] ? 'Retirer des tops' : 'Mettre en top'; ?>">
+                                    title="<?php echo $isCarousel
+                                        ? ($item['isTop'] ? 'Retirer de la première position' : 'Définir comme première image du carrousel')
+                                        : ($item['isTop'] ? 'Retirer des tops' : 'Mettre en top'); ?>">
                                     ⭐
                                 </button>
                                 <button type="button" onclick="deleteImage('<?php echo htmlspecialchars($item['name']); ?>')"

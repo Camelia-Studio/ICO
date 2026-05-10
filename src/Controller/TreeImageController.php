@@ -220,6 +220,22 @@ class TreeImageController
         $info  = pathinfo($imagePath);
         $isTop = str_contains($info['filename'], '--top--');
 
+        // Dans le carrousel, une seule image peut être "première" — retirer le flag des autres
+        $carouselReal = realpath($this->carouselRoot) ?: $this->carouselRoot;
+        $isCarousel   = str_starts_with($currentPath, $carouselReal);
+        if ($isCarousel && !$isTop) {
+            foreach (new DirectoryIterator($currentPath) as $file) {
+                if ($file->isDot() || !$file->isFile()) {
+                    continue;
+                }
+                if ($file->getPathname() !== $imagePath && str_contains($file->getFilename(), '--top--')) {
+                    $fileInfo = pathinfo($file->getPathname());
+                    $cleaned  = str_replace('--top--', '', $fileInfo['filename']) . '.' . $fileInfo['extension'];
+                    rename($file->getPathname(), $currentPath . '/' . $cleaned);
+                }
+            }
+        }
+
         $newName = $isTop
             ? str_replace('--top--', '', $info['filename']) . '.' . $info['extension']
             : $info['filename'] . '--top--.' . $info['extension'];

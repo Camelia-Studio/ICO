@@ -135,6 +135,36 @@ class TreeImageControllerTest extends TestCase
     }
 
     // =========================================================================
+    // handlePublic — carrousel toggle_top exclusif
+    // =========================================================================
+
+    public function testCarouselToggleTopIsExclusive(): void
+    {
+        $carouselDir = $this->tmpDir . '/img_carrousel';
+        mkdir($carouselDir, 0o775, true);
+        file_put_contents($carouselDir . '/already--top--.jpg', '');
+        file_put_contents($carouselDir . '/new.jpg', '');
+
+        $authMock = $this->createMock(AuthService::class);
+        $authMock->method('isLoggedIn')->willReturn(true);
+
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_GET['path']              = 'img_carrousel';
+        $_POST['action']           = 'toggle_top';
+        $_POST['image']            = 'new.jpg';
+
+        try {
+            $controller = $this->makeController($authMock, $this->createMock(ViewRenderer::class));
+            $controller->handlePublic();
+        } catch (TerminateException) {
+        }
+
+        $this->assertFileDoesNotExist($carouselDir . '/already--top--.jpg');
+        $this->assertFileExists($carouselDir . '/already.jpg');
+        $this->assertFileExists($carouselDir . '/new--top--.jpg');
+    }
+
+    // =========================================================================
     // handlePublic — POST delete
     // =========================================================================
 

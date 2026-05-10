@@ -102,6 +102,30 @@ class HomeControllerTest extends TestCase
         $this->assertLessThanOrEqual(5, count($capturedData['carousel_images']));
     }
 
+    public function testIndexCarouselTopImageAppearsFirst(): void
+    {
+        $carouselDir = $this->tmpDir . '/img_carrousel';
+        mkdir($carouselDir, 0o775, true);
+        file_put_contents($carouselDir . '/older.jpg', '');
+        sleep(1);
+        file_put_contents($carouselDir . '/newer--top--.jpg', '');
+
+        $config = $this->makeConfig();
+
+        $capturedData = null;
+        $view = $this->createMock(ViewRenderer::class);
+        $view->expects($this->once())->method('render')
+            ->willReturnCallback(function (string $tpl, array $data) use (&$capturedData): void {
+                $capturedData = $data;
+            });
+
+        $controller = new HomeController($config, new PathService($this->tmpDir, 'http://localhost'), $view);
+        $controller->index($this->makeRequest());
+
+        $this->assertCount(2, $capturedData['carousel_images']);
+        $this->assertStringContainsString('newer--top--', $capturedData['carousel_images'][0]);
+    }
+
     public function testIndexIgnoresNonImageFilesInCarousel(): void
     {
         $carouselDir = $this->tmpDir . '/img_carrousel';
