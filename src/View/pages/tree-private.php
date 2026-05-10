@@ -190,10 +190,10 @@
         }, 2000);
     }
 
-    // Étendre closeModal pour la modale de partage
-    const _closeModal = closeModal;
     function closeModal() {
-        _closeModal();
+        document.getElementById('createFolderModal').style.display = 'none';
+        document.getElementById('editFolderModal').style.display = 'none';
+        document.getElementById('deleteFolderModal').style.display = 'none';
         document.getElementById('shareLinkModal').style.display = 'none';
     }
     </script>
