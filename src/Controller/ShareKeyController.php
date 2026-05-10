@@ -136,6 +136,7 @@ class ShareKeyController
         if ($json === '') {
             return $defaults;
         }
+
         $decoded = json_decode($json, true);
 
         return is_array($decoded) ? array_merge($defaults, $decoded) : $defaults;

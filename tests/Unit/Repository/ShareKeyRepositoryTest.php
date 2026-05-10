@@ -126,12 +126,12 @@ class ShareKeyRepositoryTest extends TestCase
     public function testCreateStoresOptionsAsJson(): void
     {
         $options = ['download' => false, 'source' => true, 'share' => false];
-        $key     = $this->repo->create('album-uuid', 24, '', $options, fn (): string => 'opts-key');
+        $this->repo->create('album-uuid', 24, '', $options, fn (): string => 'opts-key');
 
         $row = $this->pdo->query("SELECT options FROM share_keys WHERE key_value = 'opts-key'")->fetch();
         $this->assertNotFalse($row);
 
-        $decoded = json_decode($row['options'], true);
+        $decoded = json_decode((string) $row['options'], true);
         $this->assertFalse($decoded['download']);
         $this->assertTrue($decoded['source']);
         $this->assertFalse($decoded['share']);
@@ -146,7 +146,7 @@ class ShareKeyRepositoryTest extends TestCase
 
         $this->assertNotNull($result);
         $this->assertArrayHasKey('options', $result);
-        $decoded = json_decode($result['options'], true);
+        $decoded = json_decode((string) $result['options'], true);
         $this->assertFalse($decoded['download']);
     }
 
