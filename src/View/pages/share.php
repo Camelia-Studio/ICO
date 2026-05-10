@@ -27,11 +27,13 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body class="share-page">
-    <button onclick="var referrer = document.referrer; if (referrer.includes('galeries.php') || referrer.includes('galeries-privees.php')) { window.close(); } else { window.location.href='index.php'; }" class="back-button">Retour</button>
+    <button class="back-button">Retour</button>
 
     <div class="share-container">
         <div class="share-image">
-            <img src="<?php echo htmlspecialchars($image_url); ?>" alt="Image partagée">
+            <img src="<?php echo htmlspecialchars($image_url); ?>"
+                 data-image-url="<?php echo htmlspecialchars($image_url); ?>"
+                 alt="Image partagée">
         </div>
 
         <div class="share-actions">
@@ -81,33 +83,6 @@
 
     <?php $renderer->renderLayout('layout/footer', ['version' => $version]); ?>
 
-    <script>
-        function copyToClipboard(text, button) {
-            const input = document.createElement('input');
-            input.value = text;
-            document.body.appendChild(input);
-            input.select();
-            document.execCommand('copy');
-            document.body.removeChild(input);
-
-            const originalHTML = button.innerHTML;
-            button.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M20 6L9 17l-5-5"></path>
-                </svg>
-                Copié !
-            `;
-            setTimeout(() => { button.innerHTML = originalHTML; }, 2000);
-        }
-
-        function shareImage() {
-            copyToClipboard(window.location.href, document.querySelector('.action-button'));
-        }
-
-        function embedImage() {
-            const imageUrl = '<?php echo htmlspecialchars($image_url); ?>';
-            copyToClipboard(imageUrl, document.querySelector('.action-button:nth-child(2)'));
-        }
-    </script>
+    <script src="js/share.js"></script>
 </body>
 </html>

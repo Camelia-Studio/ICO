@@ -77,31 +77,9 @@
         <?php endforeach; ?>
     </div>
 
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                }
-            });
-        }, { threshold: 0.1 });
-
-        document.querySelectorAll('.album-card').forEach(card => {
-            observer.observe(card);
-        });
-    });
-    </script>
     <button class="scroll-top" title="Retour en haut">↑</button>
-    <script>
-    const scrollBtn = document.querySelector('.scroll-top');
-    window.addEventListener('scroll', () => {
-        scrollBtn.style.display = window.scrollY > 500 ? 'flex' : 'none';
-    });
-    scrollBtn.addEventListener('click', () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
-    </script>
+    <script src="js/albums.js"></script>
+    <script src="js/scroll-top.js"></script>
     <?php $renderer->renderLayout('layout/footer', ['version' => $version]); ?>
 </body>
 </html>

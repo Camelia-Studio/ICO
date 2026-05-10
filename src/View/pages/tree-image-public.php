@@ -8,7 +8,6 @@
  *   string[] $images         Noms des fichiers images
  *   string   $pageTitle      Titre H1 de la page
  *   string   $folderOptions  HTML des <option> pour la modale de déplacement
- *   string   $imageScripts   Bloc <script> commun aux pages arbre-img
  *   bool     $isCarousel     Le dossier courant est le carrousel
  *   string   $version        Version de l'application (pour le footer)
  *
@@ -23,7 +22,6 @@
 /** @var array<int, array{name: string, url: string, isTop: bool}> $imageData */
 /** @var string $pageTitle */
 /** @var string $folderOptions */
-/** @var string $imageScripts */
 /** @var bool $isCarousel */
 /** @var string $version */
 ?>
@@ -120,5 +118,8 @@
         </div>
     </div>
 
-    <?php echo $imageScripts; ?>
+    <button class="scroll-top" title="Retour en haut">↑</button>
+    <script src="js/tree-image.js"></script>
+    <script src="js/tree-image-move.js"></script>
+    <script src="js/scroll-top.js"></script>
 <?php $renderer->renderLayout('layout/footer', ['version' => $version]); ?>

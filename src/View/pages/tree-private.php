@@ -6,7 +6,6 @@
  *   string      $siteTitle   Titre du site
  *   string      $tree        HTML de l'arborescence (généré par TreeController)
  *   string|null $shareUrl    URL de partage générée (null si aucune)
- *   string      $treeScripts Bloc <script> commun aux pages arbre
  *   string      $version     Version de l'application (pour le footer)
  */
 
@@ -14,7 +13,6 @@
 /** @var string $siteTitle */
 /** @var string $tree */
 /** @var string|null $shareUrl */
-/** @var string $treeScripts */
 /** @var string $version */
 ?>
 <?php $renderer->renderLayout('layout/header', [
@@ -169,32 +167,8 @@
         </div>
     </div>
 
-    <?php echo $treeScripts; ?>
-    <script>
-    function generateShareLink(path, title) {
-        document.getElementById('sharePath').value = path;
-        document.getElementById('shareAlbumTitle').textContent = title;
-        document.getElementById('shareLinkModal').style.display = 'block';
-    }
-
-    function copyShareUrl(button) {
-        const input = button.previousElementSibling;
-        input.select();
-        document.execCommand('copy');
-        const originalText = button.innerHTML;
-        button.innerHTML = '✓';
-        button.classList.add('copied');
-        setTimeout(() => {
-            button.innerHTML = originalText;
-            button.classList.remove('copied');
-        }, 2000);
-    }
-
-    function closeModal() {
-        document.getElementById('createFolderModal').style.display = 'none';
-        document.getElementById('editFolderModal').style.display = 'none';
-        document.getElementById('deleteFolderModal').style.display = 'none';
-        document.getElementById('shareLinkModal').style.display = 'none';
-    }
-    </script>
+    <button class="scroll-top" title="Retour en haut">↑</button>
+    <script src="js/tree.js"></script>
+    <script src="js/tree-private.js"></script>
+    <script src="js/scroll-top.js"></script>
 <?php $renderer->renderLayout('layout/footer', ['version' => $version]); ?>
