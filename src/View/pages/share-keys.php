@@ -125,52 +125,7 @@
         </div>
     </div>
 
-    <script>
-    function cleanExpiredKeys() {
-        if (confirm('Voulez-vous supprimer toutes les clés expirées ?')) {
-            const form = document.createElement('form');
-            form.method = 'post';
-            form.innerHTML = '<input type="hidden" name="action" value="clean_expired">';
-            document.body.appendChild(form);
-            form.submit();
-        }
-    }
-
-    function copyShareUrl(button) {
-        const input = button.previousElementSibling;
-        input.select();
-        document.execCommand('copy');
-
-        const originalText = button.innerHTML;
-        button.innerHTML = '✓';
-        button.classList.add('copied');
-
-        setTimeout(() => {
-            button.innerHTML = originalText;
-            button.classList.remove('copied');
-        }, 2000);
-    }
-
-    function updateFilters() {
-        const statusFilter = document.getElementById('status-filter').value;
-        const albumFilter = document.getElementById('album-filter').value;
-
-        let url = 'clefs.php?filter=' + statusFilter;
-        if (albumFilter) {
-            url += '&album=' + albumFilter;
-        }
-
-        window.location.href = url;
-    }
-    </script>
     <button class="scroll-top" title="Retour en haut">↑</button>
-    <script>
-    const scrollBtn = document.querySelector('.scroll-top');
-    window.addEventListener('scroll', () => {
-        scrollBtn.style.display = window.scrollY > 500 ? 'flex' : 'none';
-    });
-    scrollBtn.addEventListener('click', () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
-    </script>
+    <script src="js/share-keys.js"></script>
+    <script src="js/scroll-top.js"></script>
 <?php $renderer->renderLayout('layout/footer', ['version' => $version]); ?>

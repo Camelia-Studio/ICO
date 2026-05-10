@@ -5,14 +5,12 @@
  * Variables :
  *   string $siteTitle   Titre du site
  *   string $tree        HTML de l'arborescence (généré par TreeController)
- *   string $treeScripts Bloc <script> commun aux pages arbre
  *   string $version     Version de l'application (pour le footer)
  */
 
 /** @var \ICO\View\ViewRenderer $renderer */
 /** @var string $siteTitle */
 /** @var string $tree */
-/** @var string $treeScripts */
 /** @var string $version */
 ?>
 <?php $renderer->renderLayout('layout/header', [
@@ -118,5 +116,7 @@
         </div>
     </div>
 
-    <?php echo $treeScripts; ?>
+    <button class="scroll-top" title="Retour en haut">↑</button>
+    <script src="js/tree.js"></script>
+    <script src="js/scroll-top.js"></script>
 <?php $renderer->renderLayout('layout/footer', ['version' => $version]); ?>

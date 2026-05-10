@@ -162,41 +162,7 @@
         </div>
     </div>
 
-    <script>
-    function openAddModal() {
-        document.getElementById('addUserModal').style.display = 'block';
-    }
-
-    function editUser(id, username) {
-        document.getElementById('edit_user_id').value = id;
-        document.getElementById('edit_username').value = username;
-        document.getElementById('edit_password').value = '';
-        document.getElementById('editUserModal').style.display = 'block';
-    }
-
-    function deleteUser(id) {
-        document.getElementById('delete_user_id').value = id;
-        document.getElementById('deleteUserModal').style.display = 'block';
-    }
-
-    function closeModal(modalId) {
-        document.getElementById(modalId).style.display = 'none';
-    }
-
-    window.onclick = function(event) {
-        if (event.target.classList.contains('modal')) {
-            event.target.style.display = 'none';
-        }
-    }
-    </script>
     <button class="scroll-top" title="Retour en haut">↑</button>
-    <script>
-    const scrollBtn = document.querySelector('.scroll-top');
-    window.addEventListener('scroll', () => {
-        scrollBtn.style.display = window.scrollY > 500 ? 'flex' : 'none';
-    });
-    scrollBtn.addEventListener('click', () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
-    </script>
+    <script src="js/users.js"></script>
+    <script src="js/scroll-top.js"></script>
 <?php $renderer->renderLayout('layout/footer', ['version' => $version]); ?>

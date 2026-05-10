@@ -7,7 +7,6 @@
  *   string                      $currentPath  Chemin absolu du dossier courant
  *   array<string,mixed>         $albumInfo    Infos de l'album (title, description, …)
  *   array<int, array{name: string, url: string, isTop: bool}> $imageData  Images pré-calculées
- *   string                      $imageScripts Bloc <script> commun aux pages arbre-img
  *   string                      $version      Version de l'application (pour le footer)
  */
 
@@ -16,7 +15,6 @@
 /** @var string $currentPath */
 /** @var array<string,mixed> $albumInfo */
 /** @var array<int, array{name: string, url: string, isTop: bool}> $imageData */
-/** @var string $imageScripts */
 /** @var string $version */
 ?>
 <?php $renderer->renderLayout('layout/header', [
@@ -88,5 +86,7 @@
         </div>
     </div>
 
-    <?php echo $imageScripts; ?>
+    <button class="scroll-top" title="Retour en haut">↑</button>
+    <script src="js/tree-image.js"></script>
+    <script src="js/scroll-top.js"></script>
 <?php $renderer->renderLayout('layout/footer', ['version' => $version]); ?>
