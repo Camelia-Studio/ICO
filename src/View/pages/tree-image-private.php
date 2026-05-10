@@ -81,6 +81,18 @@
         </form>
     </div>
 
+    <!-- Modale de confirmation de suppression d'image -->
+    <div id="deleteImageModal" class="modal">
+        <div class="modal-content">
+            <h2>Confirmer la suppression</h2>
+            <p>Êtes-vous sûr de vouloir supprimer cette image ?</p>
+            <div class="form-actions">
+                <button type="button" onclick="closeImageModal()" class="action-button action-button-secondary">Annuler</button>
+                <button type="button" onclick="confirmDeleteImage()" class="action-button action-button-danger">Supprimer</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modale de téléversement -->
     <div id="uploadModal" class="modal-upload">
         <div class="modal-content">

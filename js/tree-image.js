@@ -24,23 +24,40 @@ function toggleSelectAll() {
     updateActionButtons();
 }
 
+let pendingDeleteAction = null;
+
 function deleteImage(imageName) {
-    if (confirm('Êtes-vous sûr de vouloir supprimer cette image ?')) {
+    pendingDeleteAction = function () {
         const form = document.getElementById('imagesForm');
         form.innerHTML = `
             <input type="hidden" name="action" value="delete">
             <input type="hidden" name="images[]" value="${imageName}">
         `;
         form.submit();
-    }
+    };
+    document.getElementById('deleteImageModal').style.display = 'block';
 }
 
 function deleteSelected() {
     const checkboxes = document.querySelectorAll('.image-checkbox:checked');
-    if (checkboxes.length > 0 && confirm('Êtes-vous sûr de vouloir supprimer les images sélectionnées ?')) {
+    if (checkboxes.length === 0) return;
+    pendingDeleteAction = function () {
         document.getElementById('formAction').value = 'delete';
         document.getElementById('imagesForm').submit();
+    };
+    document.getElementById('deleteImageModal').style.display = 'block';
+}
+
+function confirmDeleteImage() {
+    if (pendingDeleteAction) {
+        pendingDeleteAction();
+        pendingDeleteAction = null;
     }
+}
+
+function closeImageModal() {
+    document.getElementById('deleteImageModal').style.display = 'none';
+    pendingDeleteAction = null;
 }
 
 function toggleTop(imageName) {
@@ -74,6 +91,13 @@ document.addEventListener('DOMContentLoaded', function () {
             updateActionButtons();
         });
     });
+
+    const deleteModal = document.getElementById('deleteImageModal');
+    if (deleteModal) {
+        deleteModal.addEventListener('click', function (e) {
+            if (e.target === deleteModal) closeImageModal();
+        });
+    }
 
     const modal           = document.getElementById('uploadModal');
     const dropZone        = document.getElementById('dropZone');

@@ -20,6 +20,9 @@ function editFolder(path, title, description, matureContent, moreInfoUrl, hasIma
 
 function deleteFolder(path) {
     document.getElementById('deletePath').value = path;
+    const folderName = decodeURIComponent(path.split('/').filter(p => p).pop() || path);
+    const nameEl = document.getElementById('deleteFolderName');
+    if (nameEl) nameEl.textContent = folderName;
     document.getElementById('deleteFolderModal').style.display = 'block';
 }
 

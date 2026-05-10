@@ -104,7 +104,7 @@
     <div id="deleteFolderModal" class="modal">
         <div class="modal-content">
             <h2>Confirmer la suppression</h2>
-            <p>Êtes-vous sûr de vouloir supprimer ce dossier et tout son contenu ?</p>
+            <p>Êtes-vous sûr de vouloir supprimer le dossier <strong id="deleteFolderName"></strong> et tout son contenu ?</p>
             <form method="post" action="arbre.php">
                 <input type="hidden" name="action" value="delete_folder">
                 <input type="hidden" name="path" id="deletePath">
