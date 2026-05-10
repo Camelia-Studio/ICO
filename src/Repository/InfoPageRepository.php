@@ -48,6 +48,7 @@ class InfoPageRepository
     {
         $stmt = $this->pdo->prepare('SELECT * FROM info_pages WHERE id = :id');
         $stmt->execute([':id' => $id]);
+
         $row = $stmt->fetch();
 
         return $row !== false ? $row : null;
@@ -64,6 +65,7 @@ class InfoPageRepository
             'SELECT * FROM info_pages WHERE slug = :slug AND is_published = 1'
         );
         $stmt->execute([':slug' => $slug]);
+
         $row = $stmt->fetch();
 
         return $row !== false ? $row : null;

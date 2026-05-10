@@ -126,27 +126,23 @@ class InfoPageController
         // Validation
         if ($title === '') {
             $_SESSION['error_message'] = 'Le titre est requis.';
-            $redirect = $id > 0 ? "pages-info.php?action=edit&id={$id}" : 'pages-info.php?action=new';
+            $redirect = $id > 0 ? 'pages-info.php?action=edit&id=' . $id : 'pages-info.php?action=new';
             Response::redirect($redirect)->send();
             throw new TerminateException();
         }
 
-        if ($slug === '') {
-            $slug = $this->generateSlug($title);
-        } else {
-            $slug = $this->sanitizeSlug($slug);
-        }
+        $slug = $slug === '' ? $this->generateSlug($title) : $this->sanitizeSlug($slug);
 
         if ($slug === '') {
             $_SESSION['error_message'] = 'Le slug généré est invalide.';
-            $redirect = $id > 0 ? "pages-info.php?action=edit&id={$id}" : 'pages-info.php?action=new';
+            $redirect = $id > 0 ? 'pages-info.php?action=edit&id=' . $id : 'pages-info.php?action=new';
             Response::redirect($redirect)->send();
             throw new TerminateException();
         }
 
         if ($this->infoPageRepo->slugExists($slug, $id > 0 ? $id : null)) {
-            $_SESSION['error_message'] = "Le slug « {$slug} » est déjà utilisé par une autre page.";
-            $redirect = $id > 0 ? "pages-info.php?action=edit&id={$id}" : 'pages-info.php?action=new';
+            $_SESSION['error_message'] = sprintf('Le slug « %s » est déjà utilisé par une autre page.', $slug);
+            $redirect = $id > 0 ? 'pages-info.php?action=edit&id=' . $id : 'pages-info.php?action=new';
             Response::redirect($redirect)->send();
             throw new TerminateException();
         }
@@ -156,15 +152,17 @@ class InfoPageController
         if ($id > 0) {
             $this->infoPageRepo->update($id, $title, $slug, $content, $isPublished);
             if ($adminId !== null) {
-                $this->logRepo->log($adminId, 'UPDATE_INFO_PAGE', "Modification de la page « {$title} »", $slug);
+                $this->logRepo->log($adminId, 'UPDATE_INFO_PAGE', sprintf('Modification de la page « %s »', $title), $slug);
             }
-            $_SESSION['success_message'] = "Page « {$title} » mise à jour.";
+
+            $_SESSION['success_message'] = sprintf('Page « %s » mise à jour.', $title);
         } else {
             $this->infoPageRepo->create($title, $slug, $content, $isPublished);
             if ($adminId !== null) {
-                $this->logRepo->log($adminId, 'CREATE_INFO_PAGE', "Création de la page « {$title} »", $slug);
+                $this->logRepo->log($adminId, 'CREATE_INFO_PAGE', sprintf('Création de la page « %s »', $title), $slug);
             }
-            $_SESSION['success_message'] = "Page « {$title} » créée.";
+
+            $_SESSION['success_message'] = sprintf('Page « %s » créée.', $title);
         }
 
         Response::redirect('pages-info.php')->send();
@@ -203,12 +201,12 @@ class InfoPageController
             $this->logRepo->log(
                 $adminId,
                 'DELETE_INFO_PAGE',
-                "Suppression de la page « {$page['title']} »",
+                sprintf('Suppression de la page « %s »', $page['title']),
                 (string) $page['slug'],
             );
         }
 
-        $_SESSION['success_message'] = "Page « {$page['title']} » supprimée.";
+        $_SESSION['success_message'] = sprintf('Page « %s » supprimée.', $page['title']);
         Response::redirect('pages-info.php')->send();
         throw new TerminateException();
     }
@@ -234,8 +232,7 @@ class InfoPageController
             'ç' => 'c', 'ñ' => 'n',
         ]);
         $slug = (string) preg_replace('/[^a-z0-9]+/', '-', $slug);
-        $slug = trim($slug, '-');
 
-        return $slug;
+        return trim($slug, '-');
     }
 }
