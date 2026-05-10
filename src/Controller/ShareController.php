@@ -74,6 +74,7 @@ class ShareController
             'filename'         => $filename,
             'is_private_image' => $isPrivateImage,
             'site_title'       => $this->config->getSiteTitle(),
+            'site_description' => $this->config->getSiteDescription(),
         ]);
     }
 }

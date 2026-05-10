@@ -15,7 +15,18 @@
 /** @var string $filename */
 /** @var bool $is_private_image */
 /** @var string $site_title */
+/** @var string $site_description */
 /** @var string $version */
+
+$_protocol       = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$_host           = $_SERVER['HTTP_HOST'] ?? '';
+$_baseUrl        = $_protocol . '://' . $_host;
+$_absoluteImage  = preg_match('/^https?:\/\//', $image_url)
+    ? $image_url
+    : $_baseUrl . '/' . ltrim($image_url, '/');
+$_absolutePage   = $_baseUrl . ($_SERVER['REQUEST_URI'] ?? '');
+$_ogTitle        = $filename . ' — ' . $site_title;
+$_ogDescription  = $site_description !== '' ? $site_description : $site_title;
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -25,6 +36,14 @@
     <title>Image - <?php echo htmlspecialchars($site_title); ?></title>
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="styles.css">
+
+    <meta property="og:type"        content="website">
+    <meta property="og:url"         content="<?php echo htmlspecialchars($_absolutePage); ?>">
+    <meta property="og:title"       content="<?php echo htmlspecialchars($_ogTitle); ?>">
+    <meta property="og:description" content="<?php echo htmlspecialchars($_ogDescription); ?>">
+    <meta property="og:image"       content="<?php echo htmlspecialchars($_absoluteImage); ?>">
+    <meta name="twitter:card"       content="summary_large_image">
+    <meta name="twitter:image"      content="<?php echo htmlspecialchars($_absoluteImage); ?>">
 </head>
 <body class="share-page">
     <button class="back-button">Retour</button>
