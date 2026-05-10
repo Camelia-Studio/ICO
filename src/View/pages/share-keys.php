@@ -22,7 +22,7 @@
 /** @var string $error_message */
 /** @var string $site_title */
 /** @var string $version */
-<?php
+
 /**
  * @param array{download: bool, source: bool, share: bool} $opts
  */
@@ -35,12 +35,11 @@ function renderOptionsCell(array $opts): string
     ];
     $parts = [];
     foreach ($items as $item) {
-        $class  = $item['enabled'] ? 'opt-badge opt-on' : 'opt-badge opt-off';
+        $class   = $item['enabled'] ? 'opt-badge opt-on' : 'opt-badge opt-off';
         $parts[] = '<span class="' . $class . '" title="' . $item['title'] . '">' . $item['label'] . '</span>';
     }
     return implode(' ', $parts);
 }
-?>
 ?>
 <?php $renderer->renderLayout('layout/header', [
     'pageTitle' => 'Gestion des clés de partage - ' . $site_title,
