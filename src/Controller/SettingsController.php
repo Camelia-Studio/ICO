@@ -76,11 +76,12 @@ class SettingsController
         $currentConfig = $this->readCurrentConfig();
 
         $this->view->render('pages/settings', [
-            'site_title'       => $currentConfig['title'],
-            'site_description' => $currentConfig['description'],
-            'project_path'     => $currentConfig['path'],
-            'success_message'  => $successMessage,
-            'error_message'    => $errorMessage,
+            'site_title'        => $currentConfig['title'],
+            'site_description'  => $currentConfig['description'],
+            'project_path'      => $currentConfig['path'],
+            'has_custom_favicon' => file_exists($this->projectRoot . '/favicon-custom.png'),
+            'success_message'   => $successMessage,
+            'error_message'     => $errorMessage,
         ]);
     }
 
@@ -93,6 +94,10 @@ class SettingsController
      */
     private function handlePost(Request $request): array
     {
+        if ($request->post('action') === 'reset_favicon') {
+            return $this->resetFavicon();
+        }
+
         $siteTitle       = trim((string) $request->post('site_title', ''));
         $siteDescription = trim((string) $request->post('site_description', ''));
         $projectPath     = trim((string) $request->post('project_path', ''));
@@ -122,6 +127,27 @@ class SettingsController
         }
 
         return ['Configuration mise à jour avec succès.', ''];
+    }
+
+    /**
+     * Supprime favicon-custom.png pour revenir au favicon d'origine.
+     *
+     * @return array{0: string, 1: string}
+     */
+    private function resetFavicon(): array
+    {
+        $customFavicon = $this->projectRoot . '/favicon-custom.png';
+
+        if (file_exists($customFavicon) && !unlink($customFavicon)) {
+            return ['', 'Impossible de supprimer le favicon personnalisé.'];
+        }
+
+        $adminId = $this->authService->getLoggedInAdminId();
+        if ($adminId !== null) {
+            $this->logRepo->log($adminId, 'UPDATE_SETTINGS', 'Remise du favicon par défaut');
+        }
+
+        return ['Favicon remis par défaut.', ''];
     }
 
     /**

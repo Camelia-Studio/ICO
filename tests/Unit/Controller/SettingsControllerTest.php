@@ -269,6 +269,50 @@ class SettingsControllerTest extends TestCase
     }
 
     // =========================================================================
+    // POST — reset favicon supprime favicon-custom.png
+    // =========================================================================
+
+    public function testPostResetFaviconDeletesCustomFile(): void
+    {
+        $auth = $this->createMock(AuthService::class);
+        $auth->method('isLoggedIn')->willReturn(true);
+        $auth->method('getLoggedInAdminId')->willReturn(1);
+
+        $log = $this->createMock(LogRepository::class);
+        $log->expects($this->once())->method('log')
+            ->with(1, 'UPDATE_SETTINGS', $this->anything());
+
+        file_put_contents($this->tmpDir . '/favicon-custom.png', 'fake');
+        $this->assertFileExists($this->tmpDir . '/favicon-custom.png');
+
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+
+        $this->expectException(TerminateException::class);
+
+        $controller = $this->makeController(auth: $auth, log: $log);
+        $controller->index(new Request('POST', '/personnalisation.php', body: [
+            'action' => 'reset_favicon',
+        ]));
+
+        $this->assertFileDoesNotExist($this->tmpDir . '/favicon-custom.png');
+    }
+
+    public function testPostResetFaviconSucceedsWhenNoCustomFileExists(): void
+    {
+        $auth = $this->createMock(AuthService::class);
+        $auth->method('isLoggedIn')->willReturn(true);
+
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+
+        $this->expectException(TerminateException::class);
+
+        $controller = $this->makeController(auth: $auth);
+        $controller->index(new Request('POST', '/personnalisation.php', body: [
+            'action' => 'reset_favicon',
+        ]));
+    }
+
+    // =========================================================================
     // Helpers
     // =========================================================================
 
