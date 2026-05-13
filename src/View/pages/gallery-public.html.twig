@@ -38,30 +38,32 @@
             Contenu réservé aux plus de 18 ans
         </div>
         {% endif %}
-        {% if album_info.more_info_url is not empty %}
-        <div class="more-info-button">
-            <a href="{{ album_info.more_info_url }}"
-               target="_blank"
-               rel="noopener noreferrer"
-               class="action-button">
-                <svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <line x1="12" y1="16" x2="12" y2="12"/>
-                    <line x1="12" y1="8" x2="12" y2="8"/>
-                </svg>
-                En savoir plus sur {{ album_info.title }}
-            </a>
-        </div>
-        {% endif %}
-        <div class="rss-button">
-            <a href="{{ rss_url }}" class="action-button">
-                <svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M4 11a9 9 0 0 1 9 9"/>
-                    <path d="M4 4a16 16 0 0 1 16 16"/>
-                    <circle cx="5" cy="19" r="1" fill="currentColor" stroke="none"/>
-                </svg>
-                S'abonner au flux RSS
-            </a>
+        <div class="album-actions">
+            {% if album_info.more_info_url is not empty %}
+            <div class="more-info-button">
+                <a href="{{ album_info.more_info_url }}"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   class="action-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="16" x2="12" y2="12"/>
+                        <line x1="12" y1="8" x2="12" y2="8"/>
+                    </svg>
+                    En savoir plus sur {{ album_info.title }}
+                </a>
+            </div>
+            {% endif %}
+            <div class="rss-button">
+                <a href="{{ rss_url }}" class="action-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 11a9 9 0 0 1 9 9"/>
+                        <path d="M4 4a16 16 0 0 1 16 16"/>
+                        <circle cx="5" cy="19" r="1" fill="currentColor" stroke="none"/>
+                    </svg>
+                    S'abonner au flux RSS
+                </a>
+            </div>
         </div>
     </div>
 

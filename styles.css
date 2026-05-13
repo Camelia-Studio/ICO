@@ -404,8 +404,16 @@ body {
     font-size: 1.2rem;
 }
 
-.more-info-button {
+.album-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
     margin-top: 2rem;
+}
+
+.more-info-button {
+    margin-top: 0;
 }
 
 .more-info-button .action-button {
@@ -430,6 +438,35 @@ body {
 .more-info-button .icon {
     width: 1.2em;
     height: 1.2em;
+}
+
+.rss-button {
+    margin-top: 0;
+}
+
+.rss-button .action-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 1rem;
+    background-color: transparent;
+    color: #e8630a;
+    text-decoration: none;
+    border: 1.5px solid #e8630a;
+    border-radius: 2rem;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+.rss-button .action-button:hover {
+    background-color: #e8630a;
+    color: white;
+    box-shadow: 0 2px 8px rgba(232, 99, 10, 0.3);
+}
+
+.rss-button .icon {
+    width: 1em;
+    height: 1em;
 }
 
 .gallery-header {
