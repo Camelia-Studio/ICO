@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use ICO\Controller\AdminController;
 use ICO\Controller\AlbumController;
+use ICO\Controller\FeedController;
 use ICO\Controller\GalleryController;
 use ICO\Controller\HomeController;
 use ICO\Controller\ImageController;
@@ -36,6 +37,7 @@ return static function (Router $router): void {
     $router->get('/images.php',             [ImageController::class,    'serve']);
     $router->get('/partage.php',            [ShareController::class,    'show']);
     $router->get('/page.php',               [PublicPageController::class, 'show']);
+    $router->get('/rss.php',                [FeedController::class,     'album']);
 
     // --- Admin — arbre -----------------------------------------------------------
     $router->get('/arbre.php',              [TreeController::class,      'handlePublic']);

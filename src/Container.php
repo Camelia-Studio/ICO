@@ -7,6 +7,7 @@ namespace ICO;
 use ICO\Config\Config;
 use ICO\Controller\AdminController;
 use ICO\Controller\AlbumController;
+use ICO\Controller\FeedController;
 use ICO\Controller\GalleryController;
 use ICO\Controller\HomeController;
 use ICO\Controller\ImageController;
@@ -270,6 +271,12 @@ final class Container
             ->addArgument(new Reference(SocialLinkRepository::class))
             ->addArgument(new Reference(LogRepository::class))
             ->addArgument(new Reference(ViewRenderer::class));
+
+        $container->register(FeedController::class)
+            ->setPublic(true)
+            ->addArgument(new Reference(Config::class))
+            ->addArgument(new Reference(AlbumService::class))
+            ->addArgument(new Reference(PathService::class));
 
         $container->compile();
 

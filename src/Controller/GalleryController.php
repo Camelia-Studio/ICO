@@ -70,6 +70,8 @@ class GalleryController
             $parentAbsolute = $this->albumsRoot;
         }
 
+        $rssUrl = $this->pathService->getBaseUrl() . '/rss.php?path=' . urlencode($rawPath);
+
         $this->view->render('pages/gallery-public', [
             'album_info'   => $albumInfo,
             'images'       => $images,
@@ -77,6 +79,7 @@ class GalleryController
             'parent_path'  => $this->pathService->toRelative($parentAbsolute),
             'breadcrumbs'  => $this->buildBreadcrumbs($currentPath),
             'site_title'   => $this->config->getSiteTitle(),
+            'rss_url'      => $rssUrl,
         ]);
     }
 

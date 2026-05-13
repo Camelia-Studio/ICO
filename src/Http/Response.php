@@ -45,6 +45,14 @@ class Response
     }
 
     /**
+     * Crée une réponse RSS/XML.
+     */
+    public static function xml(string $body, int $status = 200): self
+    {
+        return new self($body, $status, ['Content-Type' => 'application/rss+xml; charset=UTF-8']);
+    }
+
+    /**
      * Crée une réponse JSON.
      */
     public static function json(mixed $data, int $status = 200): self
