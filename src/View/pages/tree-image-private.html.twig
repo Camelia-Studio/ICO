@@ -1,30 +1,13 @@
-<?php
-/**
- * Vue : gestion des images d'un album privé (arbre-img-prive.php).
- *
- * Variables :
- *   string                      $siteTitle    Titre du site
- *   string                      $backUrl      URL du bouton "Retour" (parent dans l'arbre)
- *   array<string,mixed>         $albumInfo    Infos de l'album (title, description, …)
- *   array<int, array{name: string, url: string, isTop: bool}> $imageData  Images pré-calculées
- *   string                      $version      Version de l'application (pour le footer)
- */
+{% extends 'layout/base.html.twig' %}
 
-/** @var \ICO\View\ViewRenderer $renderer */
-/** @var string $siteTitle */
-/** @var string $backUrl */
-/** @var array<string,mixed> $albumInfo */
-/** @var array<int, array{name: string, url: string, isTop: bool, shareUrl: string}> $imageData */
-/** @var string $version */
-?>
-<?php $renderer->renderLayout('layout/header', [
-    'pageTitle' => 'Gestion des images privées - ' . $siteTitle,
-]); ?>
+{% block page_title %}Gestion des images privées - {{ siteTitle }}{% endblock %}
+
+{% block content %}
     <div class="admin-header">
         <h1>
-            Images de : <?php echo htmlspecialchars($albumInfo['title']); ?>
+            Images de : {{ albumInfo.title }}
             <span class="private-badge">Privé</span>
-            <span class="image-count-total"><?php echo count($imageData); ?> illustration<?php echo count($imageData) !== 1 ? 's' : ''; ?></span>
+            <span class="image-count-total">{{ imageData|length }} illustration{{ imageData|length != 1 ? 's' : '' }}</span>
         </h1>
         <div class="admin-actions">
             <button onclick="document.getElementById('imageUploadForm').click()" class="action-button action-button-success">
@@ -36,14 +19,14 @@
             <button onclick="toggleSelectAll()" id="selectAllBtn" class="action-button">
                 Tout sélectionner
             </button>
-            <a href="<?php echo htmlspecialchars($backUrl); ?>" class="action-button action-button-secondary">
+            <a href="{{ backUrl }}" class="action-button action-button-secondary">
                 Retour
             </a>
         </div>
     </div>
 
     <div class="admin-content">
-        <?php $renderer->renderLayout('partials/messages', ['nlBr' => true]); ?>
+        {% include 'partials/messages.html.twig' with {'nlBr': true} %}
 
         <div class="upload-zone" id="dropZone">
             <p>Glissez-déposez vos images ici ou cliquez sur "Ajouter des images"</p>
@@ -56,27 +39,26 @@
         <form method="post" id="imagesForm">
             <input type="hidden" name="action" id="formAction" value="">
             <div class="images-grid">
-                <?php foreach ($imageData as $item): ?>
+                {% for item in imageData %}
                     <div class="image-item">
-                        <input type="checkbox" name="images[]" value="<?php echo htmlspecialchars($item['name']); ?>"
+                        <input type="checkbox" name="images[]" value="{{ item.name }}"
                                class="image-checkbox" onchange="updateActionButtons()">
                         <div class="image-wrapper">
-                            <a href="<?php echo htmlspecialchars($item['shareUrl']); ?>" target="_blank" class="image-share-link">
-                                <img src="<?php echo htmlspecialchars($item['url']); ?>"
-                                     alt="<?php echo htmlspecialchars($item['name']); ?>" loading="lazy">
+                            <a href="{{ item.shareUrl }}" target="_blank" class="image-share-link">
+                                <img src="{{ item.url }}" alt="{{ item.name }}" loading="lazy">
                             </a>
                             <div class="image-actions">
-                                <button type="button" onclick="toggleTop('<?php echo htmlspecialchars($item['name']); ?>')"
-                                    class="tree-button <?php echo $item['isTop'] ? 'tree-button-top' : ''; ?>"
-                                    title="<?php echo $item['isTop'] ? 'Retirer des tops' : 'Mettre en top'; ?>">
+                                <button type="button" onclick="toggleTop('{{ item.name|e('js') }}')"
+                                    class="tree-button {{ item.isTop ? 'tree-button-top' : '' }}"
+                                    title="{{ item.isTop ? 'Retirer des tops' : 'Mettre en top' }}">
                                     ⭐
                                 </button>
-                                <button type="button" onclick="deleteImage('<?php echo htmlspecialchars($item['name']); ?>')"
+                                <button type="button" onclick="deleteImage('{{ item.name|e('js') }}')"
                                     class="tree-button tree-button-danger">🗑️</button>
                             </div>
                         </div>
                     </div>
-                <?php endforeach; ?>
+                {% endfor %}
             </div>
         </form>
     </div>
@@ -102,6 +84,9 @@
     </div>
 
     <button class="scroll-top" title="Retour en haut">↑</button>
+{% endblock %}
+
+{% block scripts %}
     <script src="js/tree-image.js"></script>
     <script src="js/scroll-top.js"></script>
-<?php $renderer->renderLayout('layout/footer', ['version' => $version]); ?>
+{% endblock %}

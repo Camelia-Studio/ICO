@@ -1,0 +1,5 @@
+{% for msg in flash_messages() %}
+<div class="message {{ msg.type }}-message">
+    {{ nlBr|default(false) ? msg.text|nl2br : msg.text }}
+</div>
+{% endfor %}

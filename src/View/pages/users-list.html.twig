@@ -1,21 +1,8 @@
-<?php
-/**
- * Vue : liste des utilisateurs administrateurs.
- *
- * Variables :
- *   array<int, array<string,mixed>> $users       Liste des admins (id, username, created_at)
- *   string                          $siteTitle   Titre du site
- *   string                          $version     Version de l'application (pour le footer)
- */
+{% extends 'layout/base.html.twig' %}
 
-/** @var \ICO\View\ViewRenderer $renderer */
-/** @var array<int, array<string,mixed>> $users */
-/** @var string $siteTitle */
-/** @var string $version */
-?>
-<?php $renderer->renderLayout('layout/header', [
-    'pageTitle' => 'Gestion des utilisateurs - ' . $siteTitle,
-]); ?>
+{% block page_title %}Gestion des utilisateurs - {{ siteTitle }}{% endblock %}
+
+{% block content %}
     <div class="admin-header">
         <h1>Gestion des utilisateurs</h1>
         <div class="admin-actions">
@@ -27,7 +14,7 @@
     </div>
 
     <div class="admin-content">
-        <?php $renderer->renderLayout('partials/messages'); ?>
+        {% include 'partials/messages.html.twig' %}
 
         <div class="users-list">
             <table class="admin-table">
@@ -40,39 +27,36 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($users as $user):
-                        $isMainAdmin = $user['id'] === $users[0]['id'];
-                    ?>
-                    <tr class="<?php echo $isMainAdmin ? 'main-admin' : ''; ?>">
-                        <td><?php echo htmlspecialchars((string) $user['id']); ?></td>
+                    {% for user in users %}
+                    {% set isMainAdmin = loop.first %}
+                    <tr class="{{ isMainAdmin ? 'main-admin' : '' }}">
+                        <td>{{ user.id }}</td>
                         <td>
-                            <?php echo htmlspecialchars($user['username']); ?>
-                            <?php if ($isMainAdmin): ?>
+                            {{ user.username }}
+                            {% if isMainAdmin %}
                                 <span class="admin-badge">
                                     <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M12 2l3 7h7l-6 4 3 7-7-4-7 4 3-7-6-4h7z"/>
                                     </svg>
                                     Admin principal
                                 </span>
-                            <?php endif; ?>
+                            {% endif %}
                         </td>
-                        <td><?php echo htmlspecialchars((string) $user['created_at']); ?></td>
+                        <td>{{ user.created_at }}</td>
                         <td class="table-actions">
-                            <button onclick="editUser(<?php
-                                echo htmlspecialchars((string) $user['id']); ?>,
-                                '<?php echo htmlspecialchars($user['username']); ?>')"
+                            <button onclick="editUser({{ user.id }}, '{{ user.username|e('js') }}')"
                                 class="tree-button">
                                 ✏️
                             </button>
-                            <?php if (!$isMainAdmin): ?>
-                            <button onclick="deleteUser(<?php echo htmlspecialchars((string) $user['id']); ?>)"
+                            {% if not isMainAdmin %}
+                            <button onclick="deleteUser({{ user.id }})"
                                 class="tree-button tree-button-danger">
                                 🗑️
                             </button>
-                            <?php endif; ?>
+                            {% endif %}
                         </td>
                     </tr>
-                    <?php endforeach; ?>
+                    {% endfor %}
                 </tbody>
             </table>
         </div>
@@ -163,6 +147,9 @@
     </div>
 
     <button class="scroll-top" title="Retour en haut">↑</button>
+{% endblock %}
+
+{% block scripts %}
     <script src="js/users.js"></script>
     <script src="js/scroll-top.js"></script>
-<?php $renderer->renderLayout('layout/footer', ['version' => $version]); ?>
+{% endblock %}

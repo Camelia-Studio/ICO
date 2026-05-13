@@ -79,6 +79,16 @@ class ShareController
             }
         }
 
+        $siteTitle       = $this->config->getSiteTitle();
+        $siteDescription = $this->config->getSiteDescription();
+        $protocol        = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $host            = $_SERVER['HTTP_HOST'] ?? '';
+        $baseUrl         = $protocol . '://' . $host;
+        $absoluteImage   = preg_match('/^https?:\/\//', $imageUrl)
+            ? $imageUrl
+            : $baseUrl . '/' . ltrim($imageUrl, '/');
+        $absolutePage    = $baseUrl . ($_SERVER['REQUEST_URI'] ?? '');
+
         $this->view->render('pages/share', [
             'image_url'        => $imageUrl,
             'filename'         => $filename,
@@ -86,8 +96,12 @@ class ShareController
             'allow_download'   => (bool) ($shareOptions['download'] ?? true),
             'allow_source'     => (bool) ($shareOptions['source'] ?? true),
             'allow_share'      => (bool) ($shareOptions['share'] ?? true),
-            'site_title'       => $this->config->getSiteTitle(),
-            'site_description' => $this->config->getSiteDescription(),
+            'site_title'       => $siteTitle,
+            'site_description' => $siteDescription,
+            'absolute_image'   => $absoluteImage,
+            'absolute_page'    => $absolutePage,
+            'og_title'         => $filename . ' — ' . $siteTitle,
+            'og_description'   => $siteDescription !== '' ? $siteDescription : $siteTitle,
         ]);
     }
 }

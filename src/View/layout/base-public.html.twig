@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block page_title %}{% endblock %}</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="styles.css">
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+
+{% block content %}{% endblock %}
+
+<footer class="site-footer">
+    {% if social_links|default([])|length > 0 %}
+    <div class="social-links">
+        {% for link in social_links %}
+        <a href="{{ link.url }}" class="social-link" target="_blank" rel="noopener noreferrer">{{ link.label }}</a>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <p class="footer-text">
+        Site propulsé grâce à <a href="https://git.crystalyx.net/camelia-studio/ICO" target="_blank" class="footer-link">ICO</a>
+        <span class="footer-version">version {{ version }}</span>
+    </p>
+</footer>
+{% block scripts %}{% endblock %}
+</body>
+</html>

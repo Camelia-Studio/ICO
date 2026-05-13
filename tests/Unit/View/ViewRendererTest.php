@@ -6,7 +6,7 @@ namespace ICO\Tests\Unit\View;
 
 use ICO\View\ViewRenderer;
 use PHPUnit\Framework\TestCase;
-use RuntimeException;
+use Twig\Error\LoaderError;
 
 class ViewRendererTest extends TestCase
 {
@@ -32,7 +32,7 @@ class ViewRendererTest extends TestCase
 
     public function testRenderOutputsFileContent(): void
     {
-        file_put_contents($this->tmpDir . '/hello.php', '<p>Hello</p>');
+        file_put_contents($this->tmpDir . '/hello.html.twig', '<p>Hello</p>');
 
         ob_start();
         $this->renderer->render('hello');
@@ -43,7 +43,7 @@ class ViewRendererTest extends TestCase
 
     public function testRenderInjectsDataVariables(): void
     {
-        file_put_contents($this->tmpDir . '/greet.php', '<?php echo $name; ?>');
+        file_put_contents($this->tmpDir . '/greet.html.twig', '{{ name }}');
 
         ob_start();
         $this->renderer->render('greet', ['name' => 'Alice']);
@@ -52,37 +52,50 @@ class ViewRendererTest extends TestCase
         $this->assertSame('Alice', $output);
     }
 
-    public function testRenderExposesRendererAsSelf(): void
+    public function testRenderAutoEscapesHtml(): void
     {
-        // La vue reçoit $renderer = $this (le ViewRenderer)
-        file_put_contents($this->tmpDir . '/self.php', '<?php echo get_class($renderer); ?>');
+        file_put_contents($this->tmpDir . '/escape.html.twig', '{{ value }}');
 
         ob_start();
-        $this->renderer->render('self');
+        $this->renderer->render('escape', ['value' => '<script>alert(1)</script>']);
         $output = ob_get_clean();
 
-        $this->assertSame(ViewRenderer::class, $output);
+        $this->assertSame('&lt;script&gt;alert(1)&lt;/script&gt;', $output);
     }
 
     public function testRenderThrowsWhenViewMissing(): void
     {
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageMatches('/Vue introuvable/');
+        $this->expectException(LoaderError::class);
 
         $this->renderer->render('nonexistent/page');
     }
 
-    public function testRenderSkipsExistingVariableExtract(): void
+    // -------------------------------------------------------------------------
+    // addGlobal
+    // -------------------------------------------------------------------------
+
+    public function testAddGlobalMakesVariableAvailableInAllViews(): void
     {
-        // EXTR_SKIP : si $name est déjà défini par une variable de portée, le post n'écrase pas.
-        // Ici on vérifie simplement que le rendu ne plante pas avec EXTR_SKIP.
-        file_put_contents($this->tmpDir . '/safe.php', '<?php echo $value; ?>');
+        $this->renderer->addGlobal('site_title', 'MonSite');
+        file_put_contents($this->tmpDir . '/title.html.twig', '{{ site_title }}');
 
         ob_start();
-        $this->renderer->render('safe', ['value' => 'ok']);
+        $this->renderer->render('title');
         $output = ob_get_clean();
 
-        $this->assertSame('ok', $output);
+        $this->assertSame('MonSite', $output);
+    }
+
+    public function testLocalVariableOverridesGlobal(): void
+    {
+        $this->renderer->addGlobal('version', 'global');
+        file_put_contents($this->tmpDir . '/ver.html.twig', '{{ version }}');
+
+        ob_start();
+        $this->renderer->render('ver', ['version' => 'local']);
+        $output = ob_get_clean();
+
+        $this->assertSame('local', $output);
     }
 
     // -------------------------------------------------------------------------
@@ -92,7 +105,7 @@ class ViewRendererTest extends TestCase
     public function testRenderLayoutOutputsPartialContent(): void
     {
         mkdir($this->tmpDir . '/layout', 0o775, true);
-        file_put_contents($this->tmpDir . '/layout/header.php', '<header>ICO</header>');
+        file_put_contents($this->tmpDir . '/layout/header.html.twig', '<header>ICO</header>');
 
         ob_start();
         $this->renderer->renderLayout('layout/header');
@@ -104,7 +117,7 @@ class ViewRendererTest extends TestCase
     public function testRenderLayoutInjectsData(): void
     {
         mkdir($this->tmpDir . '/layout', 0o775, true);
-        file_put_contents($this->tmpDir . '/layout/footer.php', '<?php echo $version; ?>');
+        file_put_contents($this->tmpDir . '/layout/footer.html.twig', '{{ version }}');
 
         ob_start();
         $this->renderer->renderLayout('layout/footer', ['version' => '1.0.0']);
@@ -115,8 +128,7 @@ class ViewRendererTest extends TestCase
 
     public function testRenderLayoutThrowsWhenPartialMissing(): void
     {
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageMatches('/Partial introuvable/');
+        $this->expectException(LoaderError::class);
 
         $this->renderer->renderLayout('layout/nonexistent');
     }
