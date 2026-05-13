@@ -1,25 +1,8 @@
-<?php
-/**
- * Vue : liste des liens sociaux (admin).
- *
- * Variables :
- *   list<array<string, mixed>> $links           Liens enregistrés
- *   string $success_message  Message de succès (vide si aucun)
- *   string $error_message    Message d'erreur (vide si aucun)
- *   string $site_title       Titre du site
- *   string $version          Version pour le footer
- */
+{% extends 'layout/base.html.twig' %}
 
-/** @var \ICO\View\ViewRenderer $renderer */
-/** @var list<array<string, mixed>> $links */
-/** @var string $success_message */
-/** @var string $error_message */
-/** @var string $site_title */
-/** @var string $version */
-?>
-<?php $renderer->renderLayout('layout/header', [
-    'pageTitle' => 'Liens sociaux - ' . $site_title,
-]); ?>
+{% block page_title %}Liens sociaux - {{ site_title }}{% endblock %}
+
+{% block content %}
     <div class="admin-header">
         <h1>Liens sociaux</h1>
         <div class="admin-actions">
@@ -29,12 +12,12 @@
     </div>
 
     <div class="admin-content">
-        <?php if ($success_message !== ''): ?>
-            <div class="message success-message"><?php echo htmlspecialchars($success_message); ?></div>
-        <?php endif; ?>
-        <?php if ($error_message !== ''): ?>
-            <div class="message error-message"><?php echo htmlspecialchars($error_message); ?></div>
-        <?php endif; ?>
+        {% if success_message != '' %}
+            <div class="message success-message">{{ success_message }}</div>
+        {% endif %}
+        {% if error_message != '' %}
+            <div class="message error-message">{{ error_message }}</div>
+        {% endif %}
 
         <div class="keys-list">
             <table class="admin-table">
@@ -48,46 +31,47 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($links as $link): ?>
+                    {% for link in links %}
                     <tr>
-                        <td><?php echo htmlspecialchars((string) $link['label']); ?></td>
+                        <td>{{ link.label }}</td>
                         <td>
-                            <a href="<?php echo htmlspecialchars((string) $link['url']); ?>"
-                               target="_blank" rel="noopener noreferrer"
+                            <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer"
                                class="footer-link" style="word-break:break-all;">
-                                <?php echo htmlspecialchars((string) $link['url']); ?>
+                                {{ link.url }}
                             </a>
                         </td>
-                        <td><?php echo (int) $link['display_order']; ?></td>
+                        <td>{{ link.display_order }}</td>
                         <td>
-                            <?php if ($link['is_active']): ?>
+                            {% if link.is_active %}
                                 <span class="status-badge status-active">Actif</span>
-                            <?php else: ?>
+                            {% else %}
                                 <span class="status-badge status-expired">Inactif</span>
-                            <?php endif; ?>
+                            {% endif %}
                         </td>
                         <td class="actions-cell">
-                            <a href="liens-sociaux.php?action=edit&id=<?php echo (int) $link['id']; ?>"
+                            <a href="liens-sociaux.php?action=edit&id={{ link.id }}"
                                class="tree-button" title="Modifier">✏️</a>
                             <form method="post" action="liens-sociaux.php?action=delete" style="display:inline;">
-                                <input type="hidden" name="id" value="<?php echo (int) $link['id']; ?>">
+                                <input type="hidden" name="id" value="{{ link.id }}">
                                 <button type="submit" class="tree-button tree-button-danger"
                                         title="Supprimer"
                                         onclick="return confirm('Supprimer ce lien ?')">🗑️</button>
                             </form>
                         </td>
                     </tr>
-                    <?php endforeach; ?>
-                    <?php if (empty($links)): ?>
+                    {% else %}
                     <tr>
                         <td colspan="5" class="no-data">Aucun lien social — <a href="liens-sociaux.php?action=new">en ajouter un</a></td>
                     </tr>
-                    <?php endif; ?>
+                    {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
 
     <button class="scroll-top" title="Retour en haut">↑</button>
+{% endblock %}
+
+{% block scripts %}
     <script src="js/scroll-top.js"></script>
-<?php $renderer->renderLayout('layout/footer', ['version' => $version]); ?>
+{% endblock %}

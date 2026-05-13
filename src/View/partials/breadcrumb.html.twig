@@ -1,0 +1,10 @@
+<nav class="breadcrumb" aria-label="Fil d'Ariane">
+    {% for crumb in breadcrumbs %}
+        {% if not loop.first %}<span class="breadcrumb-separator" aria-hidden="true">/</span>{% endif %}
+        {% if crumb.url is not null %}
+            <a href="{{ crumb.url }}" class="breadcrumb-item">{{ crumb.label }}</a>
+        {% else %}
+            <span class="breadcrumb-item breadcrumb-current" aria-current="page">{{ crumb.label }}</span>
+        {% endif %}
+    {% endfor %}
+</nav>

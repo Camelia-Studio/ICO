@@ -1,0 +1,98 @@
+{% extends 'layout/base.html.twig' %}
+
+{% block page_title %}Logs administrateurs - {{ site_title }}{% endblock %}
+
+{% block content %}
+    <div class="admin-header">
+        <h1>Logs administrateurs</h1>
+        <div class="admin-actions">
+            <a href="admin.php" class="action-button action-button-secondary">Retour</a>
+        </div>
+    </div>
+
+    <div class="admin-content">
+        <div class="filters">
+            <form method="get" class="filter-form">
+                <div class="filter-group">
+                    <label for="action_type">Type d'action&nbsp;:</label>
+                    <select name="action_type" id="action_type" class="form-select">
+                        <option value="">Toutes les actions</option>
+                        {% for type in action_types %}
+                            <option value="{{ type }}"
+                                    {{ filters.action_type == type ? 'selected' : '' }}>
+                                {{ action_translations[type] ?? type }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="admin">Administrateur&nbsp;:</label>
+                    <select name="admin" id="admin" class="form-select">
+                        <option value="">Tous les administrateurs</option>
+                        {% for admin in admins %}
+                            <option value="{{ admin.id }}"
+                                    {{ filters.admin_id == admin.id ? 'selected' : '' }}>
+                                {{ admin.username }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="date_range">Période&nbsp;:</label>
+                    <select name="date_range" id="date_range" class="form-select">
+                        <option value="">Toutes les dates</option>
+                        <option value="24h" {{ filters.date_range == '24h' ? 'selected' : '' }}>Dernières 24h</option>
+                        <option value="48h" {{ filters.date_range == '48h' ? 'selected' : '' }}>Dernières 48h</option>
+                        <option value="72h" {{ filters.date_range == '72h' ? 'selected' : '' }}>Dernières 72h</option>
+                        <option value="1week" {{ filters.date_range == '1week' ? 'selected' : '' }}>Dernière semaine</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="action-button">Filtrer</button>
+            </form>
+        </div>
+
+        <div class="logs-list">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Administrateur</th>
+                        <th>Action</th>
+                        <th>Description</th>
+                        <th>Chemin</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td>{{ log.created_at|format_date('d/m/Y H:i:s') }}</td>
+                        <td>{{ log.username ?? '' }}</td>
+                        <td class="{{ log.action_type|log_action_class }}">{{ action_translations[log.action_type] ?? log.action_type }}</td>
+                        <td>{{ log.action_description }}</td>
+                        <td>{{ log.target_path ?? '' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if total_pages > 1 %}
+        <div class="pagination">
+            {% for i in 1..total_pages %}
+                <a href="?page={{ i }}&action_type={{ filters.action_type|url_encode }}&admin={{ filters.admin_id }}&date_range={{ filters.date_range|url_encode }}"
+                   class="pagination-link {{ page == i ? 'active' : '' }}">
+                    {{ i }}
+                </a>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    <button class="scroll-top" title="Retour en haut">↑</button>
+{% endblock %}
+
+{% block scripts %}
+    <script src="js/scroll-top.js"></script>
+{% endblock %}

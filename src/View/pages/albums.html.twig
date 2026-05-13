@@ -1,0 +1,57 @@
+{% extends 'layout/base-public.html.twig' %}
+
+{% block page_title %}{{ current_album_info.title }} - {{ site_title }}{% endblock %}
+
+{% block body_class %}albums-page{% endblock %}
+
+{% block content %}
+    {% include 'partials/breadcrumb.html.twig' with {'breadcrumbs': breadcrumbs} %}
+
+    <div class="album-info">
+        <h1 class="current-album-title">{{ current_album_info.title }}</h1>
+        {% if current_album_info.description is not empty %}
+            <p>{{ current_album_info.description|nl2br }}</p>
+        {% endif %}
+    </div>
+
+    <div class="albums-grid">
+        {% for album in albums %}
+        <a href="{{ album.hasSubfolders ? 'albums.php' : 'galeries.php' }}?path={{ album.path|url_encode }}"
+           class="album-card{{ album.mature_content ? ' album-card-mature' : '' }}"
+           {{ album.mature_content ? 'data-mature-warning="Contenu réservé aux plus de 18 ans"' : '' }}>
+            <div class="album-images">
+                {% if album.images is empty %}
+                    <div class="empty-album"></div>
+                {% else %}
+                    {% for image in album.images %}
+                        <div class="album-image">
+                            <div class="image-background {{ (image is iterable and image.is_mature) ? 'mature-preview' : '' }}"
+                                style="background-image: url('{{ image is iterable ? image.url : image }}')">
+                            </div>
+                            {% if image is iterable and image.is_mature %}
+                                <div class="mature-preview-indicator">🔞</div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    {% for i in (album.images|length)..3 %}
+                        <div class="empty-image"></div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            <div class="album-info">
+                <h2>{{ album.title }}</h2>
+                {% if album.description is not empty %}
+                    <p>{{ album.description|nl2br }}</p>
+                {% endif %}
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+
+    <button class="scroll-top" title="Retour en haut">↑</button>
+{% endblock %}
+
+{% block scripts %}
+    <script src="js/albums.js"></script>
+    <script src="js/scroll-top.js"></script>
+{% endblock %}

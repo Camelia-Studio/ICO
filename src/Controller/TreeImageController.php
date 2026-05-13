@@ -501,6 +501,7 @@ class TreeImageController
             'folderOptions' => $this->generateFolderOptions($this->albumsRoot, $currentPath),
             'isCarousel'    => $isCarousel,
             'galleryUrl'    => $galleryUrl,
+            'dataPage'      => $isCarousel ? 'carrousel' : 'default',
             'version'       => $this->config->getVersion(),
         ]);
     }

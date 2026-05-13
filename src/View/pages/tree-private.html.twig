@@ -1,23 +1,8 @@
-<?php
-/**
- * Vue : arborescence des albums privés (arbre-prive.php).
- *
- * Variables :
- *   string      $siteTitle   Titre du site
- *   string      $tree        HTML de l'arborescence (généré par TreeController)
- *   string|null $shareUrl    URL de partage générée (null si aucune)
- *   string      $version     Version de l'application (pour le footer)
- */
+{% extends 'layout/base.html.twig' %}
 
-/** @var \ICO\View\ViewRenderer $renderer */
-/** @var string $siteTitle */
-/** @var string $tree */
-/** @var string|null $shareUrl */
-/** @var string $version */
-?>
-<?php $renderer->renderLayout('layout/header', [
-    'pageTitle' => 'Albums privés - ' . $siteTitle,
-]); ?>
+{% block page_title %}Albums privés - {{ siteTitle }}{% endblock %}
+
+{% block content %}
     <div class="admin-header">
         <h1>Gestion des albums privés</h1>
         <div class="admin-actions">
@@ -27,27 +12,19 @@
     </div>
 
     <div class="admin-content">
-        <?php if (isset($_SESSION['success_message'])): ?>
+        {% include 'partials/messages.html.twig' %}
+        {% if shareUrl is not null %}
         <div class="message success-message">
-            <?php echo htmlspecialchars($_SESSION['success_message']); ?>
-            <?php if ($shareUrl !== null): ?>
-                <div class="share-url-container">
-                    <input type="text" value="<?php echo htmlspecialchars($shareUrl); ?>"
-                        class="share-url-input" readonly onclick="this.select()">
-                    <button onclick="copyShareUrl(this)" class="tree-button" title="Copier">📋</button>
-                </div>
-                <?php unset($_SESSION['share_url']); ?>
-            <?php endif; ?>
+            <div class="share-url-container">
+                <input type="text" value="{{ shareUrl }}"
+                    class="share-url-input" readonly onclick="this.select()">
+                <button onclick="copyShareUrl(this)" class="tree-button" title="Copier">📋</button>
+            </div>
         </div>
-        <?php unset($_SESSION['success_message']); ?>
-        <?php endif; ?>
-        <?php if (isset($_SESSION['error_message'])): ?>
-            <div class="message error-message"><?php echo htmlspecialchars($_SESSION['error_message']); ?></div>
-            <?php unset($_SESSION['error_message']); ?>
-        <?php endif; ?>
+        {% endif %}
 
         <div class="tree-container">
-            <?php echo $tree; ?>
+            {{ tree|raw }}
         </div>
     </div>
 
@@ -185,7 +162,10 @@
     </div>
 
     <button class="scroll-top" title="Retour en haut">↑</button>
+{% endblock %}
+
+{% block scripts %}
     <script src="js/tree.js"></script>
     <script src="js/tree-private.js"></script>
     <script src="js/scroll-top.js"></script>
-<?php $renderer->renderLayout('layout/footer', ['version' => $version]); ?>
+{% endblock %}

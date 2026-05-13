@@ -1,0 +1,63 @@
+{% extends 'layout/base.html.twig' %}
+
+{% set isEdit = link is not null %}
+{% set pageTitle = isEdit ? 'Modifier le lien' : 'Nouveau lien social' %}
+
+{% block page_title %}{{ pageTitle }} - {{ site_title }}{% endblock %}
+
+{% block content %}
+    <div class="admin-header">
+        <h1>{{ pageTitle }}</h1>
+        <div class="admin-actions">
+            <a href="liens-sociaux.php" class="action-button action-button-secondary">Retour</a>
+        </div>
+    </div>
+
+    <div class="admin-content">
+        {% if error_message != '' %}
+            <div class="message error-message">{{ error_message }}</div>
+        {% endif %}
+
+        <form method="post" action="liens-sociaux.php?action=save" class="form-container">
+            {% if isEdit %}
+            <input type="hidden" name="id" value="{{ link.id|e('html_attr') }}">
+            {% endif %}
+
+            <div class="form-group">
+                <label for="label">Nom :</label>
+                <input type="text" id="label" name="label" required autofocus maxlength="100"
+                       value="{{ link.label|default('') }}"
+                       placeholder="ex : Instagram, YouTube…">
+            </div>
+
+            <div class="form-group">
+                <label for="url">URL :</label>
+                <input type="url" id="url" name="url" required
+                       value="{{ link.url|default('') }}"
+                       placeholder="https://…">
+            </div>
+
+            <div class="form-group">
+                <label for="display_order">Ordre d'affichage :</label>
+                <input type="number" id="display_order" name="display_order" min="0" max="999"
+                       value="{{ link.display_order|default(0) }}"
+                       style="width:6rem;">
+                <small class="form-help">Les valeurs les plus faibles apparaissent en premier.</small>
+            </div>
+
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="is_active" value="1"
+                           {{ (not isEdit or link.is_active) ? 'checked' : '' }}>
+                    Lien actif (visible dans le pied de page)
+                </label>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="action-button">
+                    {{ isEdit ? 'Enregistrer les modifications' : 'Ajouter le lien' }}
+                </button>
+            </div>
+        </form>
+    </div>
+{% endblock %}

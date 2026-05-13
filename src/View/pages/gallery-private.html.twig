@@ -1,0 +1,91 @@
+{% extends 'layout/base-public.html.twig' %}
+
+{% block page_title %}{{ album_data is not null ? album_data.title : error_title }} - {{ site_title }}{% endblock %}
+
+{% block body_class %}gallery-page{{ (album_data is not null and album_data.mature_content) ? ' gallery-page-mature content-blurred' : '' }}{% endblock %}
+
+{% block content %}
+    {% if error_title is not null %}
+    <div class="error-container">
+        <div class="error-content">
+            <h1>{{ error_title }}</h1>
+            <p>{{ error_message }}</p>
+            <a href="index.php" class="action-button">Retour à l'accueil</a>
+        </div>
+    </div>
+
+    {% else %}
+    {% if album_data.mature_content %}
+    <div id="mature-warning" class="mature-overlay">
+        <div class="mature-content">
+            <div class="mature-icon">🔞</div>
+            <h2>Cet album contient du contenu réservé à un public averti.</h2>
+            <button onclick="acceptMatureContent()" class="mature-button">J'ai plus de 18 ans - Afficher le contenu</button>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="private-gallery-badge">
+        <span class="private-icon">🔒</span> Album privé
+    </div>
+
+    {% if header_image is not null %}
+    <div class="gallery-header">
+        <img src="{{ header_image }}" alt="Image principale" class="header-image">
+    </div>
+    {% endif %}
+
+    <div class="gallery-info">
+        <h1>{{ album_data.title }}</h1>
+        {% if album_data.description is not empty %}
+        <p>{{ album_data.description|nl2br }}</p>
+        {% endif %}
+        {% if album_data.mature_content %}
+        <div class="mature-badge">
+            <span class="mature-badge-icon">🔞</span>
+            Contenu réservé aux plus de 18 ans
+        </div>
+        {% endif %}
+        {% if album_data.more_info_url is not empty %}
+        <div class="more-info-button">
+            <a href="{{ album_data.more_info_url }}"
+               target="_blank"
+               rel="noopener noreferrer"
+               class="action-button">
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="16" x2="12" y2="12"/>
+                    <line x1="12" y1="8" x2="12" y2="8"/>
+                </svg>
+                En savoir plus sur {{ album_data.title }}
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="gallery-grid">
+        {% for image in images %}
+        {% set spanClass = '' %}
+        {% if image.aspect_ratio > 1.7 %}
+            {% set spanClass = 'gallery-item-wide' %}
+        {% elseif image.aspect_ratio < 0.7 %}
+            {% set spanClass = 'gallery-item-tall' %}
+        {% endif %}
+        <div class="gallery-item {{ image.is_top ? 'gallery-item-top' : '' }} {{ spanClass }}">
+            <a href="{{ image.share_url }}" target="_blank">
+                <img src="{{ image.url }}"
+                     alt="Image de la galerie"
+                     loading="lazy">
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% endif %}
+    <button class="scroll-top" title="Retour en haut">↑</button>
+{% endblock %}
+
+{% block scripts %}
+    <script src="js/gallery.js"></script>
+    <script src="js/scroll-top.js"></script>
+{% endblock %}

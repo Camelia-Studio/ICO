@@ -1,23 +1,8 @@
-<?php
-/**
- * Vue : tableau de bord administrateur.
- *
- * Variables :
- *   bool                $isFirst         L'admin connecté est le premier (admin principal)
- *   bool                $updateAvailable Une mise à jour est disponible
- *   array<string,mixed>|null $updateStatus    Résultat de UpdateService::checkUpdate()
- *   string              $menuItemClass   Classe CSS du bloc "Mise à jour"
- *   string              $version         Version de l'application (pour le footer)
- */
+{% extends 'layout/base.html.twig' %}
 
-/** @var \ICO\View\ViewRenderer $renderer */
-/** @var bool $isFirst */
-/** @var bool $updateAvailable */
-/** @var array<string,mixed>|null $updateStatus */
-/** @var string $menuItemClass */
-/** @var string $version */
-?>
-<?php $renderer->renderLayout('layout/header', ['pageTitle' => 'Administration - ICO']); ?>
+{% block page_title %}Administration - ICO{% endblock %}
+
+{% block content %}
     <div class="admin-header">
         <h1>Administration ICO</h1>
         <div class="admin-actions">
@@ -27,7 +12,7 @@
         </div>
     </div>
     <div class="admin-content">
-        <?php $renderer->renderLayout('partials/messages'); ?>
+        {% include 'partials/messages.html.twig' %}
 
         <div class="admin-menu">
             <a href="arbre.php" class="admin-menu-item">
@@ -44,7 +29,7 @@
                 </div>
             </a>
 
-            <?php if ($isFirst): ?>
+            {% if isFirst %}
             <a href="utilisateurs.php" class="admin-menu-item">
                 <div class="menu-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -57,7 +42,7 @@
                     <p>Gérez les comptes administrateurs de la galerie photo.</p>
                 </div>
             </a>
-            <?php endif; ?>
+            {% endif %}
 
             <a href="arbre-prive.php" class="admin-menu-item">
                 <div class="menu-icon">
@@ -125,7 +110,7 @@
                 </div>
             </a>
 
-            <?php if ($isFirst): ?>
+            {% if isFirst %}
             <a href="logs.php" class="admin-menu-item">
                 <div class="menu-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -141,16 +126,16 @@
                     <p>Consultez l'historique des actions des administrateurs.</p>
                 </div>
             </a>
-            <?php endif; ?>
+            {% endif %}
 
-            <?php if ($updateAvailable): ?>
-                <a href="https://git.crystalyx.net/camelia-studio/ICO/releases/tag/<?php echo htmlspecialchars($updateStatus['latest']); ?>"
-                   class="<?php echo $menuItemClass; ?>"
+            {% if updateAvailable %}
+                <a href="https://git.crystalyx.net/camelia-studio/ICO/releases/tag/{{ updateStatus.latest }}"
+                   class="{{ menuItemClass }}"
                    target="_blank"
                    rel="noopener noreferrer">
-            <?php else: ?>
-                <div class="<?php echo $menuItemClass; ?>">
-            <?php endif; ?>
+            {% else %}
+                <div class="{{ menuItemClass }}">
+            {% endif %}
                 <div class="menu-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                         <path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" rx="4" />
@@ -159,18 +144,18 @@
                 </div>
                 <div class="menu-content">
                     <h2>Mise à jour</h2>
-                    <?php if ($updateAvailable): ?>
+                    {% if updateAvailable %}
                         <div class="update-status">
-                            Version actuelle : <?php echo htmlspecialchars($updateStatus['current']); ?>
-                            Dernière version : <?php echo htmlspecialchars($updateStatus['latest']); ?>
+                            Version actuelle : {{ updateStatus.current }}
+                            Dernière version : {{ updateStatus.latest }}
                         </div>
-                    <?php endif; ?>
+                    {% endif %}
                 </div>
-            <?php if ($updateAvailable): ?>
+            {% if updateAvailable %}
                 </a>
-            <?php else: ?>
+            {% else %}
                 </div>
-            <?php endif; ?>
+            {% endif %}
         </div>
     </div>
-<?php $renderer->renderLayout('layout/footer', ['version' => $version]); ?>
+{% endblock %}

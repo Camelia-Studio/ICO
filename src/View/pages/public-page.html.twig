@@ -1,0 +1,24 @@
+{% extends 'layout/base-public.html.twig' %}
+
+{% set pageTitle = page is not null ? page.title : 'Page introuvable' %}
+
+{% block page_title %}{{ pageTitle }} - {{ site_title }}{% endblock %}
+
+{% block body_class %}albums-page{% endblock %}
+
+{% block content %}
+    <a href="index.php" class="back-button">Retour</a>
+
+    <div class="album-info" style="max-width:800px; margin:6rem auto 2rem; padding:0 1.5rem;">
+        {% if page is not null %}
+            <h1 class="current-album-title">{{ page.title }}</h1>
+            <div class="page-content" style="line-height:1.7;">
+                {{ page.content|raw }}
+            </div>
+        {% else %}
+            <h1 class="current-album-title">Page introuvable</h1>
+            <p>Cette page n'existe pas ou n'est plus disponible.</p>
+            <p><a href="index.php">Retour à l'accueil</a></p>
+        {% endif %}
+    </div>
+{% endblock %}

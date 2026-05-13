@@ -1,0 +1,34 @@
+{% extends 'layout/base-public.html.twig' %}
+
+{% block page_title %}{{ site_title }} - {{ site_description }}{% endblock %}
+
+{% block body_class %}{% endblock %}
+
+{% block content %}
+    <a href="admin.php" class="admin-button" title="Administration">⚙️</a>
+    <div class="carousel">
+        {% for image in carousel_images %}
+            <div class="carousel-slide {{ loop.first ? 'active' : '' }}">
+                <img src="{{ image }}" alt="Image du carrousel">
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if carousel_images|length > 1 %}
+    <div class="carousel-indicators">
+        {% for image in carousel_images %}
+            <div class="indicator {{ loop.first ? 'active' : '' }}"></div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="overlay">
+        <h1>{{ site_title }}</h1>
+        <p>{{ site_description }}</p>
+        <a href="albums.php" class="cta-button">Accéder aux galeries</a>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="js/carousel.js"></script>
+{% endblock %}

@@ -4,79 +4,90 @@ declare(strict_types=1);
 
 namespace ICO\View;
 
+use ICO\Controller\LogController;
+use Twig\Environment;
+use Twig\Loader\FilesystemLoader;
+use Twig\TwigFilter;
+use Twig\TwigFunction;
+
 /**
- * Moteur de rendu de vues PHP natives.
+ * Moteur de rendu Twig.
  *
- * Utilise ob_start / ob_get_clean + extract() pour injecter les données
- * dans la portée locale de chaque fichier de vue.
+ * Interface publique identique à l'ancien ViewRenderer PHP natif —
+ * aucun changement requis dans les contrôleurs ni dans Container.php.
  *
- * Le layout est géré via deux emplacements :
- *   - renderLayout('layout/header', $data) → ouvre le HTML
- *   - renderLayout('layout/footer', $data) → ferme le HTML
- * Ces deux appels sont faits depuis les fichiers de vue eux-mêmes.
- *
- * Usage dans un controller :
+ * Usage dans un contrôleur :
  *   $this->view->render('pages/admin-login', ['error' => null]);
- *
- * Usage dans une vue pages/*.php :
- *   <?php $this->renderLayout('layout/header', ['pageTitle' => 'Connexion']); ?>
- *   ... contenu ...
- *   <?php $this->renderLayout('layout/footer', ['version' => $version]); ?>
  */
 class ViewRenderer
 {
-    /** @var array<string, mixed> Variables injectées dans toutes les vues */
-    private array $globals = [];
+    private Environment $twig;
 
     public function __construct(
         private readonly string $viewsDir,
     ) {
+        $loader = new FilesystemLoader($this->viewsDir);
+
+        $this->twig = new Environment($loader, [
+            'cache'            => dirname($this->viewsDir, 2) . '/var/twig-cache',
+            'auto_reload'      => true,
+            'autoescape'       => 'html',
+            'strict_variables' => true,
+        ]);
+
+        $this->twig->addFilter(new TwigFilter(
+            'log_action_class',
+            static fn(string $type): string => LogController::getActionClass($type),
+        ));
+
+        $this->twig->addFilter(new TwigFilter(
+            'format_date',
+            static fn(string $date, string $fmt = 'd/m/Y'): string => date($fmt, (int) strtotime($date)),
+        ));
+
+        $this->twig->addFunction(new TwigFunction(
+            'flash_messages',
+            static function (): array {
+                $msgs = [];
+                foreach (['success_message' => 'success', 'error_message' => 'error'] as $key => $type) {
+                    if (isset($_SESSION[$key])) {
+                        $msgs[] = ['type' => $type, 'text' => $_SESSION[$key]];
+                        unset($_SESSION[$key]);
+                    }
+                }
+                return $msgs;
+            },
+        ));
     }
 
     /**
-     * Déclare une variable globale disponible dans toutes les vues et partials.
+     * Déclare une variable globale disponible dans toutes les vues.
      */
     public function addGlobal(string $key, mixed $value): void
     {
-        $this->globals[$key] = $value;
+        $this->twig->addGlobal($key, $value);
     }
 
     /**
-     * Rend une vue en injectant $data comme variables locales.
+     * Rend une vue page complète.
      *
-     * @param string               $view Chemin relatif depuis $viewsDir, sans .php (ex: 'pages/admin-login')
-     * @param array<string, mixed> $data Variables à extraire dans la portée de la vue
+     * @param string               $view Chemin relatif depuis $viewsDir, sans extension (ex: 'pages/admin-login')
+     * @param array<string, mixed> $data Variables passées à la vue
      */
     public function render(string $view, array $data = []): void
     {
-        $file = $this->viewsDir . '/' . $view . '.php';
-
-        if (!file_exists($file)) {
-            throw new \RuntimeException("Vue introuvable : {$file}");
-        }
-
-        // On passe $this pour que les vues puissent appeler $this->renderLayout(...)
-        $renderer = $this;
-        extract(array_merge($this->globals, $data), EXTR_SKIP);
-
-        require $file;
+        echo $this->twig->render($view . '.html.twig', $data);
     }
 
     /**
-     * Inclut un fichier de layout ou de partial.
+     * Conservé pour compatibilité — non appelé depuis les vues Twig
+     * (les partials sont inclus via {% include %}).
      *
-     * @param string               $partial Chemin relatif depuis $viewsDir, sans .php
+     * @param string               $partial Chemin relatif depuis $viewsDir, sans extension
      * @param array<string, mixed> $data    Variables supplémentaires
      */
     public function renderLayout(string $partial, array $data = []): void
     {
-        $file = $this->viewsDir . '/' . $partial . '.php';
-
-        if (!file_exists($file)) {
-            throw new \RuntimeException("Partial introuvable : {$file}");
-        }
-
-        extract(array_merge($this->globals, $data), EXTR_SKIP);
-        require $file;
+        echo $this->twig->render($partial . '.html.twig', $data);
     }
 }

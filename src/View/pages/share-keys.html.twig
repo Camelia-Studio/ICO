@@ -1,0 +1,118 @@
+{% extends 'layout/base.html.twig' %}
+
+{% macro render_options(opts) %}
+    <span class="opt-badge {{ opts.download ? 'opt-on' : 'opt-off' }}" title="Téléchargement">⬇️</span>
+    <span class="opt-badge {{ opts.source ? 'opt-on' : 'opt-off' }}" title="Source">🔍</span>
+    <span class="opt-badge {{ opts.share ? 'opt-on' : 'opt-off' }}" title="Partager">🔗</span>
+{% endmacro %}
+
+{% block page_title %}Gestion des clés de partage - {{ site_title }}{% endblock %}
+
+{% block content %}
+    <div class="admin-header">
+        <h1>Gestion des clés de partage</h1>
+        <div class="admin-actions">
+            <button onclick="cleanExpiredKeys()" class="action-button">
+                Nettoyer les clés expirées
+            </button>
+            <a href="admin.php" class="action-button action-button-secondary">Retour</a>
+        </div>
+    </div>
+
+    <div class="admin-content">
+        {% if success_message != '' %}
+            <div class="message success-message">{{ success_message }}</div>
+        {% endif %}
+        {% if error_message != '' %}
+            <div class="message error-message">{{ error_message }}</div>
+        {% endif %}
+
+        <div class="filters">
+            <div class="filter-group">
+                <label for="status-filter">Statut&nbsp;:</label>
+                <select id="status-filter" class="form-select" onchange="updateFilters()">
+                    <option value="active" {{ filter == 'active' ? 'selected' : '' }}>Clés actives</option>
+                    <option value="expired" {{ filter == 'expired' ? 'selected' : '' }}>Clés expirées</option>
+                    <option value="all" {{ filter == 'all' ? 'selected' : '' }}>Toutes les clés</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="album-filter">Album&nbsp;:</label>
+                <select id="album-filter" class="form-select" onchange="updateFilters()">
+                    <option value="">Tous les albums</option>
+                    {% for album in albums %}
+                    <option value="{{ album.identifier }}"
+                            {{ album_filter == album.identifier ? 'selected' : '' }}>
+                        {{ album.path }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="keys-list">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Album</th>
+                        <th>URL de partage</th>
+                        <th>Créée le</th>
+                        <th>Expire le</th>
+                        <th>Commentaire</th>
+                        <th>Options</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for key in keys %}
+                    <tr class="{{ key.is_expired ? 'expired-key' : '' }}">
+                        <td title="{{ key.path }}">
+                            {{ key.album_title }}
+                            {% if key.album_mature %}
+                                <span class="mature-warning">🔞</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if not key.is_expired %}
+                            <div class="share-url">
+                                <input type="text" readonly value="{{ key.share_url }}"
+                                       class="share-url-input" onclick="this.select()">
+                                <button onclick="copyShareUrl(this)" class="tree-button" title="Copier">📋</button>
+                            </div>
+                            {% else %}
+                            <span class="expired-text">Expirée</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ key.created_at|format_date('d/m/Y H:i') }}</td>
+                        <td>{{ key.expires_at|format_date('d/m/Y H:i') }}</td>
+                        <td>{{ key.comment }}</td>
+                        <td class="options-cell">{{ _self.render_options(key.options) }}</td>
+                        <td>
+                            <form method="post" style="display: inline;">
+                                <input type="hidden" name="action" value="delete_key">
+                                <input type="hidden" name="key_id" value="{{ key.id }}">
+                                <button type="submit" class="tree-button tree-button-danger"
+                                        onclick="return confirm('Voulez-vous vraiment supprimer cette clé ?')">
+                                    🗑️
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="no-data">Aucune clé trouvée</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <button class="scroll-top" title="Retour en haut">↑</button>
+{% endblock %}
+
+{% block scripts %}
+    <script src="js/share-keys.js"></script>
+    <script src="js/scroll-top.js"></script>
+{% endblock %}

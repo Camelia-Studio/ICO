@@ -1,27 +1,8 @@
-<?php
-/**
- * Vue : liste des pages "en savoir plus" (admin).
- *
- * Variables :
- *   list<array<string, mixed>> $pages          Pages enregistrées
- *   string $success_message  Message de succès (vide si aucun)
- *   string $error_message    Message d'erreur (vide si aucun)
- *   string $base_url         URL de base du site
- *   string $site_title       Titre du site
- *   string $version          Version pour le footer
- */
+{% extends 'layout/base.html.twig' %}
 
-/** @var \ICO\View\ViewRenderer $renderer */
-/** @var list<array<string, mixed>> $pages */
-/** @var string $success_message */
-/** @var string $error_message */
-/** @var string $base_url */
-/** @var string $site_title */
-/** @var string $version */
-?>
-<?php $renderer->renderLayout('layout/header', [
-    'pageTitle' => 'Pages "En savoir plus" - ' . $site_title,
-]); ?>
+{% block page_title %}Pages "En savoir plus" - {{ site_title }}{% endblock %}
+
+{% block content %}
     <div class="admin-header">
         <h1>Pages "En savoir plus"</h1>
         <div class="admin-actions">
@@ -31,12 +12,12 @@
     </div>
 
     <div class="admin-content">
-        <?php if ($success_message !== ''): ?>
-            <div class="message success-message"><?php echo htmlspecialchars($success_message); ?></div>
-        <?php endif; ?>
-        <?php if ($error_message !== ''): ?>
-            <div class="message error-message"><?php echo htmlspecialchars($error_message); ?></div>
-        <?php endif; ?>
+        {% if success_message != '' %}
+            <div class="message success-message">{{ success_message }}</div>
+        {% endif %}
+        {% if error_message != '' %}
+            <div class="message error-message">{{ error_message }}</div>
+        {% endif %}
 
         <div class="keys-list">
             <table class="admin-table">
@@ -51,52 +32,52 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($pages as $page): ?>
+                    {% for page in pages %}
                     <tr>
-                        <td><?php echo htmlspecialchars((string) $page['title']); ?></td>
+                        <td>{{ page.title }}</td>
+                        <td><code>{{ page.slug }}</code></td>
                         <td>
-                            <code><?php echo htmlspecialchars((string) $page['slug']); ?></code>
-                        </td>
-                        <td>
-                            <?php if ($page['is_published']): ?>
+                            {% if page.is_published %}
                                 <span class="status-badge status-active">Publiée</span>
-                            <?php else: ?>
+                            {% else %}
                                 <span class="status-badge status-expired">Brouillon</span>
-                            <?php endif; ?>
+                            {% endif %}
                         </td>
-                        <td><?php echo date('d/m/Y', strtotime((string) $page['created_at'])); ?></td>
-                        <td><?php echo date('d/m/Y', strtotime((string) $page['updated_at'])); ?></td>
+                        <td>{{ page.created_at|format_date }}</td>
+                        <td>{{ page.updated_at|format_date }}</td>
                         <td class="actions-cell">
-                            <?php if ($page['is_published']): ?>
-                            <?php $pageUrl = htmlspecialchars($base_url) . '/page.php?slug=' . urlencode((string) $page['slug']); ?>
-                            <a href="<?php echo $pageUrl; ?>"
+                            {% if page.is_published %}
+                            {% set pageUrl = base_url ~ '/page.php?slug=' ~ page.slug|url_encode %}
+                            <a href="{{ pageUrl }}"
                                target="_blank" class="tree-button" title="Voir la page">👁</a>
                             <button type="button" class="tree-button"
                                     title="Copier le lien"
-                                    onclick="copyPageUrl(this, '<?php echo htmlspecialchars($base_url . '/page.php?slug=' . urlencode((string) $page['slug']), ENT_QUOTES); ?>')">📋</button>
-                            <?php endif; ?>
-                            <a href="pages-info.php?action=edit&id=<?php echo (int) $page['id']; ?>"
+                                    onclick="copyPageUrl(this, '{{ pageUrl|e('js') }}')">📋</button>
+                            {% endif %}
+                            <a href="pages-info.php?action=edit&id={{ page.id }}"
                                class="tree-button" title="Modifier">✏️</a>
                             <form method="post" action="pages-info.php?action=delete" style="display:inline;">
-                                <input type="hidden" name="id" value="<?php echo (int) $page['id']; ?>">
+                                <input type="hidden" name="id" value="{{ page.id }}">
                                 <button type="submit" class="tree-button tree-button-danger"
                                         title="Supprimer"
                                         onclick="return confirm('Supprimer définitivement cette page ?')">🗑️</button>
                             </form>
                         </td>
                     </tr>
-                    <?php endforeach; ?>
-                    <?php if (empty($pages)): ?>
+                    {% else %}
                     <tr>
                         <td colspan="6" class="no-data">Aucune page créée — <a href="pages-info.php?action=new">créer la première</a></td>
                     </tr>
-                    <?php endif; ?>
+                    {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
 
     <button class="scroll-top" title="Retour en haut">↑</button>
+{% endblock %}
+
+{% block scripts %}
     <script src="js/scroll-top.js"></script>
     <script>
     function copyPageUrl(button, url) {
@@ -111,4 +92,4 @@
         });
     }
     </script>
-<?php $renderer->renderLayout('layout/footer', ['version' => $version]); ?>
+{% endblock %}
