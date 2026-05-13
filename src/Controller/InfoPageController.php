@@ -160,7 +160,7 @@ class InfoPageController
         $adminId = $this->authService->getLoggedInAdminId();
 
         /** @var string[] $checkedPaths */
-        $checkedPaths = array_filter((array) $request->post('album_links', []), 'is_string');
+        $checkedPaths = array_filter((array) $request->post('album_links', []), is_string(...));
 
         if ($id > 0) {
             $oldPage    = $this->infoPageRepo->findById($id);
@@ -295,7 +295,7 @@ class InfoPageController
 
             if ($isChecked && !$wasLinked) {
                 $this->writeAlbumMoreInfoUrl($album['abs_path'], $newUrl);
-            } elseif ($isChecked && $wasLinked && $album['more_info_url'] !== $newUrl) {
+            } elseif ($isChecked && $album['more_info_url'] !== $newUrl) {
                 // slug a changé : mettre à jour l'URL
                 $this->writeAlbumMoreInfoUrl($album['abs_path'], $newUrl);
             } elseif (!$isChecked && $wasLinked) {

@@ -44,6 +44,12 @@ class LogController
         'CLEAN_EXPIRED_KEYS'     => 'Nettoyer les clés expirées',
         'DELETE_SHARE_KEY'       => 'Supprimer une clé de partage',
         'UPDATE_SETTINGS'        => 'Modifier les paramètres',
+        'CREATE_INFO_PAGE'       => 'Créer une page info',
+        'UPDATE_INFO_PAGE'       => 'Modifier une page info',
+        'DELETE_INFO_PAGE'       => 'Supprimer une page info',
+        'CREATE_SOCIAL_LINK'     => 'Ajouter un lien social',
+        'UPDATE_SOCIAL_LINK'     => 'Modifier un lien social',
+        'DELETE_SOCIAL_LINK'     => 'Supprimer un lien social',
     ];
 
     public function __construct(

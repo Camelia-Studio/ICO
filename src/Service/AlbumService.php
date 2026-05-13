@@ -221,7 +221,7 @@ class AlbumService
     {
         $albums = [];
         $this->collectLeafAlbums($rootPath, $projectRoot, $albums);
-        usort($albums, static fn (array $a, array $b): int => strcasecmp($a['title'], $b['title']));
+        usort($albums, static fn (array $a, array $b): int => strcasecmp((string) $a['title'], (string) $b['title']));
 
         return $albums;
     }
