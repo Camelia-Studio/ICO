@@ -208,6 +208,52 @@ class AlbumService
     }
 
     // -------------------------------------------------------------------------
+    // Listage des albums
+    // -------------------------------------------------------------------------
+
+    /**
+     * Retourne tous les albums « feuilles » (avec images, sans sous-dossiers)
+     * de façon récursive sous $rootPath.
+     *
+     * @return array<int, array{title: string, rel_path: string, abs_path: string, more_info_url: string}>
+     */
+    public function getAllLeafAlbums(string $rootPath, string $projectRoot): array
+    {
+        $albums = [];
+        $this->collectLeafAlbums($rootPath, $projectRoot, $albums);
+        usort($albums, static fn (array $a, array $b): int => strcasecmp($a['title'], $b['title']));
+
+        return $albums;
+    }
+
+    private function collectLeafAlbums(string $path, string $projectRoot, array &$albums): void
+    {
+        if (!is_dir($path)) {
+            return;
+        }
+
+        foreach (new DirectoryIterator($path) as $item) {
+            if ($item->isDot() || !$item->isDir()) {
+                continue;
+            }
+
+            $fullPath = $item->getPathname();
+
+            if ($this->hasSubfolders($fullPath)) {
+                $this->collectLeafAlbums($fullPath, $projectRoot, $albums);
+            } elseif ($this->hasImages($fullPath)) {
+                $info      = $this->getAlbumInfo($fullPath);
+                $albums[]  = [
+                    'title'         => $info['title'],
+                    'rel_path'      => ltrim(substr($fullPath, strlen($projectRoot)), DIRECTORY_SEPARATOR),
+                    'abs_path'      => $fullPath,
+                    'more_info_url' => $info['more_info_url'],
+                ];
+            }
+        }
+    }
+
+    // -------------------------------------------------------------------------
     // Sécurité des chemins
     // -------------------------------------------------------------------------
 

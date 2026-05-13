@@ -8,14 +8,49 @@ function editFolder(path, title, description, matureContent, moreInfoUrl, hasIma
     document.getElementById('edit_name').value = decodeURIComponent(title);
     document.getElementById('edit_description').value = decodeURIComponent(description);
     document.getElementById('edit_mature_content').checked = matureContent;
-    document.getElementById('edit_more_info_url').value = decodeURIComponent(moreInfoUrl);
+
     const field = document.getElementById('edit_more_info_url_field');
     const show = hasImages === true || hasImages === 'true';
     if (field) {
         field.style.display = show ? 'block' : 'none';
-        if (!show) document.getElementById('edit_more_info_url').value = '';
     }
+
+    const decoded = decodeURIComponent(moreInfoUrl);
+    const isInternalPage = decoded.startsWith('page.php?slug=');
+    const radioPage     = document.getElementById('edit_link_type_page');
+    const radioExternal = document.getElementById('edit_link_type_external');
+    const pageSelect    = document.getElementById('edit_page_select');
+    const urlInput      = document.getElementById('edit_more_info_url');
+
+    if (isInternalPage && radioPage) {
+        radioPage.checked = true;
+        if (pageSelect) pageSelect.value = decoded;
+        if (urlInput) urlInput.value = '';
+    } else {
+        if (radioExternal) radioExternal.checked = true;
+        if (urlInput) urlInput.value = show ? decoded : '';
+        if (pageSelect) pageSelect.value = '';
+    }
+    toggleLinkType('edit');
+
     document.getElementById('editFolderModal').style.display = 'block';
+}
+
+function toggleLinkType(prefix) {
+    const radio = document.querySelector('input[name="' + prefix + '_link_type"]:checked');
+    const extDiv  = document.getElementById(prefix + '_link_external');
+    const pageDiv = document.getElementById(prefix + '_link_page');
+    if (!radio || !extDiv) return;
+
+    const isPage = radio.value === 'page';
+    extDiv.style.display  = isPage ? 'none' : 'block';
+    if (pageDiv) pageDiv.style.display = isPage ? 'block' : 'none';
+
+    // Désactiver le champ caché pour qu'il ne soumette pas de valeur vide
+    const urlInput   = document.getElementById(prefix === 'edit' ? 'edit_more_info_url' : 'more_info_url');
+    const pageSelect = document.getElementById(prefix + '_page_select');
+    if (urlInput)   urlInput.disabled   = isPage;
+    if (pageSelect) pageSelect.disabled = !isPage;
 }
 
 function deleteFolder(path) {

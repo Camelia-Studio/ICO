@@ -173,7 +173,8 @@ final class Container
             ->addArgument(new Reference(LogRepository::class))
             ->addArgument(new Reference(AlbumIdentifierRepository::class))
             ->addArgument(new Reference(ShareKeyRepository::class))
-            ->addArgument(new Reference(ViewRenderer::class));
+            ->addArgument(new Reference(ViewRenderer::class))
+            ->addArgument(new Reference(InfoPageRepository::class));
 
         $container->register(TreeImageController::class)
             ->setPublic(true)
@@ -251,7 +252,10 @@ final class Container
             ->addArgument(new Reference(InfoPageRepository::class))
             ->addArgument(new Reference(LogRepository::class))
             ->addArgument('%base_url%')
-            ->addArgument(new Reference(ViewRenderer::class));
+            ->addArgument(new Reference(ViewRenderer::class))
+            ->addArgument(new Reference(AlbumService::class))
+            ->addArgument('%albums_root%')
+            ->addArgument('%project_root%');
 
         $container->register(PublicPageController::class)
             ->setPublic(true)

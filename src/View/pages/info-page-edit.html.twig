@@ -59,6 +59,29 @@
                 </label>
             </div>
 
+            {% if isEdit and albums is not null %}
+            <div class="form-group">
+                <label>Albums liés à cette page :</label>
+                {% if albums is empty %}
+                    <p class="form-help">Aucun album disponible (les albums doivent contenir des images).</p>
+                {% else %}
+                    <div class="albums-checklist">
+                        {% for album in albums %}
+                        <label class="checkbox-label albums-checklist-item{{ album.other_link ? ' albums-checklist-item--other-link' : '' }}">
+                            <input type="checkbox" name="album_links[]" value="{{ album.rel_path }}"
+                                   {{ album.linked ? 'checked' : '' }}>
+                            <span>{{ album.title }}</span>
+                            {% if album.other_link %}
+                                <small class="form-help"> (lien actuel : {{ album.more_info_url }})</small>
+                            {% endif %}
+                        </label>
+                        {% endfor %}
+                    </div>
+                    <small class="form-help">Les albums cochés afficheront un bouton "En savoir plus" pointant vers cette page.</small>
+                {% endif %}
+            </div>
+            {% endif %}
+
             <div class="form-actions">
                 <button type="submit" class="action-button">
                     {{ isEdit ? 'Enregistrer les modifications' : 'Créer la page' }}

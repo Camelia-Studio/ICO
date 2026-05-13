@@ -10,6 +10,7 @@ use ICO\Http\Response;
 use ICO\Http\TerminateException;
 use ICO\Repository\InfoPageRepository;
 use ICO\Repository\LogRepository;
+use ICO\Service\AlbumService;
 use ICO\Service\AuthService;
 use ICO\View\ViewRenderer;
 
@@ -32,6 +33,9 @@ class InfoPageController
         private readonly LogRepository       $logRepo,
         private readonly string              $baseUrl,
         private readonly ViewRenderer        $view,
+        private readonly AlbumService        $albumService,
+        private readonly string              $albumsRoot,
+        private readonly string              $projectRoot,
     ) {
     }
 
@@ -98,8 +102,14 @@ class InfoPageController
         $errorMessage = $_SESSION['error_message'] ?? '';
         unset($_SESSION['error_message']);
 
+        $albums = null;
+        if ($page !== null) {
+            $albums = $this->scanAlbumsWithLinkStatus($page['slug']);
+        }
+
         $this->view->render('pages/info-page-edit', [
             'page'          => $page,
+            'albums'        => $albums,
             'error_message' => $errorMessage,
             'site_title'    => $this->config->getSiteTitle(),
             'version'       => $this->config->getVersion(),
@@ -149,8 +159,15 @@ class InfoPageController
 
         $adminId = $this->authService->getLoggedInAdminId();
 
+        /** @var string[] $checkedPaths */
+        $checkedPaths = array_filter((array) $request->post('album_links', []), 'is_string');
+
         if ($id > 0) {
+            $oldPage    = $this->infoPageRepo->findById($id);
+            $oldSlug    = $oldPage !== null ? (string) $oldPage['slug'] : $slug;
             $this->infoPageRepo->update($id, $title, $slug, $content, $isPublished);
+            $this->syncAlbumLinks($oldSlug, $slug, $checkedPaths);
+
             if ($adminId !== null) {
                 $this->logRepo->log($adminId, 'UPDATE_INFO_PAGE', sprintf('Modification de la page « %s »', $title), $slug);
             }
@@ -158,6 +175,8 @@ class InfoPageController
             $_SESSION['success_message'] = sprintf('Page « %s » mise à jour.', $title);
         } else {
             $this->infoPageRepo->create($title, $slug, $content, $isPublished);
+            $this->syncAlbumLinks('', $slug, $checkedPaths);
+
             if ($adminId !== null) {
                 $this->logRepo->log($adminId, 'CREATE_INFO_PAGE', sprintf('Création de la page « %s »', $title), $slug);
             }
@@ -234,5 +253,67 @@ class InfoPageController
         $slug = (string) preg_replace('/[^a-z0-9]+/', '-', $slug);
 
         return trim($slug, '-');
+    }
+
+    private function pageUrl(string $slug): string
+    {
+        return 'page.php?slug=' . $slug;
+    }
+
+    /**
+     * Retourne la liste de tous les albums feuilles avec leur statut de liaison à cette page.
+     *
+     * @return array<int, array{title: string, rel_path: string, more_info_url: string, linked: bool, other_link: bool}>
+     */
+    private function scanAlbumsWithLinkStatus(string $slug): array
+    {
+        $pageUrl = $this->pageUrl($slug);
+        $albums  = $this->albumService->getAllLeafAlbums($this->albumsRoot, $this->projectRoot);
+
+        return array_map(static function (array $album) use ($pageUrl): array {
+            $album['linked']     = $album['more_info_url'] === $pageUrl;
+            $album['other_link'] = $album['more_info_url'] !== '' && $album['more_info_url'] !== $pageUrl;
+
+            return $album;
+        }, $albums);
+    }
+
+    /**
+     * Met à jour les infos.txt des albums selon les checkboxes soumises.
+     *
+     * @param string[] $checkedPaths chemins relatifs des albums cochés
+     */
+    private function syncAlbumLinks(string $oldSlug, string $newSlug, array $checkedPaths): void
+    {
+        $oldUrl  = $oldSlug !== '' ? $this->pageUrl($oldSlug) : '';
+        $newUrl  = $this->pageUrl($newSlug);
+        $albums  = $this->albumService->getAllLeafAlbums($this->albumsRoot, $this->projectRoot);
+
+        foreach ($albums as $album) {
+            $isChecked  = in_array($album['rel_path'], $checkedPaths, true);
+            $wasLinked  = $album['more_info_url'] === $oldUrl || $album['more_info_url'] === $newUrl;
+
+            if ($isChecked && !$wasLinked) {
+                $this->writeAlbumMoreInfoUrl($album['abs_path'], $newUrl);
+            } elseif ($isChecked && $wasLinked && $album['more_info_url'] !== $newUrl) {
+                // slug a changé : mettre à jour l'URL
+                $this->writeAlbumMoreInfoUrl($album['abs_path'], $newUrl);
+            } elseif (!$isChecked && $wasLinked) {
+                $this->writeAlbumMoreInfoUrl($album['abs_path'], '');
+            }
+        }
+    }
+
+    private function writeAlbumMoreInfoUrl(string $absPath, string $moreInfoUrl): void
+    {
+        if (!$this->albumService->isSecurePath($absPath)) {
+            return;
+        }
+
+        $info        = $this->albumService->getAlbumInfo($absPath);
+        $matureStr   = $info['mature_content'] ? '18+' : '18-';
+        $content     = $info['title'] . "\n" . $info['description'] . "\n" . $matureStr . "\n" . $moreInfoUrl;
+
+        file_put_contents($absPath . '/infos.txt', $content);
     }
 }

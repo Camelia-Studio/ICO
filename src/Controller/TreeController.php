@@ -8,6 +8,7 @@ use DirectoryIterator;
 use ICO\Config\Config;
 use ICO\Http\TerminateException;
 use ICO\Repository\AlbumIdentifierRepository;
+use ICO\Repository\InfoPageRepository;
 use ICO\Repository\LogRepository;
 use ICO\Repository\ShareKeyRepository;
 use ICO\Service\AlbumService;
@@ -36,6 +37,7 @@ class TreeController
         private readonly AlbumIdentifierRepository  $albumIdentRepo,
         private readonly ShareKeyRepository         $shareKeyRepo,
         private readonly ViewRenderer               $view,
+        private readonly InfoPageRepository         $infoPageRepo,
     ) {
         $this->albumsRoot        = $projectRoot . '/liste_albums';
         $this->albumsPrivateRoot = $projectRoot . '/liste_albums_prives';
@@ -499,19 +501,21 @@ class TreeController
     private function renderPublic(string $siteTitle, string $tree): void
     {
         $this->view->render('pages/tree-public', [
-            'siteTitle' => $siteTitle,
-            'tree'      => $tree,
-            'version'   => $this->config->getVersion(),
+            'siteTitle'      => $siteTitle,
+            'tree'           => $tree,
+            'version'        => $this->config->getVersion(),
+            'info_pages'     => $this->infoPageRepo->findPublished(),
         ]);
     }
 
     private function renderPrivate(string $siteTitle, string $tree, ?string $shareUrl): void
     {
         $this->view->render('pages/tree-private', [
-            'siteTitle' => $siteTitle,
-            'tree'      => $tree,
-            'shareUrl'  => $shareUrl,
-            'version'   => $this->config->getVersion(),
+            'siteTitle'      => $siteTitle,
+            'tree'           => $tree,
+            'shareUrl'       => $shareUrl,
+            'version'        => $this->config->getVersion(),
+            'info_pages'     => $this->infoPageRepo->findPublished(),
         ]);
     }
 }

@@ -8,6 +8,7 @@ use ICO\Config\Config;
 use ICO\Controller\TreeController;
 use ICO\Http\TerminateException;
 use ICO\Repository\AlbumIdentifierRepository;
+use ICO\Repository\InfoPageRepository;
 use ICO\Repository\LogRepository;
 use ICO\Repository\ShareKeyRepository;
 use ICO\Service\AlbumService;
@@ -450,6 +451,7 @@ class TreeControllerTest extends TestCase
             $this->createMock(AlbumIdentifierRepository::class),
             $this->createMock(ShareKeyRepository::class),
             $view,
+            $this->createMock(InfoPageRepository::class),
         );
     }
 
@@ -476,6 +478,7 @@ class TreeControllerTest extends TestCase
             $albumIdentRepo ?? $this->createMock(AlbumIdentifierRepository::class),
             $shareKeyRepo   ?? $this->createMock(ShareKeyRepository::class),
             $view,
+            $this->createMock(InfoPageRepository::class),
         );
     }
 

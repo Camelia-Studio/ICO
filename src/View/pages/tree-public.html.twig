@@ -35,8 +35,26 @@
                     <textarea id="description" name="description" rows="4" class="form-textarea"></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="more_info_url">Lien "En savoir plus" (optionnel) :</label>
-                    <input type="url" id="more_info_url" name="more_info_url" placeholder="https://...">
+                    <label>Lien "En savoir plus" (optionnel) :</label>
+                    <div class="link-type-toggle">
+                        <label><input type="radio" name="create_link_type" value="external" checked onchange="toggleLinkType('create')"> Lien externe</label>
+                        {% if info_pages is not empty %}
+                        <label><input type="radio" name="create_link_type" value="page" onchange="toggleLinkType('create')"> Page du site</label>
+                        {% endif %}
+                    </div>
+                    <div id="create_link_external">
+                        <input type="url" id="more_info_url" name="more_info_url" placeholder="https://...">
+                    </div>
+                    {% if info_pages is not empty %}
+                    <div id="create_link_page" style="display:none">
+                        <select id="create_page_select" name="more_info_url" class="form-select">
+                            <option value="">— Choisir une page —</option>
+                            {% for p in info_pages %}
+                            <option value="page.php?slug={{ p.slug }}">{{ p.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endif %}
                 </div>
                 <div class="form-group">
                     <label class="toggle-label">
@@ -76,8 +94,26 @@
                     </label>
                 </div>
                 <div class="form-group" id="edit_more_info_url_field">
-                    <label for="edit_more_info_url">Lien "En savoir plus" (optionnel) :</label>
-                    <input type="url" id="edit_more_info_url" name="more_info_url" placeholder="https://...">
+                    <label>Lien "En savoir plus" (optionnel) :</label>
+                    <div class="link-type-toggle">
+                        <label><input type="radio" name="edit_link_type" id="edit_link_type_external" value="external" checked onchange="toggleLinkType('edit')"> Lien externe</label>
+                        {% if info_pages is not empty %}
+                        <label><input type="radio" name="edit_link_type" id="edit_link_type_page" value="page" onchange="toggleLinkType('edit')"> Page du site</label>
+                        {% endif %}
+                    </div>
+                    <div id="edit_link_external">
+                        <input type="url" id="edit_more_info_url" name="more_info_url" placeholder="https://...">
+                    </div>
+                    {% if info_pages is not empty %}
+                    <div id="edit_link_page" style="display:none">
+                        <select id="edit_page_select" name="more_info_url" class="form-select">
+                            <option value="">— Choisir une page —</option>
+                            {% for p in info_pages %}
+                            <option value="page.php?slug={{ p.slug }}">{{ p.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endif %}
                 </div>
                 <div class="form-actions">
                     <button type="button" onclick="closeModal()" class="action-button action-button-secondary">Annuler</button>
