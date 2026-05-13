@@ -37,12 +37,12 @@ class ViewRenderer
 
         $this->twig->addFilter(new TwigFilter(
             'log_action_class',
-            static fn(string $type): string => LogController::getActionClass($type),
+            static fn (string $type): string => LogController::getActionClass($type),
         ));
 
         $this->twig->addFilter(new TwigFilter(
             'format_date',
-            static fn(string $date, string $fmt = 'd/m/Y'): string => date($fmt, (int) strtotime($date)),
+            static fn (string $date, string $fmt = 'd/m/Y'): string => date($fmt, (int) strtotime($date)),
         ));
 
         $this->twig->addFunction(new TwigFunction(
