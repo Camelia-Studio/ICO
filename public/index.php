@@ -53,6 +53,10 @@ $container = Container::build($projectRoot, $config);
 
 $view = $container->get(ViewRenderer::class);
 $view->addGlobal('version', $config->getVersion());
+$view->addGlobal(
+    'favicon_file',
+    file_exists($projectRoot . '/favicon-custom.png') ? 'favicon-custom.png' : 'favicon.png',
+);
 
 try {
     $socialLinks = $container->get(SocialLinkRepository::class)->findActive();

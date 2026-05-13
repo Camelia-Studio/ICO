@@ -81,6 +81,7 @@ class ControllerTest extends TestCase
             $authMock,
             $logMock,
             $tmpFile,
+            sys_get_temp_dir(),
             $viewMock,
         );
 
@@ -106,6 +107,7 @@ class ControllerTest extends TestCase
             $authMock,
             $logMock,
             $tmpFile,
+            sys_get_temp_dir(),
             $viewMock,
         );
 
@@ -242,7 +244,7 @@ class ControllerTest extends TestCase
         $authMock->method('isLoggedIn')->willReturn(false);
         $viewMock->expects($this->never())->method('render');
 
-        $controller = new SettingsController($authMock, $logMock, $tmpFile, $viewMock);
+        $controller = new SettingsController($authMock, $logMock, $tmpFile, sys_get_temp_dir(), $viewMock);
 
         $this->expectException(TerminateException::class);
         $controller->index(new Request('GET', '/personnalisation.php'));
@@ -268,7 +270,7 @@ class ControllerTest extends TestCase
         $logMock->expects($this->once())->method('log');
         $viewMock->expects($this->never())->method('render');
 
-        $controller = new SettingsController($authMock, $logMock, $tmpFile, $viewMock);
+        $controller = new SettingsController($authMock, $logMock, $tmpFile, sys_get_temp_dir(), $viewMock);
         $req = new Request('POST', '/personnalisation.php', [], [
             'site_title'       => 'New Title',
             'site_description' => 'New Desc',
@@ -302,7 +304,7 @@ class ControllerTest extends TestCase
             ->with('pages/settings', $this->callback(fn (array $data): bool => $data['success_message'] === 'Sauvegardé'
                 && $data['error_message'] === 'Erreur test'));
 
-        $controller = new SettingsController($authMock, $logMock, $tmpFile, $viewMock);
+        $controller = new SettingsController($authMock, $logMock, $tmpFile, sys_get_temp_dir(), $viewMock);
         $controller->index(new Request('GET', '/personnalisation.php'));
 
         unlink($tmpFile);
@@ -322,7 +324,7 @@ class ControllerTest extends TestCase
         $viewMock->expects($this->once())->method('render')
             ->with('pages/settings', $this->callback(fn (array $data): bool => $data['site_title'] === 'ICO'));
 
-        $controller = new SettingsController($authMock, $logMock, $missingFile, $viewMock);
+        $controller = new SettingsController($authMock, $logMock, $missingFile, sys_get_temp_dir(), $viewMock);
         $controller->index(new Request('GET', '/personnalisation.php'));
     }
 

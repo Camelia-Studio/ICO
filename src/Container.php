@@ -219,6 +219,7 @@ final class Container
             ->addArgument(new Reference(AuthService::class))
             ->addArgument(new Reference(LogRepository::class))
             ->addArgument('%config_file%')
+            ->addArgument('%project_root%')
             ->addArgument(new Reference(ViewRenderer::class));
 
         $container->register(ShareKeyController::class)

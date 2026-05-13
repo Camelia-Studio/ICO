@@ -21,10 +21,13 @@ use ICO\View\ViewRenderer;
  */
 class SettingsController
 {
+    private const int MAX_FAVICON_SIZE = 1_048_576; // 1 Mo
+
     public function __construct(
         private readonly AuthService   $authService,
         private readonly LogRepository $logRepo,
         private readonly string        $configFile,
+        private readonly string        $projectRoot,
         private readonly ViewRenderer  $view,
     ) {
     }
@@ -98,6 +101,11 @@ class SettingsController
             return ['', 'Le titre du site est requis.'];
         }
 
+        $faviconError = $this->handleFaviconUpload();
+        if ($faviconError !== '') {
+            return ['', $faviconError];
+        }
+
         $configContent = $siteTitle . "\n" . $siteDescription . "\n" . $projectPath;
 
         if (file_put_contents($this->configFile, $configContent) === false) {
@@ -114,6 +122,49 @@ class SettingsController
         }
 
         return ['Configuration mise à jour avec succès.', ''];
+    }
+
+    /**
+     * Traite l'upload du favicon si un fichier a été fourni.
+     * Ne fait rien si aucun fichier n'est envoyé.
+     * Retourne une chaîne d'erreur, ou '' en cas de succès / absence de fichier.
+     */
+    private function handleFaviconUpload(): string
+    {
+        $file = $_FILES['favicon'] ?? null;
+
+        if ($file === null || $file['error'] === UPLOAD_ERR_NO_FILE) {
+            return '';
+        }
+
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            return 'Erreur lors du téléversement du favicon.';
+        }
+
+        if ($file['size'] > self::MAX_FAVICON_SIZE) {
+            return 'Le favicon ne peut pas dépasser 1 Mo.';
+        }
+
+        $imageInfo = @getimagesize((string) $file['tmp_name']);
+        if ($imageInfo === false || $imageInfo[2] !== IMAGETYPE_PNG) {
+            return 'Le favicon doit être une image PNG.';
+        }
+
+        $dest = $this->projectRoot . '/favicon-custom.png';
+        if (!$this->moveUploadedFile((string) $file['tmp_name'], $dest)) {
+            return 'Impossible de sauvegarder le favicon.';
+        }
+
+        return '';
+    }
+
+    /**
+     * Déplace le fichier uploadé vers sa destination.
+     * Séparé pour permettre les tests (surcharge possible).
+     */
+    protected function moveUploadedFile(string $tmp, string $dest): bool
+    {
+        return move_uploaded_file($tmp, $dest);
     }
 
     // -------------------------------------------------------------------------
