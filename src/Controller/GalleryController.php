@@ -71,6 +71,7 @@ class GalleryController
         }
 
         $rssUrl = $this->pathService->getBaseUrl() . '/rss.php?path=' . urlencode($rawPath);
+        $zipUrl = $this->pathService->getBaseUrl() . '/zip.php?path=' . urlencode($rawPath);
 
         $this->view->render('pages/gallery-public', [
             'album_info'   => $albumInfo,
@@ -80,6 +81,7 @@ class GalleryController
             'breadcrumbs'  => $this->buildBreadcrumbs($currentPath),
             'site_title'   => $this->config->getSiteTitle(),
             'rss_url'      => $rssUrl,
+            'zip_url'      => $zipUrl,
         ]);
     }
 

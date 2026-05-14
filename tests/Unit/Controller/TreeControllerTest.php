@@ -392,6 +392,88 @@ class TreeControllerTest extends TestCase
     }
 
     // =========================================================================
+    // zip_download — persisté dans infos.txt via edit_folder
+    // =========================================================================
+
+    public function testHandlePublicPostEditFolderPersistsZipDownloadEnabled(): void
+    {
+        $albumPath = $this->albumsRoot . '/zip-album';
+        mkdir($albumPath, 0o775, true);
+        file_put_contents($albumPath . '/infos.txt', "Titre\nDesc\n18-\n\n0");
+
+        $authMock = $this->createMock(AuthService::class);
+        $authMock->method('isLoggedIn')->willReturn(true);
+
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST['action']           = 'edit_folder';
+        $_POST['path']             = 'liste_albums/zip-album';
+        $_POST['new_name']         = 'Titre';
+        $_POST['description']      = 'Desc';
+        $_POST['more_info_url']    = '';
+        $_POST['zip_download']     = '1';
+
+        try {
+            $this->makeController($authMock, $this->createMock(ViewRenderer::class))->handlePublic();
+        } catch (TerminateException) {
+        }
+
+        $lines = explode("\n", file_get_contents($albumPath . '/infos.txt'));
+        $this->assertSame('1', $lines[4]);
+    }
+
+    public function testHandlePublicPostEditFolderPersistsZipDownloadDisabled(): void
+    {
+        $albumPath = $this->albumsRoot . '/zip-album-off';
+        mkdir($albumPath, 0o775, true);
+        file_put_contents($albumPath . '/infos.txt', "Titre\nDesc\n18-\n\n1");
+
+        $authMock = $this->createMock(AuthService::class);
+        $authMock->method('isLoggedIn')->willReturn(true);
+
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST['action']           = 'edit_folder';
+        $_POST['path']             = 'liste_albums/zip-album-off';
+        $_POST['new_name']         = 'Titre';
+        $_POST['description']      = 'Desc';
+        $_POST['more_info_url']    = '';
+        // zip_download absent du POST → désactivé
+
+        try {
+            $this->makeController($authMock, $this->createMock(ViewRenderer::class))->handlePublic();
+        } catch (TerminateException) {
+        }
+
+        $lines = explode("\n", file_get_contents($albumPath . '/infos.txt'));
+        $this->assertSame('0', $lines[4]);
+    }
+
+    public function testHandlePublicPostCreateFolderDefaultsZipDownloadToZero(): void
+    {
+        $authMock = $this->createMock(AuthService::class);
+        $authMock->method('isLoggedIn')->willReturn(true);
+
+        $fileSvc = $this->createMock(FileService::class);
+        $fileSvc->method('sanitizeFilename')->willReturn('new-album');
+
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST['action']           = 'create_folder';
+        $_POST['path']             = 'liste_albums';
+        $_POST['new_name']         = 'new-album';
+        $_POST['description']      = '';
+        $_POST['more_info_url']    = '';
+
+        try {
+            $this->makeController($authMock, $this->createMock(ViewRenderer::class), null, $fileSvc)->handlePublic();
+        } catch (TerminateException) {
+        }
+
+        $newPath = $this->albumsRoot . '/new-album/infos.txt';
+        $this->assertFileExists($newPath);
+        $lines = explode("\n", file_get_contents($newPath));
+        $this->assertSame('0', $lines[4]);
+    }
+
+    // =========================================================================
     // handlePrivate — POST generate_link
 
     public function testHandlePrivatePostGenerateLink(): void

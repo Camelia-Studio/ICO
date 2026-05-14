@@ -21,6 +21,7 @@ use ICO\Controller\SocialLinkController;
 use ICO\Controller\TreeController;
 use ICO\Controller\TreeImageController;
 use ICO\Controller\UserController;
+use ICO\Controller\ZipController;
 use ICO\Database\Database;
 use ICO\Repository\AdminRepository;
 use ICO\Repository\AlbumIdentifierRepository;
@@ -276,6 +277,11 @@ final class Container
         $container->register(FeedController::class)
             ->setPublic(true)
             ->addArgument(new Reference(Config::class))
+            ->addArgument(new Reference(AlbumService::class))
+            ->addArgument(new Reference(PathService::class));
+
+        $container->register(ZipController::class)
+            ->setPublic(true)
             ->addArgument(new Reference(AlbumService::class))
             ->addArgument(new Reference(PathService::class));
 

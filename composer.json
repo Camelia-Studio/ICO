@@ -11,6 +11,7 @@
         "php": "^8.3",
         "symfony/dependency-injection": "7.4.*",
         "ext-pdo": "*",
+        "ext-zip": "*",
         "twig/twig": "^3.11"
     },
     "require-dev": {

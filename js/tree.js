@@ -3,16 +3,27 @@ function createSubfolder(path) {
     document.getElementById('createFolderModal').style.display = 'block';
 }
 
-function editFolder(path, title, description, matureContent, moreInfoUrl, hasImages) {
+function editFolder(path, title, description, matureContent, moreInfoUrl, hasImages, zipDownload = false) {
     document.getElementById('editPath').value = path;
     document.getElementById('edit_name').value = decodeURIComponent(title);
     document.getElementById('edit_description').value = decodeURIComponent(description);
     document.getElementById('edit_mature_content').checked = matureContent;
 
-    const field = document.getElementById('edit_more_info_url_field');
     const show = hasImages === true || hasImages === 'true';
+
+    const field = document.getElementById('edit_more_info_url_field');
     if (field) {
         field.style.display = show ? 'block' : 'none';
+    }
+
+    const zipField = document.getElementById('edit_zip_download_field');
+    if (zipField) {
+        zipField.style.display = show ? 'block' : 'none';
+    }
+
+    const zipCheck = document.getElementById('edit_zip_download');
+    if (zipCheck) {
+        zipCheck.checked = zipDownload === true || zipDownload === 'true';
     }
 
     const decoded = decodeURIComponent(moreInfoUrl);

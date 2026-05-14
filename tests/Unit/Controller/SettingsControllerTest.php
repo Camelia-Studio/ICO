@@ -166,7 +166,7 @@ class SettingsControllerTest extends TestCase
         $view = $this->createMock(ViewRenderer::class);
         $view->expects($this->once())->method('render')
             ->with('pages/settings', $this->callback(
-                fn (array $d): bool => str_contains($d['error_message'], 'PNG')
+                fn (array $d): bool => str_contains((string) $d['error_message'], 'PNG')
             ));
 
         $controller = $this->makeController(auth: $auth, view: $view);
@@ -199,7 +199,7 @@ class SettingsControllerTest extends TestCase
         $view = $this->createMock(ViewRenderer::class);
         $view->expects($this->once())->method('render')
             ->with('pages/settings', $this->callback(
-                fn (array $d): bool => str_contains($d['error_message'], '1 Mo')
+                fn (array $d): bool => str_contains((string) $d['error_message'], '1 Mo')
             ));
 
         $controller = $this->makeController(auth: $auth, view: $view);
@@ -253,9 +253,7 @@ class SettingsControllerTest extends TestCase
             ->getMock();
 
         $controller->method('moveUploadedFile')
-            ->willReturnCallback(function (string $tmp, string $dest): bool {
-                return copy($tmp, $dest);
-            });
+            ->willReturnCallback(fn (string $tmp, string $dest): bool => copy($tmp, $dest));
 
         $this->expectException(TerminateException::class);
 

@@ -18,6 +18,7 @@ use ICO\Controller\SocialLinkController;
 use ICO\Controller\TreeController;
 use ICO\Controller\TreeImageController;
 use ICO\Controller\UserController;
+use ICO\Controller\ZipController;
 use ICO\Http\Router;
 
 /**
@@ -38,6 +39,7 @@ return static function (Router $router): void {
     $router->get('/partage.php',            [ShareController::class,    'show']);
     $router->get('/page.php',               [PublicPageController::class, 'show']);
     $router->get('/rss.php',                [FeedController::class,     'album']);
+    $router->get('/zip.php',                [ZipController::class,      'download']);
 
     // --- Admin — arbre -----------------------------------------------------------
     $router->get('/arbre.php',              [TreeController::class,      'handlePublic']);

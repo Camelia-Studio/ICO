@@ -30,7 +30,14 @@ class AlbumService
     /**
      * Lit le fichier infos.txt d'un album et retourne ses métadonnées.
      *
-     * @return array{title: string, description: string, mature_content: bool, more_info_url: string}
+     * Format infos.txt (une valeur par ligne) :
+     *   0 : titre
+     *   1 : description
+     *   2 : 18+ | 18-
+     *   3 : more_info_url
+     *   4 : zip_download (1 = activé, 0 = désactivé)
+     *
+     * @return array{title: string, description: string, mature_content: bool, more_info_url: string, zip_download: bool}
      */
     public function getAlbumInfo(string $albumPath): array
     {
@@ -39,6 +46,7 @@ class AlbumService
             'description'    => '',
             'mature_content' => false,
             'more_info_url'  => '',
+            'zip_download'   => false,
         ];
 
         $infoFile = rtrim($albumPath, '/') . '/infos.txt';
@@ -59,6 +67,10 @@ class AlbumService
 
             if (isset($lines[3])) {
                 $info['more_info_url'] = trim($lines[3]);
+            }
+
+            if (isset($lines[4])) {
+                $info['zip_download'] = trim($lines[4]) === '1';
             }
         }
 

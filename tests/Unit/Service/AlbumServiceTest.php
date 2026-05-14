@@ -73,6 +73,49 @@ class AlbumServiceTest extends TestCase
         $this->assertSame('https://example.com', $info['more_info_url']);
     }
 
+    public function testGetAlbumInfoZipDownloadDefaultsFalse(): void
+    {
+        $albumPath = $this->albumsRoot . '/zip-test';
+        mkdir($albumPath, 0o775, true);
+        file_put_contents($albumPath . '/infos.txt', "Titre\nDesc\n18-\n");
+
+        $info = $this->service->getAlbumInfo($albumPath);
+
+        $this->assertFalse($info['zip_download']);
+    }
+
+    public function testGetAlbumInfoZipDownloadTrueWhenSet(): void
+    {
+        $albumPath = $this->albumsRoot . '/zip-enabled';
+        mkdir($albumPath, 0o775, true);
+        file_put_contents($albumPath . '/infos.txt', "Titre\nDesc\n18-\nhttps://example.com\n1");
+
+        $info = $this->service->getAlbumInfo($albumPath);
+
+        $this->assertTrue($info['zip_download']);
+    }
+
+    public function testGetAlbumInfoZipDownloadFalseWhenZero(): void
+    {
+        $albumPath = $this->albumsRoot . '/zip-disabled';
+        mkdir($albumPath, 0o775, true);
+        file_put_contents($albumPath . '/infos.txt', "Titre\nDesc\n18-\n\n0");
+
+        $info = $this->service->getAlbumInfo($albumPath);
+
+        $this->assertFalse($info['zip_download']);
+    }
+
+    public function testGetAlbumInfoZipDownloadFalseWithoutInfosFile(): void
+    {
+        $albumPath = $this->albumsRoot . '/no-infos';
+        mkdir($albumPath, 0o775, true);
+
+        $info = $this->service->getAlbumInfo($albumPath);
+
+        $this->assertFalse($info['zip_download']);
+    }
+
     public function testGetAlbumInfoMatureContentFalseWhenNotExactly18Plus(): void
     {
         $albumPath = $this->albumsRoot . '/album2';
