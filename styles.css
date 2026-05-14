@@ -605,7 +605,7 @@ body {
 
 .share-image img {
     max-width: 100%;
-    max-height: 90vh;
+    max-height: calc(90vh - 8rem);
     display: block;
     object-fit: contain;
 }
