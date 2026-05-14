@@ -26,6 +26,9 @@ class GalleryController
     /** Extensions d'images autorisées */
     private const array EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif'];
 
+    /** Extensions vidéo autorisées */
+    private const array VIDEO_EXTENSIONS = ['mp4', 'webm'];
+
     private readonly string $albumsRoot;
 
     public function __construct(
@@ -76,7 +79,7 @@ class GalleryController
         $this->view->render('pages/gallery-public', [
             'album_info'   => $albumInfo,
             'images'       => $images,
-            'header_image' => $images === [] ? null : $images[0]['url'],
+            'header_image' => $this->firstImageUrl($images),
             'parent_path'  => $this->pathService->toRelative($parentAbsolute),
             'breadcrumbs'  => $this->buildBreadcrumbs($currentPath),
             'site_title'   => $this->config->getSiteTitle(),
@@ -122,7 +125,7 @@ class GalleryController
             'error_message' => null,
             'album_data'    => $albumData,
             'images'        => $images,
-            'header_image'  => $images === [] ? null : $images[0]['url'],
+            'header_image'  => $this->firstImageUrl($images),
             'share_key'     => $shareKey,
             'site_title'    => $this->config->getSiteTitle(),
         ]);
@@ -133,9 +136,9 @@ class GalleryController
     // -------------------------------------------------------------------------
 
     /**
-     * Construit la liste d'images publiques avec tri top-first puis par date.
+     * Construit la liste de médias publics (images + vidéos) avec tri top-first.
      *
-     * @return list<array{url: string, is_top: bool, aspect_ratio: float}>
+     * @return list<array{url: string, is_top: bool, aspect_ratio: float, type: string, mime: string|null}>
      */
     private function buildPublicImageList(string $path): array
     {
@@ -146,20 +149,29 @@ class GalleryController
                 continue;
             }
 
-            $ext = strtolower($file->getExtension());
-            if (!in_array($ext, self::EXTENSIONS, true)) {
-                continue;
+            $ext   = strtolower($file->getExtension());
+            $isTop = str_contains($file->getFilename(), '--top--');
+
+            if (in_array($ext, self::EXTENSIONS, true)) {
+                $url  = $this->pathService->toUrl($file->getPathname());
+                $size = $this->fileService->getSecureImageSize($file->getPathname());
+
+                $items[] = [
+                    'url'          => $url,
+                    'is_top'       => $isTop,
+                    'aspect_ratio' => $size ? $size['width'] / $size['height'] : 1.0,
+                    'type'         => 'image',
+                    'mime'         => null,
+                ];
+            } elseif (in_array($ext, self::VIDEO_EXTENSIONS, true)) {
+                $items[] = [
+                    'url'          => $this->pathService->toUrl($file->getPathname()),
+                    'is_top'       => $isTop,
+                    'aspect_ratio' => 16 / 9,
+                    'type'         => 'video',
+                    'mime'         => $this->videoMime($ext),
+                ];
             }
-
-            $url   = $this->pathService->toUrl($file->getPathname());
-            $isTop = str_contains(basename($url), '--top--');
-            $size  = $this->fileService->getSecureImageSize($file->getPathname());
-
-            $items[] = [
-                'url'          => $url,
-                'is_top'       => $isTop,
-                'aspect_ratio' => $size ? $size['width'] / $size['height'] : 1.0,
-            ];
         }
 
         usort($items, static function (array $a, array $b): int {
@@ -178,9 +190,9 @@ class GalleryController
     }
 
     /**
-     * Construit la liste d'images privées (proxy images.php + clé).
+     * Construit la liste de médias privés (proxy images.php / videos.php + clé).
      *
-     * @return list<array{url: string, is_top: bool, aspect_ratio: float}>
+     * @return list<array{url: string, share_url: string|null, is_top: bool, aspect_ratio: float, type: string, mime: string|null}>
      */
     private function buildPrivateImageList(string $path, string $shareKey): array
     {
@@ -188,15 +200,11 @@ class GalleryController
             return [];
         }
 
-        $items = [];
+        $items   = [];
+        $baseUrl = $this->pathService->getBaseUrl();
 
         foreach (new DirectoryIterator($path) as $file) {
             if ($file->isDot() || !$file->isFile()) {
-                continue;
-            }
-
-            $ext = strtolower($file->getExtension());
-            if (!in_array($ext, self::EXTENSIONS, true)) {
                 continue;
             }
 
@@ -204,21 +212,38 @@ class GalleryController
                 continue;
             }
 
-            $relativePath = $this->pathService->toRelative($file->getPathname());
-            // L'URL proxy encode le path une seule fois
-            $baseUrl  = $this->pathService->getBaseUrl();
-            $proxyUrl = $baseUrl . '/images.php?path=' . rawurlencode($relativePath) . '&key=' . rawurlencode($shareKey);
-            // L'URL de partage encode l'URL proxy une seule fois (rawurlencode pour ne pas ré-encoder les %)
-            $shareUrl = $baseUrl . '/partage.php?image=' . rawurlencode($proxyUrl);
+            $ext   = strtolower($file->getExtension());
             $isTop = str_contains($file->getFilename(), '--top--');
-            $size  = $this->fileService->getSecureImageSize($file->getPathname());
 
-            $items[] = [
-                'url'          => $proxyUrl,
-                'share_url'    => $shareUrl,
-                'is_top'       => $isTop,
-                'aspect_ratio' => $size ? $size['width'] / $size['height'] : 1.0,
-            ];
+            if (in_array($ext, self::EXTENSIONS, true)) {
+                $relativePath = $this->pathService->toRelative($file->getPathname());
+                // L'URL proxy encode le path une seule fois
+                $proxyUrl = $baseUrl . '/images.php?path=' . rawurlencode($relativePath) . '&key=' . rawurlencode($shareKey);
+                // L'URL de partage encode l'URL proxy une seule fois (rawurlencode pour ne pas ré-encoder les %)
+                $shareUrl = $baseUrl . '/partage.php?image=' . rawurlencode($proxyUrl);
+                $size     = $this->fileService->getSecureImageSize($file->getPathname());
+
+                $items[] = [
+                    'url'          => $proxyUrl,
+                    'share_url'    => $shareUrl,
+                    'is_top'       => $isTop,
+                    'aspect_ratio' => $size ? $size['width'] / $size['height'] : 1.0,
+                    'type'         => 'image',
+                    'mime'         => null,
+                ];
+            } elseif (in_array($ext, self::VIDEO_EXTENSIONS, true)) {
+                $relativePath = $this->pathService->toRelative($file->getPathname());
+                $proxyUrl     = $baseUrl . '/videos.php?path=' . rawurlencode($relativePath) . '&key=' . rawurlencode($shareKey);
+
+                $items[] = [
+                    'url'          => $proxyUrl,
+                    'share_url'    => null,
+                    'is_top'       => $isTop,
+                    'aspect_ratio' => 16 / 9,
+                    'type'         => 'video',
+                    'mime'         => $this->videoMime($ext),
+                ];
+            }
         }
 
         usort($items, static function (array $a, array $b): int {
@@ -234,6 +259,30 @@ class GalleryController
         });
 
         return $items;
+    }
+
+    /**
+     * Retourne l'URL de la première image (hors vidéo) pour l'en-tête de galerie.
+     *
+     * @param list<array{url: string, type: string}> $items
+     */
+    private function firstImageUrl(array $items): ?string
+    {
+        foreach ($items as $item) {
+            if ($item['type'] === 'image') {
+                return $item['url'];
+            }
+        }
+
+        return null;
+    }
+
+    private function videoMime(string $ext): string
+    {
+        return match ($ext) {
+            'webm'  => 'video/webm',
+            default => 'video/mp4',
+        };
     }
 
     /**

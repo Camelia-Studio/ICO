@@ -297,6 +297,39 @@ class AlbumServiceTest extends TestCase
         $this->assertFalse($this->service->hasImages($album));
     }
 
+    public function testHasImagesReturnsTrueForVideoOnlyAlbum(): void
+    {
+        $album = $this->albumsRoot . '/videoonly';
+        mkdir($album, 0o775, true);
+        file_put_contents($album . '/clip.mp4', '');
+
+        $this->assertTrue($this->service->hasImages($album));
+    }
+
+    public function testGetLatestImagesDoesNotIncludeVideos(): void
+    {
+        $album = $this->albumsRoot . '/mixed-media';
+        mkdir($album, 0o775, true);
+        file_put_contents($album . '/photo.jpg', '');
+        file_put_contents($album . '/clip.mp4', '');
+
+        $images = $this->service->getLatestImages($album);
+
+        $this->assertCount(1, $images);
+        $this->assertStringEndsWith('photo.jpg', $images[0]);
+    }
+
+    public function testCountImagesCountsVideos(): void
+    {
+        $album = $this->albumsRoot . '/count-media';
+        mkdir($album, 0o775, true);
+        file_put_contents($album . '/photo.jpg', '');
+        file_put_contents($album . '/clip.mp4', '');
+        file_put_contents($album . '/readme.txt', '');
+
+        $this->assertSame(2, $this->service->countImages($album));
+    }
+
     // -------------------------------------------------------------------------
     // isSecurePath
     // -------------------------------------------------------------------------

@@ -14,6 +14,9 @@ final readonly class Config
     /** Extensions d'images autorisées */
     private const array EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif'];
 
+    /** Extensions vidéo autorisées */
+    private const array VIDEO_EXTENSIONS = ['mp4', 'webm'];
+
     /** Durée de vie de session en secondes (24h) */
     private const int SESSION_LIFETIME = 86400;
 
@@ -93,6 +96,16 @@ final readonly class Config
     public function getAllowedExtensions(): array
     {
         return self::EXTENSIONS;
+    }
+
+    /**
+     * Extensions vidéo autorisées.
+     *
+     * @return string[]
+     */
+    public function getVideoExtensions(): array
+    {
+        return self::VIDEO_EXTENSIONS;
     }
 
     /**

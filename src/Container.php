@@ -21,6 +21,7 @@ use ICO\Controller\SocialLinkController;
 use ICO\Controller\TreeController;
 use ICO\Controller\TreeImageController;
 use ICO\Controller\UserController;
+use ICO\Controller\VideoController;
 use ICO\Controller\ZipController;
 use ICO\Database\Database;
 use ICO\Repository\AdminRepository;
@@ -76,6 +77,7 @@ final class Container
         $container->setParameter('private_root', $projectRoot . '/liste_albums_prives');
         $container->setParameter('carousel_root', $projectRoot . '/img_carrousel');
         $container->setParameter('allowed_exts', $config->getAllowedExtensions());
+        $container->setParameter('allowed_video_exts', $config->getVideoExtensions());
         $container->setParameter('db_path', $projectRoot . '/database.sqlite');
         $container->setParameter('views_dir', $projectRoot . '/src/View');
         $container->setParameter('current_version', $config->getVersion());
@@ -130,7 +132,8 @@ final class Container
             ->addArgument('%albums_root%')
             ->addArgument('%private_root%')
             ->addArgument('%carousel_root%')
-            ->addArgument('%allowed_exts%');
+            ->addArgument('%allowed_exts%')
+            ->addArgument('%allowed_video_exts%');
 
         $container->register(FileService::class);
 
@@ -210,6 +213,12 @@ final class Container
             ->addArgument(new Reference(ViewRenderer::class));
 
         $container->register(ImageController::class)
+            ->setPublic(true)
+            ->addArgument(new Reference(AlbumService::class))
+            ->addArgument(new Reference(ShareKeyRepository::class))
+            ->addArgument('%project_root%');
+
+        $container->register(VideoController::class)
             ->setPublic(true)
             ->addArgument(new Reference(AlbumService::class))
             ->addArgument(new Reference(ShareKeyRepository::class))

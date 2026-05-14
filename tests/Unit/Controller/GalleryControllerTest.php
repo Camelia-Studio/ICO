@@ -214,6 +214,112 @@ class GalleryControllerTest extends TestCase
         $this->assertSame([], $capturedData['images']);
     }
 
+    public function testShowIncludesVideoItems(): void
+    {
+        file_put_contents($this->albumsRoot . '/album1/photo.jpg', '');
+        file_put_contents($this->albumsRoot . '/album1/clip.mp4', '');
+
+        $albumService  = new AlbumService($this->albumsRoot, $this->privateRoot);
+        $fileService   = $this->createMock(FileService::class);
+        $fileService->method('getSecureImageSize')->willReturn(['width' => 100, 'height' => 100]);
+        $shareKeyRepo  = $this->createMock(ShareKeyRepository::class);
+
+        $capturedData = null;
+        $view = $this->createMock(ViewRenderer::class);
+        $view->method('render')
+            ->willReturnCallback(function (string $tpl, array $data) use (&$capturedData): void {
+                $capturedData = $data;
+            });
+
+        $request    = new Request('GET', '/galeries.php', ['path' => $this->albumsRoot . '/album1']);
+        $controller = $this->makeController($albumService, $fileService, $shareKeyRepo, $view);
+        $controller->show($request);
+
+        $this->assertCount(2, $capturedData['images']);
+        $types = array_column($capturedData['images'], 'type');
+        $this->assertContains('image', $types);
+        $this->assertContains('video', $types);
+    }
+
+    public function testShowHeaderImageSkipsVideos(): void
+    {
+        file_put_contents($this->albumsRoot . '/album1/clip.mp4', '');
+        file_put_contents($this->albumsRoot . '/album1/photo.jpg', '');
+
+        $albumService  = new AlbumService($this->albumsRoot, $this->privateRoot);
+        $fileService   = $this->createMock(FileService::class);
+        $fileService->method('getSecureImageSize')->willReturn(['width' => 100, 'height' => 100]);
+        $shareKeyRepo  = $this->createMock(ShareKeyRepository::class);
+
+        $capturedData = null;
+        $view = $this->createMock(ViewRenderer::class);
+        $view->method('render')
+            ->willReturnCallback(function (string $tpl, array $data) use (&$capturedData): void {
+                $capturedData = $data;
+            });
+
+        $request    = new Request('GET', '/galeries.php', ['path' => $this->albumsRoot . '/album1']);
+        $controller = $this->makeController($albumService, $fileService, $shareKeyRepo, $view);
+        $controller->show($request);
+
+        $this->assertNotNull($capturedData['header_image']);
+        $this->assertStringEndsWith('photo.jpg', $capturedData['header_image']);
+    }
+
+    public function testShowHeaderImageNullForVideoOnlyGallery(): void
+    {
+        file_put_contents($this->albumsRoot . '/album1/clip.mp4', '');
+
+        $albumService  = new AlbumService($this->albumsRoot, $this->privateRoot);
+        $fileService   = $this->createMock(FileService::class);
+        $shareKeyRepo  = $this->createMock(ShareKeyRepository::class);
+
+        $capturedData = null;
+        $view = $this->createMock(ViewRenderer::class);
+        $view->method('render')
+            ->willReturnCallback(function (string $tpl, array $data) use (&$capturedData): void {
+                $capturedData = $data;
+            });
+
+        $request    = new Request('GET', '/galeries.php', ['path' => $this->albumsRoot . '/album1']);
+        $controller = $this->makeController($albumService, $fileService, $shareKeyRepo, $view);
+        $controller->show($request);
+
+        $this->assertNull($capturedData['header_image']);
+    }
+
+    public function testShowPrivateIncludesVideoWithProxyUrl(): void
+    {
+        file_put_contents($this->privateRoot . '/secret/clip.mp4', '');
+
+        $albumService  = new AlbumService($this->albumsRoot, $this->privateRoot);
+        $fileService   = $this->createMock(FileService::class);
+
+        $shareKeyRepo = $this->createMock(ShareKeyRepository::class);
+        $shareKeyRepo->method('findValidByKey')->willReturn([
+            'path'       => $this->privateRoot . '/secret',
+            'identifier' => 'abc123',
+        ]);
+
+        $capturedData = null;
+        $view = $this->createMock(ViewRenderer::class);
+        $view->method('render')
+            ->willReturnCallback(function (string $tpl, array $data) use (&$capturedData): void {
+                $capturedData = $data;
+            });
+
+        $request    = new Request('GET', '/galeries-privees.php', ['key' => 'valid-key']);
+        $controller = $this->makeController($albumService, $fileService, $shareKeyRepo, $view);
+        $controller->showPrivate($request);
+
+        $this->assertNull($capturedData['error_title']);
+        $this->assertCount(1, $capturedData['images']);
+        $video = $capturedData['images'][0];
+        $this->assertSame('video', $video['type']);
+        $this->assertStringContainsString('/videos.php', $video['url']);
+        $this->assertNull($video['share_url']);
+    }
+
     public function testShowRedirectsOnInvalidPath(): void
     {
         $albumService  = new AlbumService($this->albumsRoot, $this->privateRoot);

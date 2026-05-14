@@ -14,12 +14,16 @@ use SplFileInfo;
  */
 class AlbumService
 {
-    /** @param string[] $allowedExtensions */
+    /**
+     * @param string[] $allowedExtensions
+     * @param string[] $videoExtensions
+     */
     public function __construct(
         private readonly string $albumsRoot,
         private readonly string $privateRoot,
         private readonly string $carouselRoot = '',
         private readonly array  $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'],
+        private readonly array  $videoExtensions = ['mp4', 'webm'],
     ) {
     }
 
@@ -175,7 +179,7 @@ class AlbumService
     }
 
     /**
-     * Retourne le nombre d'images autorisées dans le dossier (non récursif).
+     * Retourne le nombre de médias autorisés (images + vidéos) dans le dossier (non récursif).
      */
     public function countImages(string $path): int
     {
@@ -189,7 +193,7 @@ class AlbumService
                 continue;
             }
 
-            if ($this->isAllowedExtension($item->getExtension())) {
+            if ($this->isAnyMediaExtension($item->getExtension())) {
                 ++$count;
             }
         }
@@ -198,7 +202,7 @@ class AlbumService
     }
 
     /**
-     * Retourne true si le dossier contient au moins une image autorisée.
+     * Retourne true si le dossier contient au moins une image ou une vidéo autorisée.
      */
     public function hasImages(string $path): bool
     {
@@ -211,7 +215,7 @@ class AlbumService
                 continue;
             }
 
-            if ($this->isAllowedExtension($item->getExtension())) {
+            if ($this->isAnyMediaExtension($item->getExtension())) {
                 return true;
             }
         }
@@ -315,5 +319,15 @@ class AlbumService
     private function isAllowedExtension(string $extension): bool
     {
         return in_array(strtolower($extension), $this->allowedExtensions, true);
+    }
+
+    private function isVideoExtension(string $extension): bool
+    {
+        return in_array(strtolower($extension), $this->videoExtensions, true);
+    }
+
+    private function isAnyMediaExtension(string $extension): bool
+    {
+        return $this->isAllowedExtension($extension) || $this->isVideoExtension($extension);
     }
 }

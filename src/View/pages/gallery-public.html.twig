@@ -88,11 +88,17 @@
             {% set spanClass = 'gallery-item-tall' %}
         {% endif %}
         <div class="gallery-item {{ image.is_top ? 'gallery-item-top' : '' }} {{ spanClass }}">
-            <a href="partage.php?image={{ image.url|url_encode }}" target="_blank">
-                <img src="{{ image.url }}"
-                     alt="Image de la galerie"
-                     loading="lazy">
-            </a>
+            {% if image.type == 'video' %}
+                <video controls preload="none" class="gallery-video">
+                    <source src="{{ image.url }}" type="{{ image.mime }}">
+                </video>
+            {% else %}
+                <a href="partage.php?image={{ image.url|url_encode }}" target="_blank">
+                    <img src="{{ image.url }}"
+                         alt="Image de la galerie"
+                         loading="lazy">
+                </a>
+            {% endif %}
         </div>
         {% endfor %}
     </div>

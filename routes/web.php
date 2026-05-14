@@ -8,6 +8,7 @@ use ICO\Controller\FeedController;
 use ICO\Controller\GalleryController;
 use ICO\Controller\HomeController;
 use ICO\Controller\ImageController;
+use ICO\Controller\VideoController;
 use ICO\Controller\InfoPageController;
 use ICO\Controller\LogController;
 use ICO\Controller\PublicPageController;
@@ -36,6 +37,7 @@ return static function (Router $router): void {
     $router->get('/galeries.php',           [GalleryController::class,  'show']);
     $router->get('/galeries-privees.php',   [GalleryController::class,  'showPrivate']);
     $router->get('/images.php',             [ImageController::class,    'serve']);
+    $router->get('/videos.php',             [VideoController::class,    'serve']);
     $router->get('/partage.php',            [ShareController::class,    'show']);
     $router->get('/page.php',               [PublicPageController::class, 'show']);
     $router->get('/rss.php',                [FeedController::class,     'album']);
