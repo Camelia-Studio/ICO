@@ -1,0 +1,249 @@
+/* Bouton retour commun */
+.back-button {
+    position: fixed;
+    top: 2rem;
+    left: 2rem;
+    padding: 0.8rem 1.5rem;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    text-decoration: none;
+    border-radius: 2rem;
+    backdrop-filter: blur(10px);
+    z-index: 100;
+    transition: all 0.3s ease;
+}
+
+.back-button:hover {
+    background-color: rgba(0, 0, 0, 0.9);
+    transform: translateY(-2px);
+}
+
+/* Fil d'Ariane */
+.breadcrumb {
+    position: fixed;
+    top: 2rem;
+    left: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.7rem 1.4rem;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 2rem;
+    backdrop-filter: blur(10px);
+    z-index: 100;
+    max-width: calc(100vw - 4rem);
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: none;
+}
+
+.breadcrumb::-webkit-scrollbar {
+    display: none;
+}
+
+.breadcrumb-item {
+    color: rgba(255, 255, 255, 0.65);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.2s;
+}
+
+a.breadcrumb-item:hover {
+    color: white;
+}
+
+.breadcrumb-current {
+    color: white;
+    font-weight: 500;
+}
+
+.breadcrumb-separator {
+    color: rgba(255, 255, 255, 0.35);
+    font-size: 0.8rem;
+    user-select: none;
+}
+
+/* Pages d'erreur et galeries privées */
+.error-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.error-content {
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 2rem;
+    border-radius: 1rem;
+    text-align: center;
+    max-width: 500px;
+    backdrop-filter: blur(10px);
+}
+
+.error-content h1 {
+    color: #dc3545;
+    margin-bottom: 1rem;
+}
+
+.error-content p {
+    margin-bottom: 2rem;
+    color: #e0e0e0;
+    line-height: 1.6;
+}
+
+.private-gallery-badge {
+    position: fixed;
+    top: 2rem;
+    right: 2rem;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 0.8rem 1.5rem;
+    border-radius: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    backdrop-filter: blur(10px);
+    z-index: 100;
+    font-weight: 500;
+}
+
+.private-icon {
+    font-size: 1.2em;
+}
+
+@media (max-width: 768px) {
+    .private-gallery-badge {
+        top: auto;
+        bottom: 2rem;
+        right: 50%;
+        transform: translateX(50%);
+    }
+}
+
+/* Pied de page */
+.site-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.3);
+    text-align: center;
+    z-index: 100;
+    pointer-events: none;
+}
+
+.footer-text {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.8rem;
+    margin: 0;
+}
+
+.footer-link {
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    transition: color 0.3s ease;
+    pointer-events: auto;
+}
+
+.footer-link:hover {
+    color: #2196f3;
+}
+
+.footer-version {
+    margin-left: 0.5rem;
+    opacity: 0.7;
+    font-size: 0.8rem;
+}
+
+.admin-page .site-footer {
+    position: fixed;
+    bottom: 0;
+    z-index: 1000;
+}
+
+/* Bouton retour en haut */
+.scroll-top {
+    position: fixed;
+    bottom: 3rem;
+    right: 2rem;
+    width: 3rem;
+    height: 3rem;
+    background: rgba(33, 150, 243, 0.8);
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    z-index: 99;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(4px);
+}
+
+.scroll-top:hover {
+    background: rgba(33, 150, 243, 1);
+    transform: translateY(-3px);
+}
+
+@media (max-width: 768px) {
+    .scroll-top {
+        bottom: 5rem;
+        right: 1rem;
+    }
+}
+
+/* Espacement bas de page pour les grilles */
+.albums-grid,
+.admin-content {
+    margin-bottom: 3rem;
+}
+
+/* Liens sociaux dans le footer */
+.social-links {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+    margin-bottom: 0.25rem;
+    pointer-events: auto;
+}
+
+.social-link {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.8rem;
+    text-decoration: none;
+    transition: color 0.3s ease;
+    pointer-events: auto;
+}
+
+.social-link:hover {
+    color: rgba(255, 255, 255, 1);
+}
+
+.admin-page .social-links {
+    display: none;
+}
+
+@media (max-width: 480px) {
+    .back-button {
+        top: 1rem;
+        left: 1rem;
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
+    }
+
+    .breadcrumb {
+        top: 1rem;
+        left: 1rem;
+        max-width: calc(100vw - 2rem);
+        padding: 0.5rem 1rem;
+    }
+
+    .breadcrumb-item {
+        font-size: 0.82rem;
+    }
+}

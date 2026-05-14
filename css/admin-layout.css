@@ -1,0 +1,139 @@
+/* Page d'administration */
+.admin-page {
+    background-color: #121212;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem;
+}
+
+/* Page de connexion */
+.admin-login {
+    width: 90%;
+    max-width: 400px;
+    margin: auto;
+    background-color: #1e1e1e;
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+}
+
+.admin-login h1 {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+/* En-tête de l'administration */
+.admin-header {
+    width: 100%;
+    max-width: 1200px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.admin-header h1 {
+    font-size: 2rem;
+    margin: 0;
+}
+
+/* Badge pour les contenus privés */
+.private-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: #6c757d;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.9rem;
+    margin-left: 1rem;
+    font-weight: normal;
+}
+
+.private-badge::before {
+    content: "🔒";
+    font-size: 1.1em;
+}
+
+/* Badge compteur d'images dans le H1 d'un dossier */
+.image-count-total {
+    display: inline-flex;
+    align-items: center;
+    background-color: #3a3a5c;
+    color: #a0a8d0;
+    padding: 0.2rem 0.65rem;
+    border-radius: 1rem;
+    font-size: 0.85rem;
+    margin-left: 0.75rem;
+    font-weight: normal;
+    vertical-align: middle;
+}
+
+/* Badge compteur d'images dans l'arbre */
+.image-count {
+    display: inline-flex;
+    align-items: center;
+    background-color: #2a2a4a;
+    color: #8888bb;
+    padding: 0.1rem 0.5rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: normal;
+    vertical-align: middle;
+}
+
+/* Zone de contenu principale */
+.admin-content {
+    width: 100%;
+    max-width: 1200px;
+    background-color: #1e1e1e;
+    padding: 2rem;
+    border-radius: 1rem;
+    min-height: calc(100vh - 12rem);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+}
+
+/* Badge administrateur principal (dans les tableaux) */
+.admin-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 1rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    background-color: #2196f3;
+    color: white;
+    margin-left: 0.5rem;
+}
+
+.admin-badge .icon {
+    width: 12px;
+    height: 12px;
+}
+
+/* Accessibilité */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible {
+    outline: 2px solid #2196f3;
+    outline-offset: 2px;
+}
+
+@media (max-width: 768px) {
+    .admin-page {
+        padding: 1rem;
+    }
+
+    .admin-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+}

@@ -1,0 +1,142 @@
+/* Boutons liés aux clés de partage */
+.tree-button-share {
+    background-color: rgba(33, 150, 243, 0.2) !important;
+    color: #2196f3 !important;
+}
+
+.tree-button-share:hover {
+    background-color: rgba(33, 150, 243, 0.4) !important;
+}
+
+.action-button-share {
+    background-color: #2196f3 !important;
+}
+
+.action-button-share:hover {
+    background-color: #1976d2 !important;
+}
+
+.share-info {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background-color: rgba(33, 150, 243, 0.1);
+    border-radius: 0.5rem;
+    border-left: 4px solid #2196f3;
+}
+
+/* Page de gestion des clés de partage */
+.filters {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    background: #2a2a2a;
+    padding: 1rem;
+    border-radius: 0.5rem;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.share-url {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.share-url-input {
+    background: #2a2a2a;
+    border: none;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    color: white;
+    width: 300px;
+    font-size: 0.9rem;
+}
+
+.expired-text {
+    color: #dc3545;
+    font-style: italic;
+}
+
+.expired-key {
+    opacity: 0.7;
+}
+
+.tree-button.copied {
+    background-color: #28a745 !important;
+}
+
+/* Conteneur URL de partage (dans les modales) */
+.share-url-container {
+    margin-top: 0.5rem;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.share-url-container .share-url-input {
+    flex: 1;
+    width: auto;
+}
+
+.share-url-input:focus {
+    outline: 2px solid #2196f3;
+    background-color: #333;
+}
+
+/* Overrides spécifiques à la page carrousel */
+body[data-page="carrousel"] .upload-zone {
+    border-color: #ff8c00;
+    background-color: rgba(255, 140, 0, 0.1);
+}
+
+body[data-page="carrousel"] .action-button-success {
+    background-color: #ff8c00;
+}
+
+body[data-page="carrousel"] .action-button-success:hover {
+    background-color: #ff7700;
+}
+
+body[data-page="carrousel"] .admin-header {
+    border-bottom-color: rgba(255, 140, 0, 0.3);
+}
+
+/* Badges d'options de clé (ZIP, téléchargement…) */
+.opt-badge {
+    display: inline-block;
+    font-size: 1rem;
+    line-height: 1;
+    opacity: 1;
+}
+
+.opt-off {
+    opacity: 0.25;
+    filter: grayscale(1);
+}
+
+.options-cell {
+    white-space: nowrap;
+    letter-spacing: 0.15rem;
+}
+
+/* Options de partage dans la modale */
+.share-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+}
+
+@media (max-width: 768px) {
+    .filters {
+        flex-direction: column;
+    }
+
+    .share-url-input {
+        width: 200px;
+    }
+}

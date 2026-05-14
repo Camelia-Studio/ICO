@@ -1,0 +1,216 @@
+/* Page de listing des albums */
+.albums-page {
+    background-color: #121212;
+    min-height: 100vh;
+    padding: 2rem;
+    overflow-y: auto;
+}
+
+.album-info {
+    max-width: 1800px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.album-info .current-album-title {
+    font-size: 2.5rem;
+    margin: 3rem 0 1rem 0;
+    color: #ffffff;
+}
+
+.album-info p {
+    font-size: 1.1rem;
+    color: #e0e0e0;
+    line-height: 1.6;
+    max-width: 800px;
+}
+
+.albums-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 2rem;
+    max-width: 1800px;
+    margin: 2rem auto;
+}
+
+/* Contenu mature dans les cartes d'album */
+.album-card-mature {
+    position: relative;
+}
+
+.album-card-mature .album-images {
+    filter: blur(10px);
+}
+
+.album-card-mature::before {
+    content: attr(data-mature-warning);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(220, 53, 69, 0.9);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    z-index: 2;
+    white-space: nowrap;
+    transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+.album-card-mature:hover::before {
+    transform: translate(-50%, -50%) scale(1.1);
+    background-color: rgba(220, 53, 69, 1);
+}
+
+.album-card-mature::after {
+    content: "🔞";
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 1.5rem;
+    z-index: 2;
+}
+
+.image-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.image-background.mature-preview {
+    filter: blur(10px);
+}
+
+.mature-preview-indicator {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    font-size: 14px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+/* Cartes d'album */
+.album-card {
+    background-color: #1e1e1e;
+    border-radius: 1rem;
+    overflow: hidden;
+    text-decoration: none;
+    color: white;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    position: relative;
+}
+
+.album-card.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.album-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+.album-images {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    aspect-ratio: 1;
+    gap: 2px;
+    background-color: #2a2a2a;
+}
+
+.album-image {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.empty-image {
+    width: 100%;
+    height: 100%;
+    background-color: #2a2a2a;
+}
+
+.empty-album {
+    width: 100%;
+    height: 100%;
+    background-color: #2a2a2a;
+    grid-column: 1 / -1;
+    grid-row: 1 / -1;
+}
+
+.album-card .album-info {
+    padding: 1rem;
+    margin: 0;
+}
+
+.album-card .album-info h2 {
+    font-size: 1.2rem;
+    margin: 0;
+}
+
+@media (min-width: 1400px) {
+    .albums-grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
+
+@media (max-width: 1200px) {
+    .albums-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (max-width: 992px) {
+    .albums-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .albums-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .albums-page {
+        padding: 1rem;
+    }
+
+    .album-info {
+        padding: 1rem;
+    }
+
+    .album-info .current-album-title {
+        font-size: 2rem;
+        margin: 2.5rem 0 1rem 0;
+    }
+
+    .album-info p {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .albums-grid {
+        grid-template-columns: 1fr;
+    }
+}

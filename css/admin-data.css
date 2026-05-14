@@ -1,0 +1,144 @@
+/* Messages de retour */
+.message {
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.success-message {
+    background-color: #28a745;
+    color: white;
+}
+
+.error-message {
+    background-color: #dc3545;
+    color: white;
+}
+
+/* Tableaux d'administration */
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    background: #1e1e1e;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.admin-table th,
+.admin-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.admin-table th {
+    background-color: #2a2a2a;
+    font-weight: 500;
+    color: #ffffff;
+}
+
+.admin-table tr:hover {
+    background-color: #2a2a2a;
+}
+
+.table-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.admin-table tr.main-admin {
+    background-color: rgba(33, 150, 243, 0.1);
+}
+
+.admin-table tr.main-admin:hover {
+    background-color: rgba(33, 150, 243, 0.15);
+}
+
+/* Badges de statut */
+.status-badge {
+    display: inline-block;
+    padding: .2rem .6rem;
+    border-radius: 1rem;
+    font-size: .8rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.status-active {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-expired {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* Cellule d'actions dans les tableaux */
+.actions-cell {
+    display: flex;
+    gap: .4rem;
+    align-items: center;
+    white-space: nowrap;
+}
+
+/* Aucune donnée */
+.no-data {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+}
+
+/* Logs — filtres et pagination */
+.filter-form {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+}
+
+.pagination {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.pagination-link {
+    padding: 0.5rem 1rem;
+    background-color: #2a2a2a;
+    color: white;
+    text-decoration: none;
+    border-radius: 0.25rem;
+    transition: all 0.3s ease;
+}
+
+.pagination-link:hover {
+    background-color: #3a3a3a;
+}
+
+.pagination-link.active {
+    background-color: #2196f3;
+}
+
+.logs-list {
+    margin-top: 2rem;
+}
+
+/* Couleurs des types d'actions dans les logs */
+.admin-table tr td:nth-child(3) {
+    font-weight: 500;
+}
+
+.admin-table tr .log-action-create {
+    color: #4CAF50;
+}
+
+.admin-table tr .log-action-edit {
+    color: #FFA726;
+}
+
+.admin-table tr .log-action-delete {
+    color: #EF5350;
+}

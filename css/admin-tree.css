@@ -1,0 +1,204 @@
+/* Arborescence des dossiers */
+.tree-container {
+    padding: 1rem;
+    background: #2a2a2a;
+    border-radius: 0.5rem;
+}
+
+.tree-list {
+    list-style: none;
+    padding-left: 1.5rem;
+    margin: 0;
+}
+
+.tree-list:first-child {
+    padding-left: 0;
+}
+
+.tree-item {
+    margin: 0.5rem 0;
+}
+
+.tree-item-content {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    background: #1e1e1e;
+    margin: 0.25rem 0;
+}
+
+.tree-item.active > .tree-item-content {
+    background: #2196f3;
+}
+
+.tree-link {
+    color: white;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Dossier racine */
+.root-folder > .tree-item-content {
+    background: rgba(33, 150, 243, 0.2);
+    border-left: 4px solid #2196f3;
+    margin-bottom: 1rem;
+    padding: 1rem;
+}
+
+.root-folder > .tree-item-content .folder-icon {
+    font-size: 1.4rem;
+}
+
+.root-folder > .tree-item-content .tree-link {
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: #ffffff;
+}
+
+/* Bouton "top" (mettre en avant) */
+.tree-button-top {
+    background-color: rgba(33, 150, 243, 0.7) !important;
+}
+
+.tree-button-top:hover {
+    background-color: rgba(33, 150, 243, 0.9) !important;
+}
+
+/* Dossier carrousel */
+.carousel-folder > .tree-item-content {
+    background: rgba(255, 140, 0, 0.1);
+    border-left: 4px solid #ff8c00;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    transition: all 0.3s ease;
+}
+
+.carousel-folder > .tree-item-content:hover {
+    background: rgba(255, 140, 0, 0.2);
+}
+
+.carousel-folder .tree-link {
+    color: #ff8c00;
+    font-weight: 500;
+}
+
+.carousel-folder .folder-icon {
+    color: #ff8c00;
+    font-size: 1.2rem;
+}
+
+.carousel-button {
+    background: rgba(255, 140, 0, 0.2) !important;
+    color: #ff8c00 !important;
+    padding: 0.5rem !important;
+    border-radius: 0.5rem !important;
+    transition: all 0.3s ease !important;
+    text-decoration: none !important;
+}
+
+.carousel-button:hover {
+    background: rgba(255, 140, 0, 0.3) !important;
+    transform: scale(1.1) !important;
+}
+
+.carousel-folder.active > .tree-item-content {
+    background: rgba(255, 140, 0, 0.3);
+    border-left-color: #ff8c00;
+}
+
+.folder-icon {
+    font-size: 1.2rem;
+}
+
+.tree-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Boutons d'action de l'arbre */
+.tree-button {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 0.25rem;
+    font-size: 1rem;
+}
+
+.tree-button:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.tree-button-danger:hover {
+    background: rgba(220, 53, 69, 0.2);
+}
+
+.image-actions .tree-button {
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.image-actions .tree-button:hover {
+    background-color: rgba(220, 53, 69, 0.9);
+    transform: scale(1.1);
+}
+
+.tree-button-danger {
+    background-color: rgba(220, 53, 69, 0.7);
+}
+
+/* Bouton de déploiement des sous-dossiers */
+.toggle-btn {
+    background: none;
+    border: none;
+    padding: 0.25rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    transition: transform 0.3s ease;
+}
+
+.toggle-btn.active {
+    transform: rotate(90deg);
+}
+
+.toggle-btn:hover {
+    color: #2196f3;
+    background: rgba(33, 150, 243, 0.1);
+    border-radius: 4px;
+}
+
+.toggle-spacer {
+    width: 24px;
+}
+
+.toggle-icon {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.3s ease;
+}
+
+/* Sous-arbre rétractable */
+.subtree {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    opacity: 0;
+}
+
+.subtree.active {
+    max-height: 1000px;
+    opacity: 1;
+    transition: max-height 0.3s ease-in, opacity 0.3s ease-in;
+}

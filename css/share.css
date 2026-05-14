@@ -1,0 +1,85 @@
+/* Page de visualisation d'une image partagée */
+.share-page {
+    background-color: rgba(0, 0, 0, 0.9);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.share-container {
+    max-width: 90vw;
+    max-height: 90vh;
+    position: relative;
+}
+
+.share-image {
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #1e1e1e;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+}
+
+.share-image img {
+    max-width: 100%;
+    max-height: calc(90vh - 8rem);
+    display: block;
+    object-fit: contain;
+}
+
+.share-actions {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 1rem;
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 1rem;
+    border-radius: 2rem;
+    backdrop-filter: blur(10px);
+}
+
+.share-actions .action-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.5rem;
+    background-color: #2196f3;
+    color: white;
+    border: none;
+    border-radius: 2rem;
+    cursor: pointer;
+    font-size: 1rem;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.share-actions .action-button:hover {
+    background-color: #1976d2;
+    transform: translateY(-2px);
+}
+
+.share-actions .action-button .icon {
+    width: 1.2em;
+    height: 1.2em;
+}
+
+.share-page .site-footer {
+    background-color: rgba(0, 0, 0, 0.5);
+    position: fixed;
+    bottom: 0;
+    z-index: 1000;
+}
+
+@media (max-width: 768px) {
+    .share-actions {
+        flex-direction: column;
+        padding: 0.8rem;
+    }
+
+    .share-actions .action-button {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
+    }
+}

@@ -5,8 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block page_title %}ICO{% endblock %}</title>
     <link rel="icon" type="image/png" href="{{ favicon_file }}">
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="styles-admin.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/nav.css">
+    <link rel="stylesheet" href="css/admin-layout.css">
+    <link rel="stylesheet" href="css/admin-buttons.css">
+    <link rel="stylesheet" href="css/admin-menu.css">
+    <link rel="stylesheet" href="css/admin-forms.css">
+    <link rel="stylesheet" href="css/admin-tree.css">
+    <link rel="stylesheet" href="css/admin-data.css">
+    <link rel="stylesheet" href="css/admin-modal.css">
+    <link rel="stylesheet" href="css/admin-shares.css">
     {% for css in extraCss|default([]) %}
     <link rel="stylesheet" href="{{ css }}">
     {% endfor %}

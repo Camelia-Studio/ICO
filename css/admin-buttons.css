@@ -1,0 +1,93 @@
+/* Boutons d'action */
+.admin-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.action-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.5rem;
+    background-color: #2196f3;
+    color: white;
+    border: none;
+    border-radius: 2rem;
+    cursor: pointer;
+    font-size: 1rem;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.action-button:hover {
+    background-color: #1976d2;
+    transform: translateY(-2px);
+}
+
+.action-button-success {
+    background-color: #28a745;
+}
+
+.action-button-success:hover {
+    background-color: #218838;
+}
+
+.action-button-danger {
+    background-color: #dc3545;
+}
+
+.action-button-danger:hover {
+    background-color: #c82333;
+}
+
+.action-button-secondary {
+    background-color: #6c757d;
+}
+
+.action-button-secondary:hover {
+    background-color: #5a6268;
+}
+
+.action-button-warning {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.action-button-warning:hover {
+    background-color: #e0a800;
+}
+
+/* Select dans les formulaires */
+.form-select {
+    width: 100%;
+    padding: 0.8rem;
+    border: none;
+    border-radius: 0.5rem;
+    background-color: #2a2a2a;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.form-select:focus {
+    outline: 2px solid #2196f3;
+    background-color: #333;
+}
+
+.form-select option {
+    background-color: #2a2a2a;
+    color: white;
+    padding: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .admin-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .action-button {
+        width: 100%;
+        justify-content: center;
+    }
+}
