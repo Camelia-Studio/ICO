@@ -104,7 +104,7 @@ class TreeController
                         mkdir($newPath, 0o775, true);
                         $infoContent = $newName . "\n" . $description . "\n" . $matureContent . "\n" . $moreInfoUrl . "\n0";
                         file_put_contents($newPath . '/infos.txt', $infoContent);
-                        $_SESSION['success_message'] = 'Dossier créé avec succès.';
+                        $_SESSION['success_message'] = 'Dossier « ' . $newName . ' » créé avec succès.';
                     } else {
                         $_SESSION['error_message'] = 'Ce dossier existe déjà.';
                     }
@@ -125,7 +125,7 @@ class TreeController
                     $zipDownload  = isset($_POST['zip_download']) ? '1' : '0';
                     $infoContent  = $newName . "\n" . $description . "\n" . $matureContent . "\n" . $moreInfoUrl . "\n" . $zipDownload;
                     if (file_put_contents($path . '/infos.txt', $infoContent) !== false) {
-                        $_SESSION['success_message'] = 'Dossier modifié avec succès.';
+                        $_SESSION['success_message'] = 'Dossier « ' . $newName . ' » modifié avec succès.';
                     } else {
                         $_SESSION['error_message'] = 'Erreur lors de la modification du dossier.';
                     }
@@ -142,6 +142,7 @@ class TreeController
 
             case 'delete_folder':
                 if ($path && $this->albumService->isSecurePath($path) && $path !== $this->albumsRoot) {
+                    $folderTitle = $this->albumService->getAlbumInfo($path)['title'];
                     $this->logRepo->log(
                         (int) $_SESSION['admin_id'],
                         'DELETE_FOLDER',
@@ -149,7 +150,7 @@ class TreeController
                         $path,
                     );
                     $this->fileService->deleteDirectoryRecursively($path);
-                    $_SESSION['success_message'] = 'Dossier supprimé avec succès.';
+                    $_SESSION['success_message'] = 'Dossier « ' . $folderTitle . ' » supprimé avec succès.';
                 }
 
                 break;
@@ -251,7 +252,7 @@ class TreeController
                         mkdir($newPath, 0o775, true);
                         $infoContent = $newName . "\n" . $description . "\n" . $matureContent . "\n" . $moreInfoUrl . "\n0";
                         file_put_contents($newPath . '/infos.txt', $infoContent);
-                        $_SESSION['success_message'] = 'Dossier privé créé avec succès.';
+                        $_SESSION['success_message'] = 'Dossier privé « ' . $newName . ' » créé avec succès.';
                     } else {
                         $_SESSION['error_message'] = 'Ce dossier existe déjà.';
                     }
@@ -272,7 +273,7 @@ class TreeController
                     $zipDownload  = isset($_POST['zip_download']) ? '1' : '0';
                     $infoContent  = $newName . "\n" . $description . "\n" . $matureContent . "\n" . $moreInfoUrl . "\n" . $zipDownload;
                     if (file_put_contents($path . '/infos.txt', $infoContent) !== false) {
-                        $_SESSION['success_message'] = 'Dossier modifié avec succès.';
+                        $_SESSION['success_message'] = 'Dossier privé « ' . $newName . ' » modifié avec succès.';
                     } else {
                         $_SESSION['error_message'] = 'Erreur lors de la modification du dossier.';
                     }
@@ -289,6 +290,7 @@ class TreeController
 
             case 'delete_folder':
                 if ($path && $this->albumService->isSecurePrivatePath($path) && $path !== $this->albumsPrivateRoot) {
+                    $folderTitle = $this->albumService->getAlbumInfo($path)['title'];
                     $this->logRepo->log(
                         (int) $_SESSION['admin_id'],
                         'DELETE_PRIVATE_FOLDER',
@@ -296,7 +298,7 @@ class TreeController
                         $path,
                     );
                     $this->fileService->deleteDirectoryRecursively($path);
-                    $_SESSION['success_message'] = 'Dossier privé supprimé avec succès.';
+                    $_SESSION['success_message'] = 'Dossier privé « ' . $folderTitle . ' » supprimé avec succès.';
                 }
 
                 break;
