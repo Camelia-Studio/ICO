@@ -381,6 +381,70 @@ class TreeImageControllerTest extends TestCase
     }
 
     // =========================================================================
+    // Vidéos dans l'arbre public
+    // =========================================================================
+
+    public function testHandlePublicListsVideoFiles(): void
+    {
+        file_put_contents($this->albumsRoot . '/album1/photo.jpg', '');
+        file_put_contents($this->albumsRoot . '/album1/clip.mp4', '');
+
+        $authMock = $this->createMock(AuthService::class);
+        $authMock->method('isLoggedIn')->willReturn(true);
+
+        $capturedData = null;
+        $viewMock     = $this->createMock(ViewRenderer::class);
+        $viewMock->method('render')->willReturnCallback(
+            function (string $tpl, array $data) use (&$capturedData): void {
+                $capturedData = $data;
+            }
+        );
+
+        $_GET['path'] = 'liste_albums/album1';
+
+        $controller = $this->makeController($authMock, $viewMock);
+        $controller->handlePublic();
+
+        $names = array_column($capturedData['imageData'], 'name');
+        $this->assertContains('clip.mp4', $names);
+        $this->assertContains('photo.jpg', $names);
+
+        $videoItem = array_values(array_filter($capturedData['imageData'], fn (array $i): bool => $i['name'] === 'clip.mp4'))[0];
+        $this->assertSame('video', $videoItem['type']);
+        $this->assertSame('video/mp4', $videoItem['mime']);
+
+        $imageItem = array_values(array_filter($capturedData['imageData'], fn (array $i): bool => $i['name'] === 'photo.jpg'))[0];
+        $this->assertSame('image', $imageItem['type']);
+        $this->assertNull($imageItem['mime']);
+    }
+
+    public function testHandlePrivateVideoUsesVideosPhpUrl(): void
+    {
+        file_put_contents($this->privateRoot . '/secret/clip.mp4', '');
+
+        $authMock = $this->createMock(AuthService::class);
+        $authMock->method('isLoggedIn')->willReturn(true);
+
+        $capturedData = null;
+        $viewMock     = $this->createMock(ViewRenderer::class);
+        $viewMock->method('render')->willReturnCallback(
+            function (string $tpl, array $data) use (&$capturedData): void {
+                $capturedData = $data;
+            }
+        );
+
+        $_GET['path'] = 'liste_albums_prives/secret';
+
+        $controller = $this->makeController($authMock, $viewMock);
+        $controller->handlePrivate();
+
+        $videoItem = $capturedData['imageData'][0];
+        $this->assertSame('video', $videoItem['type']);
+        $this->assertStringContainsString('videos.php', $videoItem['url']);
+        $this->assertStringNotContainsString('images.php', $videoItem['url']);
+    }
+
+    // =========================================================================
     // Factory
     // =========================================================================
 

@@ -150,7 +150,7 @@ class TreeImageController
         $uploadedFiles = $_FILES['images'] ?? [];
         $successCount  = 0;
         $errors        = [];
-        $allowedExts   = $this->config->getAllowedExtensions();
+        $allowedExts   = array_merge($this->config->getAllowedExtensions(), $this->config->getVideoExtensions());
 
         $count = is_array($uploadedFiles['name'] ?? null) ? count($uploadedFiles['name']) : 0;
         for ($i = 0; $i < $count; $i++) {
@@ -359,7 +359,7 @@ class TreeImageController
      */
     private function listImages(string $path): array
     {
-        $allowedExts = $this->config->getAllowedExtensions();
+        $allowedExts = array_merge($this->config->getAllowedExtensions(), $this->config->getVideoExtensions());
         $temp        = [];
 
         foreach (new DirectoryIterator($path) as $file) {
@@ -439,6 +439,16 @@ class TreeImageController
         return $this->pathService->getBaseUrl() . '/images.php?path=' . urlencode($relativePath);
     }
 
+    /**
+     * Construit l'URL d'une vidéo privée (via videos.php).
+     */
+    private function buildPrivateVideoUrl(string $currentPath, string $video): string
+    {
+        $absolutePath = $currentPath . '/' . $video;
+        $relativePath = $this->pathService->toRelative($absolutePath);
+        return $this->pathService->getBaseUrl() . '/videos.php?path=' . urlencode($relativePath);
+    }
+
     private function uploadErrorMessage(int $code, string $filename): string
     {
         $messages = [
@@ -478,13 +488,18 @@ class TreeImageController
             ? 'Images du carrousel'
             : 'Images de : ' . htmlspecialchars($this->albumService->getAlbumInfo($currentPath)['title']);
 
-        $imageData = array_map(function (string $image) use ($currentPath): array {
-            $url = $this->buildPublicImageUrl($currentPath, $image);
+        $videoExts = $this->config->getVideoExtensions();
+        $imageData = array_map(function (string $image) use ($currentPath, $videoExts): array {
+            $ext     = strtolower(pathinfo($image, PATHINFO_EXTENSION));
+            $isVideo = in_array($ext, $videoExts, true);
+            $url     = $this->buildPublicImageUrl($currentPath, $image);
             return [
                 'name'     => $image,
                 'url'      => $url,
                 'isTop'    => str_contains($image, '--top--'),
                 'shareUrl' => 'partage.php?image=' . urlencode($url),
+                'type'     => $isVideo ? 'video' : 'image',
+                'mime'     => $isVideo ? ($ext === 'mp4' ? 'video/mp4' : 'video/webm') : null,
             ];
         }, $images);
 
@@ -512,13 +527,20 @@ class TreeImageController
      */
     private function renderPrivate(string $siteTitle, string $currentPath, array $images, array $albumInfo): void
     {
-        $imageData = array_map(function (string $image) use ($currentPath): array {
-            $url = $this->buildPrivateImageUrl($currentPath, $image);
+        $videoExts = $this->config->getVideoExtensions();
+        $imageData = array_map(function (string $image) use ($currentPath, $videoExts): array {
+            $ext     = strtolower(pathinfo($image, PATHINFO_EXTENSION));
+            $isVideo = in_array($ext, $videoExts, true);
+            $url     = $isVideo
+                ? $this->buildPrivateVideoUrl($currentPath, $image)
+                : $this->buildPrivateImageUrl($currentPath, $image);
             return [
                 'name'     => $image,
                 'url'      => $url,
                 'isTop'    => str_contains($image, '--top--'),
                 'shareUrl' => 'partage.php?image=' . urlencode($url),
+                'type'     => $isVideo ? 'video' : 'image',
+                'mime'     => $isVideo ? ($ext === 'mp4' ? 'video/mp4' : 'video/webm') : null,
             ];
         }, $images);
 
