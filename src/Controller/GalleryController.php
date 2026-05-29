@@ -124,14 +124,24 @@ class GalleryController
         $albumData   = $this->albumService->getAlbumInfo($currentPath);
         $images      = $this->buildPrivateImageList($currentPath, $shareKey);
 
+        $rawOptions = $albumInfo['options'] ?? '{}';
+        $decoded    = json_decode((string) $rawOptions, true);
+        if (!is_array($decoded)) {
+            $decoded = [];
+        }
+
         $this->view->render('pages/gallery-private', [
-            'error_title'   => null,
-            'error_message' => null,
-            'album_data'    => $albumData,
-            'images'        => $images,
-            'header_image'  => $this->firstImageUrl($images),
-            'share_key'     => $shareKey,
-            'site_title'    => $this->config->getSiteTitle(),
+            'error_title'        => null,
+            'error_message'      => null,
+            'album_data'         => $albumData,
+            'images'             => $images,
+            'header_image'       => $this->firstImageUrl($images),
+            'share_key'          => $shareKey,
+            'site_title'         => $this->config->getSiteTitle(),
+            'slideshow_interval' => $this->config->getSlideshowInterval(),
+            'allow_download'     => (bool) ($decoded['download'] ?? true),
+            'allow_share'        => (bool) ($decoded['share']    ?? true),
+            'allow_source'       => (bool) ($decoded['source']   ?? true),
         ]);
     }
 
@@ -238,10 +248,11 @@ class GalleryController
             } elseif (in_array($ext, self::VIDEO_EXTENSIONS, true)) {
                 $relativePath = $this->pathService->toRelative($file->getPathname());
                 $proxyUrl     = $baseUrl . '/videos.php?path=' . rawurlencode($relativePath) . '&key=' . rawurlencode($shareKey);
+                $shareUrl     = $baseUrl . '/partage.php?image=' . rawurlencode($proxyUrl);
 
                 $items[] = [
                     'url'          => $proxyUrl,
-                    'share_url'    => null,
+                    'share_url'    => $shareUrl,
                     'is_top'       => $isTop,
                     'aspect_ratio' => 16 / 9,
                     'type'         => 'video',

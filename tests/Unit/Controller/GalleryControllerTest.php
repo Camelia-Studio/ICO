@@ -341,7 +341,8 @@ class GalleryControllerTest extends TestCase
         $video = $capturedData['images'][0];
         $this->assertSame('video', $video['type']);
         $this->assertStringContainsString('/videos.php', $video['url']);
-        $this->assertNull($video['share_url']);
+        $this->assertNotNull($video['share_url']);
+        $this->assertStringContainsString('partage.php', $video['share_url']);
     }
 
     public function testShowRedirectsOnInvalidPath(): void
@@ -357,6 +358,97 @@ class GalleryControllerTest extends TestCase
 
         $this->expectException(TerminateException::class);
         $controller->show($request);
+    }
+
+    public function testShowPrivatePassesDefaultAllowFlagsWhenNoOptions(): void
+    {
+        file_put_contents($this->privateRoot . '/secret/img.jpg', '');
+
+        $albumService = new AlbumService($this->albumsRoot, $this->privateRoot);
+        $fileService  = $this->createMock(FileService::class);
+        $fileService->method('getSecureImageSize')->willReturn(['width' => 100, 'height' => 100]);
+
+        $shareKeyRepo = $this->createMock(ShareKeyRepository::class);
+        $shareKeyRepo->method('findValidByKey')->willReturn([
+            'path'    => $this->privateRoot . '/secret',
+            'options' => null,
+        ]);
+
+        $capturedData = null;
+        $view = $this->createMock(ViewRenderer::class);
+        $view->method('render')
+            ->willReturnCallback(function (string $tpl, array $data) use (&$capturedData): void {
+                $capturedData = $data;
+            });
+
+        $request    = new Request('GET', '/galeries-privees.php', ['key' => 'valid-key']);
+        $controller = $this->makeController($albumService, $fileService, $shareKeyRepo, $view);
+        $controller->showPrivate($request);
+
+        $this->assertTrue($capturedData['allow_download']);
+        $this->assertTrue($capturedData['allow_share']);
+        $this->assertTrue($capturedData['allow_source']);
+    }
+
+    public function testShowPrivatePassesDecodedAllowFlagsFromOptions(): void
+    {
+        file_put_contents($this->privateRoot . '/secret/img.jpg', '');
+
+        $albumService = new AlbumService($this->albumsRoot, $this->privateRoot);
+        $fileService  = $this->createMock(FileService::class);
+        $fileService->method('getSecureImageSize')->willReturn(['width' => 100, 'height' => 100]);
+
+        $shareKeyRepo = $this->createMock(ShareKeyRepository::class);
+        $shareKeyRepo->method('findValidByKey')->willReturn([
+            'path'    => $this->privateRoot . '/secret',
+            'options' => json_encode(['download' => false, 'source' => false]),
+        ]);
+
+        $capturedData = null;
+        $view = $this->createMock(ViewRenderer::class);
+        $view->method('render')
+            ->willReturnCallback(function (string $tpl, array $data) use (&$capturedData): void {
+                $capturedData = $data;
+            });
+
+        $request    = new Request('GET', '/galeries-privees.php', ['key' => 'valid-key']);
+        $controller = $this->makeController($albumService, $fileService, $shareKeyRepo, $view);
+        $controller->showPrivate($request);
+
+        $this->assertFalse($capturedData['allow_download']);
+        $this->assertTrue($capturedData['allow_share']);
+        $this->assertFalse($capturedData['allow_source']);
+    }
+
+    public function testShowPrivateVideoHasShareUrl(): void
+    {
+        file_put_contents($this->privateRoot . '/secret/clip.mp4', '');
+
+        $albumService = new AlbumService($this->albumsRoot, $this->privateRoot);
+        $fileService  = $this->createMock(FileService::class);
+
+        $shareKeyRepo = $this->createMock(ShareKeyRepository::class);
+        $shareKeyRepo->method('findValidByKey')->willReturn([
+            'path'    => $this->privateRoot . '/secret',
+            'options' => null,
+        ]);
+
+        $capturedData = null;
+        $view = $this->createMock(ViewRenderer::class);
+        $view->method('render')
+            ->willReturnCallback(function (string $tpl, array $data) use (&$capturedData): void {
+                $capturedData = $data;
+            });
+
+        $request    = new Request('GET', '/galeries-privees.php', ['key' => 'valid-key']);
+        $controller = $this->makeController($albumService, $fileService, $shareKeyRepo, $view);
+        $controller->showPrivate($request);
+
+        $video = $capturedData['images'][0];
+        $this->assertSame('video', $video['type']);
+        $this->assertNotNull($video['share_url']);
+        $this->assertStringContainsString('partage.php', $video['share_url']);
+        $this->assertStringContainsString('videos.php', $video['share_url']);
     }
 
     // =========================================================================
