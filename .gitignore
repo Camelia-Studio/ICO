@@ -17,3 +17,6 @@ img_carrousel/*
 favicon-custom.png
 CLAUDE.md
 AGENTS.md
+.superpowers/
+docs/
+.playwright-mcp

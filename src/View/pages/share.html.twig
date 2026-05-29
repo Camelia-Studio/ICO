@@ -2,7 +2,7 @@
 
 {% block page_title %}Image - {{ site_title }}{% endblock %}
 
-{% block body_class %}share-page{% endblock %}
+{% block body_class %}page-partage{% endblock %}
 
 {% block extra_head %}
     <meta property="og:type"        content="website">
@@ -19,9 +19,17 @@
 
     <div class="share-container">
         <div class="share-image">
-            <img src="{{ image_url }}"
-                 data-image-url="{{ image_url }}"
-                 alt="Image partagée">
+            {% if is_video %}
+                <video src="{{ image_url }}"
+                       controls
+                       playsinline
+                       class="share-video">
+                </video>
+            {% else %}
+                <img src="{{ image_url }}"
+                     data-image-url="{{ image_url }}"
+                     alt="Image partagée">
+            {% endif %}
         </div>
 
         <div class="share-actions">
@@ -59,7 +67,7 @@
             </a>
             {% endif %}
 
-            {% if allow_source %}
+            {% if allow_source and not is_video %}
             <a href="https://saucenao.com/search.php?url={{ image_url|url_encode }}"
                target="_blank"
                class="action-button">

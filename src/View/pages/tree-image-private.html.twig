@@ -7,11 +7,11 @@
         <h1>
             Images de : {{ albumInfo.title }}
             <span class="private-badge">Privé</span>
-            <span class="image-count-total">{{ imageData|length }} illustration{{ imageData|length != 1 ? 's' : '' }}</span>
+            <span class="image-count-total">{{ imageData|length }} média{{ imageData|length != 1 ? 's' : '' }}</span>
         </h1>
         <div class="admin-actions">
             <button onclick="document.getElementById('imageUploadForm').click()" class="action-button action-button-success">
-                Ajouter des images
+                Ajouter des médias
             </button>
             <button onclick="deleteSelected()" id="deleteSelectedBtn" class="action-button action-button-danger" style="display:none">
                 Supprimer la sélection
@@ -29,10 +29,10 @@
         {% include 'partials/messages.html.twig' with {'nlBr': true} %}
 
         <div class="upload-zone" id="dropZone">
-            <p>Glissez-déposez vos images ici ou cliquez sur "Ajouter des images"</p>
+            <p>Glissez-déposez vos images ou vidéos ici ou cliquez sur "Ajouter des médias"</p>
             <form method="post" enctype="multipart/form-data" id="uploadForm">
                 <input type="hidden" name="action" value="upload">
-                <input type="file" name="images[]" id="imageUploadForm" multiple accept=".jpg,.jpeg,.png,.gif">
+                <input type="file" name="images[]" id="imageUploadForm" multiple accept=".jpg,.jpeg,.png,.gif,.mp4,.webm">
             </form>
         </div>
 
@@ -45,7 +45,11 @@
                                class="image-checkbox" onchange="updateActionButtons()">
                         <div class="image-wrapper">
                             <a href="{{ item.shareUrl }}" target="_blank" class="image-share-link">
-                                <img src="{{ item.url }}" alt="{{ item.name }}" loading="lazy">
+                                {% if item.type == 'video' %}
+                                    <video src="{{ item.url }}" muted preload="none" class="admin-video-thumb"></video>
+                                {% else %}
+                                    <img src="{{ item.url }}" alt="{{ item.name }}" loading="lazy">
+                                {% endif %}
                             </a>
                             <div class="image-actions">
                                 <button type="button" onclick="toggleTop('{{ item.name|e('js') }}')"

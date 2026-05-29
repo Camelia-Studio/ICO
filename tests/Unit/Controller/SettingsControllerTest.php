@@ -85,6 +85,83 @@ class SettingsControllerTest extends TestCase
     }
 
     // =========================================================================
+    // GET — renders form with slideshow_interval from config
+    // =========================================================================
+
+    public function testIndexRendersFormWithSlideshowInterval(): void
+    {
+        file_put_contents($this->configFile, "ICO\nDescription\nbase-path\n8");
+
+        $auth = $this->createMock(AuthService::class);
+        $auth->method('isLoggedIn')->willReturn(true);
+
+        $view = $this->createMock(ViewRenderer::class);
+        $view->expects($this->once())->method('render')
+            ->with('pages/settings', $this->callback(
+                fn (array $d): bool => $d['slideshow_interval'] === 8
+            ));
+
+        $controller = $this->makeController(auth: $auth, view: $view);
+        $controller->index(new Request('GET', '/personnalisation.php'));
+    }
+
+    // =========================================================================
+    // POST — saves slideshow_interval to line 4
+    // =========================================================================
+
+    public function testPostSavesSlideshowIntervalToLine4(): void
+    {
+        $auth = $this->createMock(AuthService::class);
+        $auth->method('isLoggedIn')->willReturn(true);
+        $auth->method('getLoggedInAdminId')->willReturn(1);
+
+        $log = $this->createMock(LogRepository::class);
+
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_FILES['favicon'] = ['error' => UPLOAD_ERR_NO_FILE, 'size' => 0, 'tmp_name' => ''];
+
+        try {
+            $controller = $this->makeController(auth: $auth, log: $log);
+            $controller->index(new Request('POST', '/personnalisation.php', body: [
+                'site_title'         => 'Titre',
+                'site_description'   => 'Desc',
+                'project_path'       => '',
+                'slideshow_interval' => '12',
+            ]));
+        } catch (TerminateException) {
+        }
+
+        $saved = explode("\n", (string) file_get_contents($this->configFile));
+        $this->assertSame('12', $saved[3]);
+    }
+
+    public function testPostDefaultsSlideshowIntervalTo5WhenInvalid(): void
+    {
+        $auth = $this->createMock(AuthService::class);
+        $auth->method('isLoggedIn')->willReturn(true);
+        $auth->method('getLoggedInAdminId')->willReturn(1);
+
+        $log = $this->createMock(LogRepository::class);
+
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_FILES['favicon'] = ['error' => UPLOAD_ERR_NO_FILE, 'size' => 0, 'tmp_name' => ''];
+
+        try {
+            $controller = $this->makeController(auth: $auth, log: $log);
+            $controller->index(new Request('POST', '/personnalisation.php', body: [
+                'site_title'         => 'Titre',
+                'site_description'   => '',
+                'project_path'       => '',
+                'slideshow_interval' => '0',
+            ]));
+        } catch (TerminateException) {
+        }
+
+        $saved = explode("\n", (string) file_get_contents($this->configFile));
+        $this->assertSame('5', $saved[3]);
+    }
+
+    // =========================================================================
     // POST — saves config, no favicon
     // =========================================================================
 

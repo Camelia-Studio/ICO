@@ -147,10 +147,21 @@ class TreeImageController
 
     private function handleUpload(string $currentPath, bool $isPrivate): void
     {
+        // PHP vide $_FILES silencieusement quand CONTENT_LENGTH > post_max_size
+        $contentLength = (int) ($_SERVER['CONTENT_LENGTH'] ?? 0);
+        if ($contentLength > 0 && $contentLength > $this->parseIniBytes((string) ini_get('post_max_size'))) {
+            $_SESSION['error_message'] = sprintf(
+                'Le ou les fichiers dépassent la taille maximale autorisée par le serveur (%s). '
+                    . 'Réduisez la taille ou contactez l\'administrateur.',
+                ini_get('post_max_size'),
+            );
+            return;
+        }
+
         $uploadedFiles = $_FILES['images'] ?? [];
         $successCount  = 0;
         $errors        = [];
-        $allowedExts   = $this->config->getAllowedExtensions();
+        $allowedExts   = array_merge($this->config->getAllowedExtensions(), $this->config->getVideoExtensions());
 
         $count = is_array($uploadedFiles['name'] ?? null) ? count($uploadedFiles['name']) : 0;
         for ($i = 0; $i < $count; $i++) {
@@ -359,7 +370,7 @@ class TreeImageController
      */
     private function listImages(string $path): array
     {
-        $allowedExts = $this->config->getAllowedExtensions();
+        $allowedExts = array_merge($this->config->getAllowedExtensions(), $this->config->getVideoExtensions());
         $temp        = [];
 
         foreach (new DirectoryIterator($path) as $file) {
@@ -439,6 +450,16 @@ class TreeImageController
         return $this->pathService->getBaseUrl() . '/images.php?path=' . urlencode($relativePath);
     }
 
+    /**
+     * Construit l'URL d'une vidéo privée (via videos.php).
+     */
+    private function buildPrivateVideoUrl(string $currentPath, string $video): string
+    {
+        $absolutePath = $currentPath . '/' . $video;
+        $relativePath = $this->pathService->toRelative($absolutePath);
+        return $this->pathService->getBaseUrl() . '/videos.php?path=' . urlencode($relativePath);
+    }
+
     private function uploadErrorMessage(int $code, string $filename): string
     {
         $messages = [
@@ -452,6 +473,22 @@ class TreeImageController
 
         $reason = $messages[$code] ?? sprintf('a provoqué une erreur inconnue (code %d)', $code);
         return sprintf('"%s" %s.', $filename, $reason);
+    }
+
+    /**
+     * Convertit une valeur de type "256M", "512K", "1G" en octets.
+     */
+    private function parseIniBytes(string $value): int
+    {
+        $unit = strtolower(substr($value, -1));
+        $size = (int) $value;
+
+        return match ($unit) {
+            'g'     => $size * 1_073_741_824,
+            'm'     => $size * 1_048_576,
+            'k'     => $size * 1_024,
+            default => $size,
+        };
     }
 
     /**
@@ -478,13 +515,18 @@ class TreeImageController
             ? 'Images du carrousel'
             : 'Images de : ' . htmlspecialchars($this->albumService->getAlbumInfo($currentPath)['title']);
 
-        $imageData = array_map(function (string $image) use ($currentPath): array {
-            $url = $this->buildPublicImageUrl($currentPath, $image);
+        $videoExts = $this->config->getVideoExtensions();
+        $imageData = array_map(function (string $image) use ($currentPath, $videoExts): array {
+            $ext     = strtolower(pathinfo($image, PATHINFO_EXTENSION));
+            $isVideo = in_array($ext, $videoExts, true);
+            $url     = $this->buildPublicImageUrl($currentPath, $image);
             return [
                 'name'     => $image,
                 'url'      => $url,
                 'isTop'    => str_contains($image, '--top--'),
                 'shareUrl' => 'partage.php?image=' . urlencode($url),
+                'type'     => $isVideo ? 'video' : 'image',
+                'mime'     => $isVideo ? ($ext === 'mp4' ? 'video/mp4' : 'video/webm') : null,
             ];
         }, $images);
 
@@ -512,13 +554,20 @@ class TreeImageController
      */
     private function renderPrivate(string $siteTitle, string $currentPath, array $images, array $albumInfo): void
     {
-        $imageData = array_map(function (string $image) use ($currentPath): array {
-            $url = $this->buildPrivateImageUrl($currentPath, $image);
+        $videoExts = $this->config->getVideoExtensions();
+        $imageData = array_map(function (string $image) use ($currentPath, $videoExts): array {
+            $ext     = strtolower(pathinfo($image, PATHINFO_EXTENSION));
+            $isVideo = in_array($ext, $videoExts, true);
+            $url     = $isVideo
+                ? $this->buildPrivateVideoUrl($currentPath, $image)
+                : $this->buildPrivateImageUrl($currentPath, $image);
             return [
                 'name'     => $image,
                 'url'      => $url,
                 'isTop'    => str_contains($image, '--top--'),
                 'shareUrl' => 'partage.php?image=' . urlencode($url),
+                'type'     => $isVideo ? 'video' : 'image',
+                'mime'     => $isVideo ? ($ext === 'mp4' ? 'video/mp4' : 'video/webm') : null,
             ];
         }, $images);
 

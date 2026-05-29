@@ -76,12 +76,13 @@ class SettingsController
         $currentConfig = $this->readCurrentConfig();
 
         $this->view->render('pages/settings', [
-            'site_title'        => $currentConfig['title'],
-            'site_description'  => $currentConfig['description'],
-            'project_path'      => $currentConfig['path'],
+            'site_title'         => $currentConfig['title'],
+            'site_description'   => $currentConfig['description'],
+            'project_path'       => $currentConfig['path'],
+            'slideshow_interval' => $currentConfig['slideshow_interval'],
             'has_custom_favicon' => file_exists($this->projectRoot . '/favicon-custom.png'),
-            'success_message'   => $successMessage,
-            'error_message'     => $errorMessage,
+            'success_message'    => $successMessage,
+            'error_message'      => $errorMessage,
         ]);
     }
 
@@ -98,9 +99,11 @@ class SettingsController
             return $this->resetFavicon();
         }
 
-        $siteTitle       = trim((string) $request->post('site_title', ''));
-        $siteDescription = trim((string) $request->post('site_description', ''));
-        $projectPath     = trim((string) $request->post('project_path', ''));
+        $siteTitle         = trim((string) $request->post('site_title', ''));
+        $siteDescription   = trim((string) $request->post('site_description', ''));
+        $projectPath       = trim((string) $request->post('project_path', ''));
+        $rawInterval       = (int) $request->post('slideshow_interval', '5');
+        $slideshowInterval = $rawInterval >= 1 ? $rawInterval : 5;
 
         if ($siteTitle === '') {
             return ['', 'Le titre du site est requis.'];
@@ -111,7 +114,7 @@ class SettingsController
             return ['', $faviconError];
         }
 
-        $configContent = $siteTitle . "\n" . $siteDescription . "\n" . $projectPath;
+        $configContent = $siteTitle . "\n" . $siteDescription . "\n" . $projectPath . "\n" . $slideshowInterval;
 
         if (file_put_contents($this->configFile, $configContent) === false) {
             return ['', 'Erreur lors de la sauvegarde de la configuration.'];
@@ -200,20 +203,22 @@ class SettingsController
     /**
      * Relit config.txt pour avoir les valeurs fraîches après une mise à jour.
      *
-     * @return array{title: string, description: string, path: string}
+     * @return array{title: string, description: string, path: string, slideshow_interval: int}
      */
     private function readCurrentConfig(): array
     {
         if (!file_exists($this->configFile)) {
-            return ['title' => 'ICO', 'description' => '', 'path' => ''];
+            return ['title' => 'ICO', 'description' => '', 'path' => '', 'slideshow_interval' => 5];
         }
 
-        $lines = explode("\n", (string) file_get_contents($this->configFile));
+        $lines       = explode("\n", (string) file_get_contents($this->configFile));
+        $rawInterval = (int) trim($lines[3] ?? '');
 
         return [
-            'title'       => trim($lines[0]),
-            'description' => trim($lines[1] ?? ''),
-            'path'        => trim($lines[2] ?? ''),
+            'title'              => trim($lines[0]),
+            'description'        => trim($lines[1] ?? ''),
+            'path'               => trim($lines[2] ?? ''),
+            'slideshow_interval' => $rawInterval >= 1 ? $rawInterval : 5,
         ];
     }
 }

@@ -1,0 +1,298 @@
+/* ============================================================
+   Lightbox — overlay
+   ============================================================ */
+
+.lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.92);
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+.lightbox.is-open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.lightbox-backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    cursor: pointer;
+}
+
+.lightbox-media-wrap {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.lightbox-img,
+.lightbox-video {
+    max-width: 90vw;
+    max-height: 90vh;
+    object-fit: contain;
+    display: block;
+    border-radius: 4px;
+}
+
+/* ============================================================
+   Barre d'icônes (desktop)
+   ============================================================ */
+
+.lightbox-topbar {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 14px;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.75) 0%, transparent 100%);
+}
+
+.lb-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: background 0.15s;
+    flex-shrink: 0;
+}
+
+.lb-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    color: #fff;
+}
+
+.lb-fullscreen-btn .icon-compress { display: none; }
+.lb-fullscreen-btn.is-fullscreen .icon-expand { display: none; }
+.lb-fullscreen-btn.is-fullscreen .icon-compress { display: block; }
+
+.lb-btn.is-playing {
+    background: rgba(33, 150, 243, 0.4);
+    color: #90caf9;
+    border-color: rgba(33, 150, 243, 0.3);
+}
+
+.lb-btn[data-action="close"] {
+    background: rgba(200, 50, 50, 0.25);
+    color: #ff8a80;
+    border-color: rgba(200, 50, 50, 0.2);
+}
+
+.lb-btn[data-action="close"]:hover {
+    background: rgba(200, 50, 50, 0.5);
+}
+
+.lb-sep {
+    width: 1px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.15);
+    margin: 0 2px;
+    flex-shrink: 0;
+}
+
+.lb-slideshow-interval {
+    width: 44px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    color: #e0e0e0;
+    font-size: 0.8rem;
+    padding: 5px 4px;
+    text-align: center;
+    height: 36px;
+}
+
+/* ============================================================
+   Flèches de navigation (desktop, apparaissent au survol)
+   ============================================================ */
+
+.lb-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s, background 0.15s;
+    pointer-events: none;
+}
+
+.lightbox:hover .lb-nav {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.lb-nav:hover {
+    background: rgba(255, 255, 255, 0.28);
+}
+
+.lb-prev { left: 14px; }
+.lb-next { right: 14px; }
+
+/* ============================================================
+   Compteur
+   ============================================================ */
+
+.lightbox-counter {
+    position: absolute;
+    bottom: 14px;
+    left: 16px;
+    z-index: 2;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.75rem;
+    background: rgba(0, 0, 0, 0.45);
+    padding: 3px 10px;
+    border-radius: 10px;
+    pointer-events: none;
+    user-select: none;
+}
+
+/* ============================================================
+   Bouton fermer mobile (toujours visible)
+   ============================================================ */
+
+.lightbox-close-mobile {
+    display: none;
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 2;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.9rem;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ============================================================
+   Bottom sheet mobile
+   ============================================================ */
+
+.lightbox-sheet {
+    display: none;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 3;
+    background: rgba(18, 18, 18, 0.97);
+    backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px 14px 0 0;
+    padding: 10px 16px 24px;
+    transform: translateY(100%);
+    transition: transform 0.25s ease;
+    pointer-events: none;
+}
+
+.lightbox-sheet.is-open {
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.lightbox-sheet-handle {
+    width: 32px;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.2);
+    margin: 0 auto 16px;
+}
+
+.lightbox-sheet-actions {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.lb-sheet-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    color: #ccc;
+    font-size: 0.7rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    padding: 8px 6px;
+    border-radius: 10px;
+    transition: background 0.15s;
+    min-width: 60px;
+}
+
+.lb-sheet-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+}
+
+.lb-sheet-btn svg {
+    width: 22px;
+    height: 22px;
+}
+
+.lb-sheet-btn.is-playing {
+    color: #64b5f6;
+}
+
+/* ============================================================
+   Responsive — mobile (< 769px)
+   ============================================================ */
+
+@media (max-width: 768px) {
+    .lightbox-topbar,
+    .lb-nav {
+        display: none;
+    }
+
+    .lightbox-close-mobile {
+        display: flex;
+    }
+
+    .lightbox-sheet {
+        display: block;
+    }
+
+    .lightbox-img,
+    .lightbox-video {
+        max-width: 100vw;
+        max-height: 100vh;
+        border-radius: 0;
+    }
+}

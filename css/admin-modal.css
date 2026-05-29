@@ -116,16 +116,19 @@
     z-index: 1;
 }
 
-.image-item img {
+.image-item img,
+.image-item .admin-video-thumb {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
+    background: #111;
 }
 
-.image-item:hover img {
+.image-item:hover img,
+.image-item:hover .admin-video-thumb {
     transform: scale(1.1);
 }
 
