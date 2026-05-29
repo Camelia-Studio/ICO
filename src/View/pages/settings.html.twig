@@ -41,6 +41,13 @@
             </div>
 
             <div class="form-group">
+                <label for="slideshow_interval">Intervalle du diaporama :</label>
+                <input type="number" id="slideshow_interval" name="slideshow_interval"
+                       min="1" max="60" value="{{ slideshow_interval }}">
+                <small class="form-help">Durée en secondes entre chaque média lors du diaporama (1–60 s). Peut être ajusté directement dans la visionneuse.</small>
+            </div>
+
+            <div class="form-group">
                 <label for="favicon">Favicon du site :</label>
                 <div class="favicon-preview">
                     <img src="{{ favicon_file }}" alt="Favicon actuel" width="32" height="32">
