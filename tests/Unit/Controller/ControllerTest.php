@@ -165,7 +165,8 @@ class ControllerTest extends TestCase
 
         $viewMock->expects($this->once())->method('render')
             ->with('pages/share', $this->callback(fn (array $data): bool => $data['is_private_image'] === false
-                && $data['filename'] === 'photo.jpg'));
+                && $data['filename'] === 'photo.jpg'
+                && $data['is_video'] === false));
 
         $controller = new ShareController($config, $shareKeyMock, $viewMock);
         $req = new Request('GET', '/partage.php', ['image' => 'https://example.com/photo.jpg']);
@@ -225,6 +226,61 @@ class ControllerTest extends TestCase
         $req = new Request('GET', '/partage.php', ['image' => $imageUrl]);
 
         $this->expectException(TerminateException::class);
+        $controller->show($req);
+    }
+
+    public function testShareControllerSetsIsVideoFalseForImageUrl(): void
+    {
+        $config       = $this->makeConfig();
+        $shareKeyMock = $this->createMock(ShareKeyRepository::class);
+        $viewMock     = $this->createMock(ViewRenderer::class);
+
+        $viewMock->expects($this->once())->method('render')
+            ->with('pages/share', $this->callback(
+                fn (array $data): bool => $data['is_video'] === false
+            ));
+
+        $controller = new ShareController($config, $shareKeyMock, $viewMock);
+        $req = new Request('GET', '/partage.php', ['image' => 'https://example.com/photo.jpg']);
+        $controller->show($req);
+    }
+
+    public function testShareControllerSetsIsVideoTrueForVideosPhpUrl(): void
+    {
+        $config       = $this->makeConfig();
+        $shareKeyMock = $this->createMock(ShareKeyRepository::class);
+        $viewMock     = $this->createMock(ViewRenderer::class);
+
+        $viewMock->expects($this->once())->method('render')
+            ->with('pages/share', $this->callback(
+                fn (array $data): bool => $data['is_video'] === true
+            ));
+
+        $shareKeyMock->method('findValidByKey')->willReturn([
+            'id' => 1, 'key_value' => 'abc', 'path' => '/path', 'expires_at' => date('Y-m-d H:i:s', time() + 3600),
+        ]);
+
+        unset($_SESSION['admin_id']);
+
+        $imageUrl = 'http://localhost/videos.php?path=/liste_albums_prives/clip.mp4&key=abc';
+        $controller = new ShareController($config, $shareKeyMock, $viewMock);
+        $req = new Request('GET', '/partage.php', ['image' => $imageUrl]);
+        $controller->show($req);
+    }
+
+    public function testShareControllerSetsIsVideoTrueForMp4Extension(): void
+    {
+        $config       = $this->makeConfig();
+        $shareKeyMock = $this->createMock(ShareKeyRepository::class);
+        $viewMock     = $this->createMock(ViewRenderer::class);
+
+        $viewMock->expects($this->once())->method('render')
+            ->with('pages/share', $this->callback(
+                fn (array $data): bool => $data['is_video'] === true
+            ));
+
+        $controller = new ShareController($config, $shareKeyMock, $viewMock);
+        $req = new Request('GET', '/partage.php', ['image' => 'https://example.com/clip.mp4']);
         $controller->show($req);
     }
 

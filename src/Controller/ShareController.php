@@ -45,6 +45,7 @@ class ShareController
         }
 
         $isPrivateImage = false;
+        $isVideo        = $this->isVideoUrl($imageUrl);
         $filename       = basename((string) parse_url($imageUrl, PHP_URL_PATH));
         $shareOptions   = ['download' => true, 'source' => true, 'share' => true];
 
@@ -79,6 +80,34 @@ class ShareController
             }
         }
 
+        // Vidéo privée (proxy videos.php)
+        if (str_contains($imageUrl, 'videos.php')) {
+            parse_str((string) parse_url($imageUrl, PHP_URL_QUERY), $params);
+            $path = $params['path'] ?? '';
+            $key  = $params['key']  ?? '';
+
+            if ($path !== '') {
+                $filename = basename($path);
+            }
+
+            if (str_contains($path, 'liste_albums_prives')) {
+                $isPrivateImage = true;
+                $shareKeyData   = $key !== '' ? $this->shareKeyRepo->findValidByKey($key) : null;
+
+                if (!isset($_SESSION['admin_id']) && ($key === '' || $shareKeyData === null)) {
+                    Response::redirect('index.php')->send();
+                    throw new TerminateException();
+                }
+
+                if ($shareKeyData !== null) {
+                    $decoded = json_decode((string) ($shareKeyData['options'] ?? '{}'), true);
+                    if (is_array($decoded)) {
+                        $shareOptions = array_merge($shareOptions, $decoded);
+                    }
+                }
+            }
+        }
+
         $siteTitle       = $this->config->getSiteTitle();
         $siteDescription = $this->config->getSiteDescription();
         $protocol        = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
@@ -93,6 +122,7 @@ class ShareController
             'image_url'        => $imageUrl,
             'filename'         => $filename,
             'is_private_image' => $isPrivateImage,
+            'is_video'         => $isVideo,
             'allow_download'   => (bool) ($shareOptions['download'] ?? true),
             'allow_source'     => (bool) ($shareOptions['source'] ?? true),
             'allow_share'      => (bool) ($shareOptions['share'] ?? true),
@@ -103,5 +133,21 @@ class ShareController
             'og_title'         => $filename . ' — ' . $siteTitle,
             'og_description'   => $siteDescription !== '' ? $siteDescription : $siteTitle,
         ]);
+    }
+
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+
+    private function isVideoUrl(string $url): bool
+    {
+        if (str_contains($url, 'videos.php')) {
+            return true;
+        }
+
+        $path = (string) parse_url($url, PHP_URL_PATH);
+        $ext  = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+
+        return in_array($ext, ['mp4', 'webm'], true);
     }
 }
