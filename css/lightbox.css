@@ -25,7 +25,7 @@
     position: absolute;
     inset: 0;
     z-index: 0;
-    cursor: zoom-out;
+    cursor: pointer;
 }
 
 .lightbox-media-wrap {
@@ -82,6 +82,10 @@
     background: rgba(255, 255, 255, 0.25);
     color: #fff;
 }
+
+.lb-fullscreen-btn .icon-compress { display: none; }
+.lb-fullscreen-btn.is-fullscreen .icon-expand { display: none; }
+.lb-fullscreen-btn.is-fullscreen .icon-compress { display: block; }
 
 .lb-btn.is-playing {
     background: rgba(33, 150, 243, 0.4);

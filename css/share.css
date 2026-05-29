@@ -1,5 +1,5 @@
 /* Page de visualisation d'une image partagée */
-.share-page {
+.page-partage {
     background-color: rgba(0, 0, 0, 0.9);
     min-height: 100vh;
     display: flex;
@@ -65,7 +65,7 @@
     height: 1.2em;
 }
 
-.share-page .site-footer {
+.page-partage .site-footer {
     background-color: rgba(0, 0, 0, 0.5);
     position: fixed;
     bottom: 0;

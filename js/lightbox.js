@@ -115,7 +115,11 @@ class Lightbox {
     }
 
     enterFullscreen() {
-        this.#el.requestFullscreen?.().catch(() => {});
+        if (document.fullscreenElement) {
+            document.exitFullscreen?.().catch(() => {});
+        } else {
+            this.#el.requestFullscreen?.().catch(() => {});
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -233,6 +237,12 @@ class Lightbox {
             if (Math.abs(dx) < 10 && Math.abs(dy) < 10) {
                 this.#sheetOpen ? this.#closeSheet() : this.#openSheet();
             }
+        });
+
+        // Plein écran — mise à jour de l'icône
+        document.addEventListener('fullscreenchange', () => {
+            this.#el.querySelector('.lb-fullscreen-btn')
+                ?.classList.toggle('is-fullscreen', !!document.fullscreenElement);
         });
 
         // Clavier
