@@ -1,3 +1,7 @@
+# Limites d'upload — augmentées pour les vidéos
+php_value upload_max_filesize 512M
+php_value post_max_size 512M
+
 # Redirige toutes les requêtes sans fichier/dossier correspondant vers le front controller
 <IfModule mod_rewrite.c>
     RewriteEngine On

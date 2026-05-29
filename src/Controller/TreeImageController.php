@@ -147,6 +147,17 @@ class TreeImageController
 
     private function handleUpload(string $currentPath, bool $isPrivate): void
     {
+        // PHP vide $_FILES silencieusement quand CONTENT_LENGTH > post_max_size
+        $contentLength = (int) ($_SERVER['CONTENT_LENGTH'] ?? 0);
+        if ($contentLength > 0 && $contentLength > $this->parseIniBytes((string) ini_get('post_max_size'))) {
+            $_SESSION['error_message'] = sprintf(
+                'Le ou les fichiers dépassent la taille maximale autorisée par le serveur (%s). '
+                    . 'Réduisez la taille ou contactez l\'administrateur.',
+                ini_get('post_max_size'),
+            );
+            return;
+        }
+
         $uploadedFiles = $_FILES['images'] ?? [];
         $successCount  = 0;
         $errors        = [];
@@ -462,6 +473,22 @@ class TreeImageController
 
         $reason = $messages[$code] ?? sprintf('a provoqué une erreur inconnue (code %d)', $code);
         return sprintf('"%s" %s.', $filename, $reason);
+    }
+
+    /**
+     * Convertit une valeur de type "256M", "512K", "1G" en octets.
+     */
+    private function parseIniBytes(string $value): int
+    {
+        $unit = strtolower(substr($value, -1));
+        $size = (int) $value;
+
+        return match ($unit) {
+            'g'     => $size * 1_073_741_824,
+            'm'     => $size * 1_048_576,
+            'k'     => $size * 1_024,
+            default => $size,
+        };
     }
 
     /**
