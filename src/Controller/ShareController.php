@@ -141,12 +141,13 @@ class ShareController
 
     private function isVideoUrl(string $url): bool
     {
-        if (str_contains($url, 'videos.php')) {
+        $path = (string) parse_url($url, PHP_URL_PATH);
+
+        if (str_contains($path, 'videos.php')) {
             return true;
         }
 
-        $path = (string) parse_url($url, PHP_URL_PATH);
-        $ext  = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
 
         return in_array($ext, ['mp4', 'webm'], true);
     }
