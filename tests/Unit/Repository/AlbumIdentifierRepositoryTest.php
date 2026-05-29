@@ -104,4 +104,41 @@ class AlbumIdentifierRepositoryTest extends TestCase
         $this->assertNotEmpty($result);
         $this->assertSame(32, strlen($result)); // bin2hex(random_bytes(16)) = 32 chars
     }
+
+    // --- updatePathsAfterMove ---
+
+    public function testUpdatePathsAfterMoveUpdatesExactPath(): void
+    {
+        $this->repo->create('id1', '/albums/old-parent/album');
+
+        $this->repo->updatePathsAfterMove('/albums/old-parent/album', '/albums/new-parent/album');
+
+        $this->assertNull($this->repo->findIdentifierByPath('/albums/old-parent/album'));
+        $this->assertSame('id1', $this->repo->findIdentifierByPath('/albums/new-parent/album'));
+    }
+
+    public function testUpdatePathsAfterMoveUpdatesChildPaths(): void
+    {
+        $this->repo->create('id1', '/albums/old');
+        $this->repo->create('id2', '/albums/old/child');
+        $this->repo->create('id3', '/albums/old/child/deep');
+
+        $this->repo->updatePathsAfterMove('/albums/old', '/albums/new');
+
+        $this->assertSame('id1', $this->repo->findIdentifierByPath('/albums/new'));
+        $this->assertSame('id2', $this->repo->findIdentifierByPath('/albums/new/child'));
+        $this->assertSame('id3', $this->repo->findIdentifierByPath('/albums/new/child/deep'));
+        $this->assertNull($this->repo->findIdentifierByPath('/albums/old'));
+        $this->assertNull($this->repo->findIdentifierByPath('/albums/old/child'));
+    }
+
+    public function testUpdatePathsAfterMoveDoesNotAffectUnrelatedPaths(): void
+    {
+        $this->repo->create('id1', '/albums/old/album');
+        $this->repo->create('id2', '/albums/other/album');
+
+        $this->repo->updatePathsAfterMove('/albums/old/album', '/albums/moved/album');
+
+        $this->assertSame('id2', $this->repo->findIdentifierByPath('/albums/other/album'));
+    }
 }

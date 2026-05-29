@@ -154,6 +154,26 @@
         </div>
     </div>
 
+    <!-- Modal de déplacement de dossier -->
+    <div id="moveFolderModal" class="modal">
+        <div class="modal-content">
+            <h2>Déplacer le dossier</h2>
+            <p>Déplacer <strong id="moveFolderName"></strong> vers :</p>
+            <form method="post" action="arbre-prive.php">
+                <input type="hidden" name="action" value="move_folder">
+                <input type="hidden" name="path" id="movePath">
+                <div class="form-group">
+                    <label for="move_dest">Dossier de destination :</label>
+                    <select id="move_dest" name="dest_path" class="form-select" required></select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" onclick="closeModal()" class="action-button action-button-secondary">Annuler</button>
+                    <button type="submit" class="action-button">Déplacer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Modal génération de lien de partage -->
     <div id="shareLinkModal" class="modal">
         <div class="modal-content">
@@ -207,6 +227,7 @@
 {% endblock %}
 
 {% block scripts %}
+    <script>const allFolders = {{ allFoldersJson|raw }};</script>
     <script src="js/tree.js"></script>
     <script src="js/tree-private.js"></script>
     <script src="js/scroll-top.js"></script>

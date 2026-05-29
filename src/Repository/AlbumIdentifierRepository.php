@@ -77,6 +77,25 @@ class AlbumIdentifierRepository
     }
 
     /**
+     * Met à jour les chemins d'albums après le déplacement d'un dossier.
+     * Met à jour la ligne exacte ($oldPath) et toutes les lignes enfants ($oldPath/...).
+     */
+    public function updatePathsAfterMove(string $oldPath, string $newPath): void
+    {
+        $stmt = $this->pdo->prepare(
+            "UPDATE album_identifiers
+             SET path = :new_path || SUBSTR(path, :suffix_start)
+             WHERE path = :old_path OR path LIKE :old_path_prefix"
+        );
+        $stmt->execute([
+            ':new_path'        => $newPath,
+            ':suffix_start'    => strlen($oldPath) + 1,
+            ':old_path'        => $oldPath,
+            ':old_path_prefix' => $oldPath . '/%',
+        ]);
+    }
+
+    /**
      * Retourne l'identifiant d'un album, en le créant s'il n'existe pas encore.
      * Equivalent de l'ancienne fonction ensureAlbumIdentifier().
      *

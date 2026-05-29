@@ -21,5 +21,6 @@ function closeModal() {
     document.getElementById('createFolderModal').style.display = 'none';
     document.getElementById('editFolderModal').style.display = 'none';
     document.getElementById('deleteFolderModal').style.display = 'none';
+    document.getElementById('moveFolderModal').style.display = 'none';
     document.getElementById('shareLinkModal').style.display = 'none';
 }

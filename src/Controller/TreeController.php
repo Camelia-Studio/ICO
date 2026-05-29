@@ -82,9 +82,10 @@ class TreeController
             throw new TerminateException();
         }
 
-        $siteTitle = $this->config->getSiteTitle();
-        $tree      = $this->generatePublicTree($this->albumsRoot, $currentPath);
-        $this->renderPublic($siteTitle, $tree);
+        $siteTitle      = $this->config->getSiteTitle();
+        $tree           = $this->generatePublicTree($this->albumsRoot, $currentPath);
+        $allFoldersJson = json_encode($this->collectFoldersList($this->albumsRoot), JSON_HEX_TAG) ?: '[]';
+        $this->renderPublic($siteTitle, $tree, $allFoldersJson);
     }
 
     private function handlePublicPost(): void
@@ -154,6 +155,51 @@ class TreeController
                 }
 
                 break;
+
+            case 'move_folder':
+                $destPath    = $this->absPath($_POST['dest_path'] ?? '');
+                $albumsReal  = realpath($this->albumsRoot) ?: '';
+                if (
+                    !$path || !$destPath || !$albumsReal ||
+                    !str_starts_with($path, $albumsReal . '/') ||
+                    !str_starts_with($destPath, $albumsReal)
+                ) {
+                    $_SESSION['error_message'] = 'Chemin invalide.';
+                    break;
+                }
+
+                if ($destPath === $path || str_starts_with($destPath, $path . '/')) {
+                    $_SESSION['error_message'] = 'La destination ne peut pas être à l\'intérieur du dossier source.';
+                    break;
+                }
+
+                if (dirname($path) === $destPath) {
+                    $_SESSION['error_message'] = 'Le dossier est déjà dans ce dossier.';
+                    break;
+                }
+
+                $newPath = $destPath . '/' . basename($path);
+                if (file_exists($newPath)) {
+                    $_SESSION['error_message'] = 'Un dossier avec ce nom existe déjà dans la destination.';
+                    break;
+                }
+
+                $folderTitle = $this->albumService->getAlbumInfo($path)['title'];
+                $destTitle   = $this->albumService->getAlbumInfo($destPath)['title'];
+                if (rename($path, $newPath)) {
+                    $this->albumIdentRepo->updatePathsAfterMove($path, $newPath);
+                    $this->logRepo->log(
+                        (int) $_SESSION['admin_id'],
+                        'MOVE_FOLDER',
+                        'Déplacement de « ' . $folderTitle . ' » vers « ' . $destTitle . ' »',
+                        $newPath,
+                    );
+                    $_SESSION['success_message'] = 'Dossier « ' . $folderTitle . ' » déplacé vers « ' . $destTitle . ' » avec succès.';
+                } else {
+                    $_SESSION['error_message'] = 'Erreur lors du déplacement du dossier.';
+                }
+
+                break;
         }
     }
 
@@ -194,10 +240,11 @@ class TreeController
             throw new TerminateException();
         }
 
-        $siteTitle = $this->config->getSiteTitle();
-        $shareUrl  = $_SESSION['share_url'] ?? null;
-        $tree      = $this->generatePrivateTree($this->albumsPrivateRoot, $currentPath);
-        $this->renderPrivate($siteTitle, $tree, $shareUrl);
+        $siteTitle      = $this->config->getSiteTitle();
+        $shareUrl       = $_SESSION['share_url'] ?? null;
+        $tree           = $this->generatePrivateTree($this->albumsPrivateRoot, $currentPath);
+        $allFoldersJson = json_encode($this->collectFoldersList($this->albumsPrivateRoot), JSON_HEX_TAG) ?: '[]';
+        $this->renderPrivate($siteTitle, $tree, $shareUrl, $allFoldersJson);
     }
 
     private function handleGenerateLink(): void
@@ -302,6 +349,51 @@ class TreeController
                 }
 
                 break;
+
+            case 'move_folder':
+                $destPath       = $this->absPath($_POST['dest_path'] ?? '');
+                $privateReal    = realpath($this->albumsPrivateRoot) ?: '';
+                if (
+                    !$path || !$destPath || !$privateReal ||
+                    !str_starts_with($path, $privateReal . '/') ||
+                    !str_starts_with($destPath, $privateReal)
+                ) {
+                    $_SESSION['error_message'] = 'Chemin invalide.';
+                    break;
+                }
+
+                if ($destPath === $path || str_starts_with($destPath, $path . '/')) {
+                    $_SESSION['error_message'] = 'La destination ne peut pas être à l\'intérieur du dossier source.';
+                    break;
+                }
+
+                if (dirname($path) === $destPath) {
+                    $_SESSION['error_message'] = 'Le dossier est déjà dans ce dossier.';
+                    break;
+                }
+
+                $newPath = $destPath . '/' . basename($path);
+                if (file_exists($newPath)) {
+                    $_SESSION['error_message'] = 'Un dossier avec ce nom existe déjà dans la destination.';
+                    break;
+                }
+
+                $folderTitle = $this->albumService->getAlbumInfo($path)['title'];
+                $destTitle   = $this->albumService->getAlbumInfo($destPath)['title'];
+                if (rename($path, $newPath)) {
+                    $this->albumIdentRepo->updatePathsAfterMove($path, $newPath);
+                    $this->logRepo->log(
+                        (int) $_SESSION['admin_id'],
+                        'MOVE_PRIVATE_FOLDER',
+                        'Déplacement de « ' . $folderTitle . ' » vers « ' . $destTitle . ' »',
+                        $newPath,
+                    );
+                    $_SESSION['success_message'] = 'Dossier privé « ' . $folderTitle . ' » déplacé vers « ' . $destTitle . ' » avec succès.';
+                } else {
+                    $_SESSION['error_message'] = 'Erreur lors du déplacement du dossier.';
+                }
+
+                break;
         }
     }
 
@@ -401,6 +493,7 @@ class TreeController
                 $output .= '<button onclick="createSubfolder(\'' . htmlspecialchars($relativePath) . '\')" class="tree-button">➕</button>';
             }
 
+            $output .= '<button onclick="moveFolder(\'' . htmlspecialchars($relativePath) . "', '" . rawurlencode($info['title']) . '\')" class="tree-button" title="Déplacer">↪</button>';
             $output .= '<button onclick="deleteFolder(\'' . htmlspecialchars($relativePath) . '\')" class="tree-button tree-button-danger">🗑️</button>';
             $output .= '</div></div>';
             $output .= $this->generatePublicTree($fullPath, $currentPath);
@@ -489,6 +582,7 @@ class TreeController
                 $output .= '<button onclick="createSubfolder(\'' . htmlspecialchars($relPath) . '\')" class="tree-button">➕</button>';
             }
 
+            $output .= '<button onclick="moveFolder(\'' . htmlspecialchars($relPath) . "', '" . rawurlencode($info['title']) . '\')" class="tree-button" title="Déplacer">↪</button>';
             $output .= '<button onclick="deleteFolder(\'' . htmlspecialchars($relPath) . '\')" class="tree-button tree-button-danger">🗑️</button>';
             $output .= '</div></div>';
             $output .= $this->generatePrivateTree($fullPath, $currentPath);
@@ -502,17 +596,18 @@ class TreeController
     // Rendus HTML
     // -------------------------------------------------------------------------
 
-    private function renderPublic(string $siteTitle, string $tree): void
+    private function renderPublic(string $siteTitle, string $tree, string $allFoldersJson): void
     {
         $this->view->render('pages/tree-public', [
             'siteTitle'      => $siteTitle,
             'tree'           => $tree,
             'version'        => $this->config->getVersion(),
             'info_pages'     => $this->infoPageRepo->findPublished(),
+            'allFoldersJson' => $allFoldersJson,
         ]);
     }
 
-    private function renderPrivate(string $siteTitle, string $tree, ?string $shareUrl): void
+    private function renderPrivate(string $siteTitle, string $tree, ?string $shareUrl, string $allFoldersJson): void
     {
         $this->view->render('pages/tree-private', [
             'siteTitle'      => $siteTitle,
@@ -520,6 +615,40 @@ class TreeController
             'shareUrl'       => $shareUrl,
             'version'        => $this->config->getVersion(),
             'info_pages'     => $this->infoPageRepo->findPublished(),
+            'allFoldersJson' => $allFoldersJson,
         ]);
+    }
+
+    /**
+     * Collecte récursivement tous les dossiers sous $path pour le dropdown de déplacement.
+     *
+     * @return list<array{path: string, title: string, depth: int}>
+     */
+    private function collectFoldersList(string $path, int $depth = 0): array
+    {
+        if (!is_dir($path)) {
+            return [];
+        }
+
+        $info   = $this->albumService->getAlbumInfo($path);
+        $result = [['path' => $this->relPath($path), 'title' => $info['title'], 'depth' => $depth]];
+
+        $dirs = [];
+        foreach (new DirectoryIterator($path) as $item) {
+            if ($item->isDot() || !$item->isDir()) {
+                continue;
+            }
+
+            $subInfo                = $this->albumService->getAlbumInfo($item->getPathname());
+            $dirs[$subInfo['title']] = $item->getPathname();
+        }
+
+        ksort($dirs, SORT_STRING | SORT_FLAG_CASE);
+
+        foreach ($dirs as $subPath) {
+            $result = array_merge($result, $this->collectFoldersList($subPath, $depth + 1));
+        }
+
+        return $result;
     }
 }

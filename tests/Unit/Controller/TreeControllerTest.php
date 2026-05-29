@@ -474,6 +474,148 @@ class TreeControllerTest extends TestCase
     }
 
     // =========================================================================
+    // handlePublic — POST move_folder
+    // =========================================================================
+
+    public function testHandlePublicPostMoveFolderSuccess(): void
+    {
+        $source = $this->albumsRoot . '/source';
+        $dest   = $this->albumsRoot . '/dest';
+        mkdir($source, 0o775, true);
+        mkdir($dest, 0o775, true);
+        file_put_contents($source . '/infos.txt', "Source\nDesc\n18-\n");
+        file_put_contents($dest   . '/infos.txt', "Destination\nDesc\n18-\n");
+
+        $authMock      = $this->createMock(AuthService::class);
+        $authMock->method('isLoggedIn')->willReturn(true);
+
+        $albumIdentRepo = $this->createMock(AlbumIdentifierRepository::class);
+        $albumIdentRepo->expects($this->once())->method('updatePathsAfterMove');
+
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST['action']           = 'move_folder';
+        $_POST['path']             = 'liste_albums/source';
+        $_POST['dest_path']        = 'liste_albums/dest';
+
+        $this->expectException(TerminateException::class);
+
+        $this->makeController($authMock, $this->createMock(ViewRenderer::class), null, null, $albumIdentRepo)
+            ->handlePublic();
+
+        $this->assertDirectoryExists($dest . '/source');
+        $this->assertDirectoryDoesNotExist($source);
+    }
+
+    public function testHandlePublicPostMoveFolderBlockedCircular(): void
+    {
+        $source = $this->albumsRoot . '/parent';
+        $child  = $source . '/child';
+        mkdir($child, 0o775, true);
+        file_put_contents($source . '/infos.txt', "Parent\nDesc\n18-\n");
+        file_put_contents($child  . '/infos.txt', "Child\nDesc\n18-\n");
+
+        $authMock = $this->createMock(AuthService::class);
+        $authMock->method('isLoggedIn')->willReturn(true);
+
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST['action']           = 'move_folder';
+        $_POST['path']             = 'liste_albums/parent';
+        $_POST['dest_path']        = 'liste_albums/parent/child';
+
+        try {
+            $this->makeController($authMock, $this->createMock(ViewRenderer::class))->handlePublic();
+        } catch (TerminateException) {
+        }
+
+        $this->assertArrayHasKey('error_message', $_SESSION);
+        $this->assertDirectoryExists($source);
+    }
+
+    public function testHandlePublicPostMoveFolderBlockedAlreadyThere(): void
+    {
+        $folder = $this->albumsRoot . '/myfolder';
+        mkdir($folder, 0o775, true);
+        file_put_contents($folder . '/infos.txt', "Folder\nDesc\n18-\n");
+
+        $authMock = $this->createMock(AuthService::class);
+        $authMock->method('isLoggedIn')->willReturn(true);
+
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST['action']           = 'move_folder';
+        $_POST['path']             = 'liste_albums/myfolder';
+        $_POST['dest_path']        = 'liste_albums';
+
+        try {
+            $this->makeController($authMock, $this->createMock(ViewRenderer::class))->handlePublic();
+        } catch (TerminateException) {
+        }
+
+        $this->assertArrayHasKey('error_message', $_SESSION);
+        $this->assertDirectoryExists($folder);
+    }
+
+    public function testHandlePublicPostMoveFolderBlockedCollision(): void
+    {
+        $source      = $this->albumsRoot . '/source';
+        $dest        = $this->albumsRoot . '/dest';
+        $destConflict = $dest . '/source';
+        mkdir($source, 0o775, true);
+        mkdir($destConflict, 0o775, true);
+        file_put_contents($source       . '/infos.txt', "Source\nDesc\n18-\n");
+        file_put_contents($dest         . '/infos.txt', "Dest\nDesc\n18-\n");
+        file_put_contents($destConflict . '/infos.txt', "Conflict\nDesc\n18-\n");
+
+        $authMock = $this->createMock(AuthService::class);
+        $authMock->method('isLoggedIn')->willReturn(true);
+
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST['action']           = 'move_folder';
+        $_POST['path']             = 'liste_albums/source';
+        $_POST['dest_path']        = 'liste_albums/dest';
+
+        try {
+            $this->makeController($authMock, $this->createMock(ViewRenderer::class))->handlePublic();
+        } catch (TerminateException) {
+        }
+
+        $this->assertArrayHasKey('error_message', $_SESSION);
+        $this->assertDirectoryExists($source);
+    }
+
+    // =========================================================================
+    // handlePrivate — POST move_folder
+    // =========================================================================
+
+    public function testHandlePrivatePostMoveFolderSuccess(): void
+    {
+        $source = $this->privateRoot . '/source';
+        $dest   = $this->privateRoot . '/dest';
+        mkdir($source, 0o775, true);
+        mkdir($dest, 0o775, true);
+        file_put_contents($source . '/infos.txt', "Source\nDesc\n18-\n");
+        file_put_contents($dest   . '/infos.txt', "Destination\nDesc\n18-\n");
+
+        $authMock      = $this->createMock(AuthService::class);
+        $authMock->method('isLoggedIn')->willReturn(true);
+
+        $albumIdentRepo = $this->createMock(AlbumIdentifierRepository::class);
+        $albumIdentRepo->expects($this->once())->method('updatePathsAfterMove');
+
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST['action']           = 'move_folder';
+        $_POST['path']             = 'liste_albums_prives/source';
+        $_POST['dest_path']        = 'liste_albums_prives/dest';
+
+        $this->expectException(TerminateException::class);
+
+        $this->makeController($authMock, $this->createMock(ViewRenderer::class), null, null, $albumIdentRepo)
+            ->handlePrivate();
+
+        $this->assertDirectoryExists($dest . '/source');
+        $this->assertDirectoryDoesNotExist($source);
+    }
+
+    // =========================================================================
     // handlePrivate — POST generate_link
 
     public function testHandlePrivatePostGenerateLink(): void
@@ -517,6 +659,7 @@ class TreeControllerTest extends TestCase
         ViewRenderer $view,
         ?LogRepository $logMock = null,
         ?FileService $fileSvc = null,
+        ?AlbumIdentifierRepository $albumIdentRepo = null,
     ): TreeController {
         $config       = $this->makeConfig();
         $log          = $logMock ?? $this->createMock(LogRepository::class);
@@ -530,7 +673,7 @@ class TreeControllerTest extends TestCase
             $albumService,
             $fileSvc,
             $log,
-            $this->createMock(AlbumIdentifierRepository::class),
+            $albumIdentRepo ?? $this->createMock(AlbumIdentifierRepository::class),
             $this->createMock(ShareKeyRepository::class),
             $view,
             $this->createMock(InfoPageRepository::class),
