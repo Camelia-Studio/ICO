@@ -77,14 +77,18 @@ class GalleryController
         $zipUrl = $this->pathService->getBaseUrl() . '/zip.php?path=' . urlencode($rawPath);
 
         $this->view->render('pages/gallery-public', [
-            'album_info'   => $albumInfo,
-            'images'       => $images,
-            'header_image' => $this->firstImageUrl($images),
-            'parent_path'  => $this->pathService->toRelative($parentAbsolute),
-            'breadcrumbs'  => $this->buildBreadcrumbs($currentPath),
-            'site_title'   => $this->config->getSiteTitle(),
-            'rss_url'      => $rssUrl,
-            'zip_url'      => $zipUrl,
+            'album_info'        => $albumInfo,
+            'images'            => $images,
+            'header_image'      => $this->firstImageUrl($images),
+            'parent_path'       => $this->pathService->toRelative($parentAbsolute),
+            'breadcrumbs'       => $this->buildBreadcrumbs($currentPath),
+            'site_title'        => $this->config->getSiteTitle(),
+            'rss_url'           => $rssUrl,
+            'zip_url'           => $zipUrl,
+            'slideshow_interval' => $this->config->getSlideshowInterval(),
+            'allow_download'    => true,
+            'allow_share'       => true,
+            'allow_source'      => true,
         ]);
     }
 

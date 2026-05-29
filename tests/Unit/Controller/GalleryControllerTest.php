@@ -113,6 +113,30 @@ class GalleryControllerTest extends TestCase
         $this->assertFalse($capturedData['images'][1]['is_top']);
     }
 
+    public function testShowPassesSlideshowIntervalAndAllowFlagsToView(): void
+    {
+        $albumService = new AlbumService($this->albumsRoot, $this->privateRoot);
+        $fileService  = $this->createMock(FileService::class);
+        $shareKeyRepo = $this->createMock(ShareKeyRepository::class);
+
+        $capturedData = null;
+        $view = $this->createMock(ViewRenderer::class);
+        $view->method('render')
+            ->willReturnCallback(function (string $tpl, array $data) use (&$capturedData): void {
+                $capturedData = $data;
+            });
+
+        $request    = new Request('GET', '/galeries.php', ['path' => $this->albumsRoot . '/album1']);
+        $controller = $this->makeController($albumService, $fileService, $shareKeyRepo, $view);
+        $controller->show($request);
+
+        $this->assertArrayHasKey('slideshow_interval', $capturedData);
+        $this->assertSame(5, $capturedData['slideshow_interval']); // défaut config sans ligne 4
+        $this->assertTrue($capturedData['allow_download']);
+        $this->assertTrue($capturedData['allow_share']);
+        $this->assertTrue($capturedData['allow_source']);
+    }
+
     // =========================================================================
     // showPrivate() — private gallery
     // =========================================================================
