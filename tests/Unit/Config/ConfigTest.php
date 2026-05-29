@@ -121,6 +121,62 @@ class ConfigTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+    // getSlideshowInterval
+    // -------------------------------------------------------------------------
+
+    public function testFromFileReadsSlideshowIntervalFromLine4(): void
+    {
+        $configFile  = $this->tmpDir . '/config.txt';
+        $versionFile = $this->tmpDir . '/version.txt';
+
+        file_put_contents($configFile, "Mon Site\nDesc\nbase\n8");
+        file_put_contents($versionFile, '1.0.0');
+
+        $config = Config::fromFile($configFile, $versionFile);
+
+        $this->assertSame(8, $config->getSlideshowInterval());
+    }
+
+    public function testFromFileDefaultsSlideshowIntervalTo5WhenLineMissing(): void
+    {
+        $configFile  = $this->tmpDir . '/config.txt';
+        $versionFile = $this->tmpDir . '/version.txt';
+
+        file_put_contents($configFile, "Mon Site\nDesc\nbase");
+        file_put_contents($versionFile, '1.0.0');
+
+        $config = Config::fromFile($configFile, $versionFile);
+
+        $this->assertSame(5, $config->getSlideshowInterval());
+    }
+
+    public function testFromFileDefaultsSlideshowIntervalTo5WhenLineInvalid(): void
+    {
+        $configFile  = $this->tmpDir . '/config.txt';
+        $versionFile = $this->tmpDir . '/version.txt';
+
+        file_put_contents($configFile, "Mon Site\nDesc\nbase\nabc");
+        file_put_contents($versionFile, '1.0.0');
+
+        $config = Config::fromFile($configFile, $versionFile);
+
+        $this->assertSame(5, $config->getSlideshowInterval());
+    }
+
+    public function testFromFileDefaultsSlideshowIntervalTo5WhenLineIsZeroOrNegative(): void
+    {
+        $configFile  = $this->tmpDir . '/config.txt';
+        $versionFile = $this->tmpDir . '/version.txt';
+
+        file_put_contents($configFile, "Mon Site\nDesc\nbase\n0");
+        file_put_contents($versionFile, '1.0.0');
+
+        $config = Config::fromFile($configFile, $versionFile);
+
+        $this->assertSame(5, $config->getSlideshowInterval());
+    }
+
+    // -------------------------------------------------------------------------
     // configureSession — vérifie l'absence d'erreur
     // -------------------------------------------------------------------------
 

@@ -25,6 +25,7 @@ final readonly class Config
         private string $siteDescription,
         private string $basePath,
         private string $version,
+        private int    $slideshowInterval,
     ) {
     }
 
@@ -40,11 +41,15 @@ final readonly class Config
         $siteDescription = '';
         $basePath        = '';
 
+        $slideshowInterval = 5;
+
         if (file_exists($configFile)) {
-            $lines = explode("\n", file_get_contents($configFile));
-            $siteTitle       = trim($lines[0]);
-            $siteDescription = trim($lines[1] ?? '');
-            $basePath        = trim($lines[2] ?? '');
+            $lines             = explode("\n", file_get_contents($configFile));
+            $siteTitle         = trim($lines[0]);
+            $siteDescription   = trim($lines[1] ?? '');
+            $basePath          = trim($lines[2] ?? '');
+            $rawInterval       = (int) trim($lines[3] ?? '');
+            $slideshowInterval = $rawInterval >= 1 ? $rawInterval : 5;
         }
 
         $version = 'inconnue';
@@ -52,7 +57,7 @@ final readonly class Config
             $version = trim(file_get_contents($versionFile));
         }
 
-        return new self($siteTitle, $siteDescription, $basePath, $version);
+        return new self($siteTitle, $siteDescription, $basePath, $version, $slideshowInterval);
     }
 
     /**
@@ -106,6 +111,14 @@ final readonly class Config
     public function getVideoExtensions(): array
     {
         return self::VIDEO_EXTENSIONS;
+    }
+
+    /**
+     * Intervalle du diaporama en secondes (ligne 4 de config.txt, défaut 5).
+     */
+    public function getSlideshowInterval(): int
+    {
+        return $this->slideshowInterval;
     }
 
     /**
