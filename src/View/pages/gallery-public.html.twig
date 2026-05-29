@@ -4,6 +4,7 @@
 
 {% block extra_head %}
     <link rel="alternate" type="application/rss+xml" title="{{ album_info.title }}" href="{{ rss_url }}">
+    <link rel="stylesheet" href="css/lightbox.css">
 {% endblock %}
 
 {% block body_class %}gallery-page{{ album_info.mature_content ? ' gallery-page-mature content-blurred' : '' }}{% endblock %}
@@ -89,11 +90,27 @@
         {% endif %}
         <div class="gallery-item {{ image.is_top ? 'gallery-item-top' : '' }} {{ spanClass }}">
             {% if image.type == 'video' %}
-                <video controls preload="none" class="gallery-video">
-                    <source src="{{ image.url }}" type="{{ image.mime }}">
-                </video>
+                <div class="gallery-lightbox-trigger gallery-video-trigger"
+                     data-type="video"
+                     data-src="{{ image.url }}"
+                     data-mime="{{ image.mime }}"
+                     data-share-url="partage.php?image={{ image.url|url_encode }}">
+                    <video muted preload="none" class="gallery-video gallery-video-thumb">
+                        <source src="{{ image.url }}" type="{{ image.mime }}">
+                    </video>
+                    <div class="gallery-video-play-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <polygon points="5 3 19 12 5 21 5 3"/>
+                        </svg>
+                    </div>
+                </div>
             {% else %}
-                <a href="partage.php?image={{ image.url|url_encode }}" target="_blank">
+                <a href="partage.php?image={{ image.url|url_encode }}"
+                   class="gallery-lightbox-trigger"
+                   data-type="image"
+                   data-src="{{ image.url }}"
+                   data-share-url="partage.php?image={{ image.url|url_encode }}"
+                   target="_blank">
                     <img src="{{ image.url }}"
                          alt="Image de la galerie"
                          loading="lazy">
@@ -103,10 +120,18 @@
         {% endfor %}
     </div>
 
+    {% include 'partials/lightbox.html.twig' with {
+        'slideshow_interval': slideshow_interval,
+        'allow_download': allow_download,
+        'allow_share': allow_share,
+        'allow_source': allow_source
+    } only %}
+
     <button class="scroll-top" title="Retour en haut">↑</button>
 {% endblock %}
 
 {% block scripts %}
     <script src="js/gallery.js"></script>
     <script src="js/scroll-top.js"></script>
+    <script src="js/lightbox.js"></script>
 {% endblock %}
