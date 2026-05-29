@@ -72,10 +72,32 @@ function deleteFolder(path) {
     document.getElementById('deleteFolderModal').style.display = 'block';
 }
 
+function moveFolder(path, encodedTitle) {
+    document.getElementById('movePath').value = path;
+    document.getElementById('moveFolderName').textContent = decodeURIComponent(encodedTitle);
+
+    const select = document.getElementById('move_dest');
+    select.innerHTML = '';
+
+    const parentPath = path.substring(0, path.lastIndexOf('/'));
+    const folders = typeof allFolders !== 'undefined' ? allFolders : [];
+
+    folders.forEach(f => {
+        if (f.path === path || f.path.startsWith(path + '/') || f.path === parentPath) return;
+        const opt = document.createElement('option');
+        opt.value = f.path;
+        opt.textContent = '  '.repeat(f.depth) + f.title;
+        select.appendChild(opt);
+    });
+
+    document.getElementById('moveFolderModal').style.display = 'block';
+}
+
 function closeModal() {
     document.getElementById('createFolderModal').style.display = 'none';
     document.getElementById('editFolderModal').style.display = 'none';
     document.getElementById('deleteFolderModal').style.display = 'none';
+    document.getElementById('moveFolderModal').style.display = 'none';
 }
 
 window.onclick = function (event) {
