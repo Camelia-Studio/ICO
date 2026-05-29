@@ -1,0 +1,96 @@
+<div id="lightbox" class="lightbox" aria-hidden="true" role="dialog" aria-modal="true"
+     data-slideshow-interval="{{ slideshow_interval }}"
+     data-allow-download="{{ allow_download ? '1' : '0' }}"
+     data-allow-share="{{ allow_share ? '1' : '0' }}"
+     data-allow-source="{{ allow_source ? '1' : '0' }}">
+
+    <div class="lightbox-backdrop"></div>
+
+    <div class="lightbox-media-wrap">
+        <img class="lightbox-img" src="" alt="" style="display:none">
+        <video class="lightbox-video" controls playsinline style="display:none"></video>
+    </div>
+
+    <button class="lightbox-close-mobile" data-action="close" aria-label="Fermer">✕</button>
+
+    <div class="lightbox-topbar">
+        <button class="lb-btn" data-action="fullscreen" title="Plein écran">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+            </svg>
+        </button>
+        <button class="lb-btn lb-slideshow-btn" data-action="slideshow" title="Diaporama">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+        </button>
+        <input class="lb-slideshow-interval" type="number" min="1" max="60" title="Intervalle (s)">
+        <span class="lb-sep"></span>
+        <a class="lb-btn lb-download" download title="Télécharger">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+        </a>
+        <button class="lb-btn lb-share-btn" data-action="share" title="Partager">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                <polyline points="16 6 12 2 8 6"/>
+                <line x1="12" y1="2" x2="12" y2="15"/>
+            </svg>
+        </button>
+        <a class="lb-btn lb-source-btn" target="_blank" rel="noopener noreferrer" title="Chercher la source">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                <line x1="11" y1="8" x2="11" y2="14"/>
+                <line x1="8" y1="11" x2="14" y2="11"/>
+            </svg>
+        </a>
+        <span class="lb-sep"></span>
+        <button class="lb-btn" data-action="close" title="Fermer">✕</button>
+    </div>
+
+    <button class="lb-nav lb-prev" data-action="prev" aria-label="Précédent">&#8249;</button>
+    <button class="lb-nav lb-next" data-action="next" aria-label="Suivant">&#8250;</button>
+
+    <div class="lightbox-counter" aria-live="polite"></div>
+
+    <div class="lightbox-sheet">
+        <div class="lightbox-sheet-handle"></div>
+        <div class="lightbox-sheet-actions">
+            <button class="lb-sheet-btn lb-slideshow-btn" data-action="slideshow">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="5 3 19 12 5 21 5 3"/>
+                </svg>
+                Diapo
+            </button>
+            <a class="lb-sheet-btn lb-download" download>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Télécharger
+            </a>
+            <button class="lb-sheet-btn lb-share-btn" data-action="share">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                    <polyline points="16 6 12 2 8 6"/>
+                    <line x1="12" y1="2" x2="12" y2="15"/>
+                </svg>
+                Partager
+            </button>
+            <a class="lb-sheet-btn lb-source-btn" target="_blank" rel="noopener noreferrer">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    <line x1="11" y1="8" x2="11" y2="14"/>
+                    <line x1="8" y1="11" x2="14" y2="11"/>
+                </svg>
+                Source ?
+            </a>
+        </div>
+    </div>
+</div>
