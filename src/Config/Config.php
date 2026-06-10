@@ -135,7 +135,7 @@ final readonly class Config
     }
 
     /**
-     * Options de partage globales par défaut (ligne 4 de config.txt).
+     * Options de partage globales par défaut (ligne 5 de config.txt).
      *
      * @return array{download: bool, source: bool, share: bool}
      */
