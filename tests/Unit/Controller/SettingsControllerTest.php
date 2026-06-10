@@ -162,6 +162,131 @@ class SettingsControllerTest extends TestCase
     }
 
     // =========================================================================
+    // GET — passe default_share_options à la vue
+    // =========================================================================
+
+    public function testIndexRendersFormWithDefaultShareOptions(): void
+    {
+        file_put_contents(
+            $this->configFile,
+            "ICO\nDescription\nbase-path\n5\n" . json_encode(['download' => false, 'source' => true, 'share' => true])
+        );
+
+        $auth = $this->createMock(AuthService::class);
+        $auth->method('isLoggedIn')->willReturn(true);
+
+        $view = $this->createMock(ViewRenderer::class);
+        $view->expects($this->once())->method('render')
+            ->with('pages/settings', $this->callback(
+                fn (array $d): bool =>
+                    isset($d['default_share_options']) &&
+                    $d['default_share_options']['download'] === false &&
+                    $d['default_share_options']['source'] === true &&
+                    $d['default_share_options']['share'] === true
+            ));
+
+        $controller = $this->makeController(auth: $auth, view: $view);
+        $controller->index(new Request('GET', '/personnalisation.php'));
+    }
+
+    // =========================================================================
+    // POST — sauvegarde les options de partage en ligne 4
+    // =========================================================================
+
+    public function testPostSavesShareOptionsToLine4WhenPartiallyChecked(): void
+    {
+        $auth = $this->createMock(AuthService::class);
+        $auth->method('isLoggedIn')->willReturn(true);
+        $auth->method('getLoggedInAdminId')->willReturn(1);
+
+        $log = $this->createMock(LogRepository::class);
+
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_FILES['favicon'] = ['error' => UPLOAD_ERR_NO_FILE, 'size' => 0, 'tmp_name' => ''];
+
+        try {
+            $controller = $this->makeController(auth: $auth, log: $log);
+            $controller->index(new Request('POST', '/personnalisation.php', body: [
+                'site_title'           => 'Titre',
+                'site_description'     => '',
+                'project_path'         => '',
+                'slideshow_interval'   => '5',
+                'share_default_source' => 'on',
+                // share_default_download et share_default_share non envoyés (décochés)
+            ]));
+        } catch (TerminateException) {
+        }
+
+        $lines = explode("\n", (string) file_get_contents($this->configFile));
+        $opts  = json_decode($lines[4] ?? '{}', true);
+        $this->assertFalse($opts['download']);
+        $this->assertTrue($opts['source']);
+        $this->assertFalse($opts['share']);
+    }
+
+    public function testPostSavesShareOptionsAllTrueWhenAllChecked(): void
+    {
+        $auth = $this->createMock(AuthService::class);
+        $auth->method('isLoggedIn')->willReturn(true);
+        $auth->method('getLoggedInAdminId')->willReturn(1);
+
+        $log = $this->createMock(LogRepository::class);
+
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_FILES['favicon'] = ['error' => UPLOAD_ERR_NO_FILE, 'size' => 0, 'tmp_name' => ''];
+
+        try {
+            $controller = $this->makeController(auth: $auth, log: $log);
+            $controller->index(new Request('POST', '/personnalisation.php', body: [
+                'site_title'             => 'Titre',
+                'site_description'       => '',
+                'project_path'           => '',
+                'slideshow_interval'     => '5',
+                'share_default_download' => 'on',
+                'share_default_source'   => 'on',
+                'share_default_share'    => 'on',
+            ]));
+        } catch (TerminateException) {
+        }
+
+        $lines = explode("\n", (string) file_get_contents($this->configFile));
+        $opts  = json_decode($lines[4] ?? '{}', true);
+        $this->assertTrue($opts['download']);
+        $this->assertTrue($opts['source']);
+        $this->assertTrue($opts['share']);
+    }
+
+    public function testPostPreservesLines0To3WhenSavingShareOptions(): void
+    {
+        $auth = $this->createMock(AuthService::class);
+        $auth->method('isLoggedIn')->willReturn(true);
+        $auth->method('getLoggedInAdminId')->willReturn(1);
+
+        $log = $this->createMock(LogRepository::class);
+
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_FILES['favicon'] = ['error' => UPLOAD_ERR_NO_FILE, 'size' => 0, 'tmp_name' => ''];
+
+        try {
+            $controller = $this->makeController(auth: $auth, log: $log);
+            $controller->index(new Request('POST', '/personnalisation.php', body: [
+                'site_title'             => 'Mon Site',
+                'site_description'       => 'Ma description',
+                'project_path'           => 'sous-chemin',
+                'slideshow_interval'     => '7',
+                'share_default_download' => 'on',
+            ]));
+        } catch (TerminateException) {
+        }
+
+        $lines = explode("\n", (string) file_get_contents($this->configFile));
+        $this->assertSame('Mon Site', $lines[0]);
+        $this->assertSame('Ma description', $lines[1]);
+        $this->assertSame('sous-chemin', $lines[2]);
+        $this->assertSame('7', $lines[3]);
+    }
+
+    // =========================================================================
     // POST — saves config, no favicon
     // =========================================================================
 
