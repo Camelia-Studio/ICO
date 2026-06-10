@@ -26,6 +26,8 @@ final readonly class Config
         private string $basePath,
         private string $version,
         private int    $slideshowInterval,
+        /** @var array{download: bool, source: bool, share: bool} */
+        private array  $defaultShareOptions,
     ) {
     }
 
@@ -37,11 +39,11 @@ final readonly class Config
      */
     public static function fromFile(string $configFile, string $versionFile): self
     {
-        $siteTitle       = 'ICO';
-        $siteDescription = '';
-        $basePath        = '';
-
+        $siteTitle        = 'ICO';
+        $siteDescription  = '';
+        $basePath         = '';
         $slideshowInterval = 5;
+        $defaultShareOpts  = ['download' => true, 'source' => true, 'share' => true];
 
         if (file_exists($configFile)) {
             $lines             = explode("\n", file_get_contents($configFile));
@@ -50,6 +52,17 @@ final readonly class Config
             $basePath          = trim($lines[2] ?? '');
             $rawInterval       = (int) trim($lines[3] ?? '');
             $slideshowInterval = $rawInterval >= 1 ? $rawInterval : 5;
+
+            if (isset($lines[4])) {
+                $decoded = json_decode(trim($lines[4]), true);
+                if (is_array($decoded)) {
+                    $defaultShareOpts = [
+                        'download' => (bool) ($decoded['download'] ?? true),
+                        'source'   => (bool) ($decoded['source']   ?? true),
+                        'share'    => (bool) ($decoded['share']     ?? true),
+                    ];
+                }
+            }
         }
 
         $version = 'inconnue';
@@ -57,7 +70,7 @@ final readonly class Config
             $version = trim(file_get_contents($versionFile));
         }
 
-        return new self($siteTitle, $siteDescription, $basePath, $version, $slideshowInterval);
+        return new self($siteTitle, $siteDescription, $basePath, $version, $slideshowInterval, $defaultShareOpts);
     }
 
     /**
@@ -119,6 +132,16 @@ final readonly class Config
     public function getSlideshowInterval(): int
     {
         return $this->slideshowInterval;
+    }
+
+    /**
+     * Options de partage globales par défaut (ligne 4 de config.txt).
+     *
+     * @return array{download: bool, source: bool, share: bool}
+     */
+    public function getDefaultShareOptions(): array
+    {
+        return $this->defaultShareOptions;
     }
 
     /**
