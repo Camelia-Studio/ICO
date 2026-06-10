@@ -40,8 +40,9 @@ class AlbumService
      *   2 : 18+ | 18-
      *   3 : more_info_url
      *   4 : zip_download (1 = activé, 0 = désactivé)
+     *   5 : share_options (JSON : {"download":true,"source":true,"share":true})
      *
-     * @return array{title: string, description: string, mature_content: bool, more_info_url: string, zip_download: bool}
+     * @return array{title: string, description: string, mature_content: bool, more_info_url: string, zip_download: bool, share_options: array{download: bool, source: bool, share: bool}}
      */
     public function getAlbumInfo(string $albumPath): array
     {
@@ -51,6 +52,7 @@ class AlbumService
             'mature_content' => false,
             'more_info_url'  => '',
             'zip_download'   => false,
+            'share_options'  => ['download' => true, 'source' => true, 'share' => true],
         ];
 
         $infoFile = rtrim($albumPath, '/') . '/infos.txt';
@@ -75,6 +77,17 @@ class AlbumService
 
             if (isset($lines[4])) {
                 $info['zip_download'] = trim($lines[4]) === '1';
+            }
+
+            if (isset($lines[5])) {
+                $decoded = json_decode(trim($lines[5]), true);
+                if (is_array($decoded)) {
+                    $info['share_options'] = [
+                        'download' => (bool) ($decoded['download'] ?? true),
+                        'source'   => (bool) ($decoded['source']   ?? true),
+                        'share'    => (bool) ($decoded['share']     ?? true),
+                    ];
+                }
             }
         }
 

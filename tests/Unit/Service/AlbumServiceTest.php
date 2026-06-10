@@ -116,6 +116,60 @@ class AlbumServiceTest extends TestCase
         $this->assertFalse($info['zip_download']);
     }
 
+    public function testGetAlbumInfoShareOptionsDefaultAllTrueWhenLine5Absent(): void
+    {
+        $albumPath = $this->albumsRoot . '/share-absent';
+        mkdir($albumPath, 0o775, true);
+        file_put_contents($albumPath . '/infos.txt', "Titre\nDesc\n18-\n\n0");
+
+        $info = $this->service->getAlbumInfo($albumPath);
+
+        $this->assertTrue($info['share_options']['download']);
+        $this->assertTrue($info['share_options']['source']);
+        $this->assertTrue($info['share_options']['share']);
+    }
+
+    public function testGetAlbumInfoShareOptionsReadsFromLine5(): void
+    {
+        $albumPath = $this->albumsRoot . '/share-opts';
+        mkdir($albumPath, 0o775, true);
+        file_put_contents(
+            $albumPath . '/infos.txt',
+            "Titre\nDesc\n18-\n\n0\n" . json_encode(['download' => false, 'source' => true, 'share' => false])
+        );
+
+        $info = $this->service->getAlbumInfo($albumPath);
+
+        $this->assertFalse($info['share_options']['download']);
+        $this->assertTrue($info['share_options']['source']);
+        $this->assertFalse($info['share_options']['share']);
+    }
+
+    public function testGetAlbumInfoShareOptionsDefaultAllTrueForInvalidJson(): void
+    {
+        $albumPath = $this->albumsRoot . '/share-bad-json';
+        mkdir($albumPath, 0o775, true);
+        file_put_contents($albumPath . '/infos.txt', "Titre\nDesc\n18-\n\n0\nnot-json");
+
+        $info = $this->service->getAlbumInfo($albumPath);
+
+        $this->assertTrue($info['share_options']['download']);
+        $this->assertTrue($info['share_options']['source']);
+        $this->assertTrue($info['share_options']['share']);
+    }
+
+    public function testGetAlbumInfoShareOptionsDefaultAllTrueWithoutInfosFile(): void
+    {
+        $albumPath = $this->albumsRoot . '/share-no-infos';
+        mkdir($albumPath, 0o775, true);
+
+        $info = $this->service->getAlbumInfo($albumPath);
+
+        $this->assertTrue($info['share_options']['download']);
+        $this->assertTrue($info['share_options']['source']);
+        $this->assertTrue($info['share_options']['share']);
+    }
+
     public function testGetAlbumInfoMatureContentFalseWhenNotExactly18Plus(): void
     {
         $albumPath = $this->albumsRoot . '/album2';
