@@ -181,4 +181,54 @@ class ShareKeyRepositoryTest extends TestCase
         $this->assertSame(2, $deleted);
         $this->assertCount(1, $this->repo->findAll('all'));
     }
+
+    // --- illimité (durationHours = 0) ---
+
+    public function testCreateWithZeroDurationStoresSentinelDate(): void
+    {
+        $this->repo->create('album-uuid', 0, '', [], fn (): string => 'unlimited-key');
+
+        $row = $this->pdo->query("SELECT expires_at FROM share_keys WHERE key_value = 'unlimited-key'")->fetch();
+        $this->assertNotFalse($row);
+        $this->assertSame('9999-12-31 23:59:59', $row['expires_at']);
+    }
+
+    public function testFindValidByKeyReturnsUnlimitedKey(): void
+    {
+        $this->repo->create('album-uuid', 0, '', [], fn (): string => 'unlimited-key2');
+
+        $result = $this->repo->findValidByKey('unlimited-key2');
+
+        $this->assertNotNull($result);
+    }
+
+    public function testFindAllActiveIncludesUnlimitedKey(): void
+    {
+        $this->repo->create('album-uuid', 0, '', [], fn (): string => 'unlimited-key3');
+
+        $results = $this->repo->findAll('active');
+
+        $this->assertCount(1, $results);
+        $this->assertSame('unlimited-key3', $results[0]['key_value']);
+    }
+
+    public function testFindAllExpiredExcludesUnlimitedKey(): void
+    {
+        $this->repo->create('album-uuid', 0, '', [], fn (): string => 'unlimited-key4');
+
+        $results = $this->repo->findAll('expired');
+
+        $this->assertCount(0, $results);
+    }
+
+    public function testDeleteExpiredDoesNotDeleteUnlimitedKey(): void
+    {
+        $this->repo->create('album-uuid', 0, '', [], fn (): string => 'unlimited-key5');
+        $this->insertKey('expired', 'album-uuid', date('Y-m-d H:i:s', strtotime('-1 hour')));
+
+        $deleted = $this->repo->deleteExpired();
+
+        $this->assertSame(1, $deleted);
+        $this->assertNotNull($this->repo->findValidByKey('unlimited-key5'));
+    }
 }

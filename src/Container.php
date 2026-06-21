@@ -255,7 +255,9 @@ final class Container
             ->setPublic(true)
             ->addArgument(new Reference(Config::class))
             ->addArgument(new Reference(ShareKeyRepository::class))
-            ->addArgument(new Reference(ViewRenderer::class));
+            ->addArgument(new Reference(ViewRenderer::class))
+            ->addArgument(new Reference(AlbumService::class))
+            ->addArgument('%project_root%');
 
         $container->register(InfoPageController::class)
             ->setPublic(true)

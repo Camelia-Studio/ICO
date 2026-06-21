@@ -9,6 +9,7 @@ use ICO\Http\Request;
 use ICO\Http\Response;
 use ICO\Http\TerminateException;
 use ICO\Repository\ShareKeyRepository;
+use ICO\Service\AlbumService;
 use ICO\View\ViewRenderer;
 
 /**
@@ -24,6 +25,8 @@ class ShareController
         private readonly Config             $config,
         private readonly ShareKeyRepository $shareKeyRepo,
         private readonly ViewRenderer       $view,
+        private readonly AlbumService       $albumService,
+        private readonly string             $projectRoot,
     ) {
     }
 
@@ -48,6 +51,19 @@ class ShareController
         $isVideo        = $this->isVideoUrl($imageUrl);
         $filename       = basename((string) parse_url($imageUrl, PHP_URL_PATH));
         $shareOptions   = ['download' => true, 'source' => true, 'share' => true];
+
+        // Image publique (URL directe, sans proxy) : appliquer les options album
+        if (!str_contains($imageUrl, 'images.php') && !str_contains($imageUrl, 'videos.php')) {
+            $parsedPath   = (string) (parse_url($imageUrl, PHP_URL_PATH) ?? '');
+            $albumRelPath = dirname(ltrim($parsedPath, '/'));
+            if ($albumRelPath !== '' && $albumRelPath !== '.') {
+                $albumAbsPath = $this->projectRoot . '/' . $albumRelPath;
+                if (is_dir($albumAbsPath)) {
+                    $albumInfo    = $this->albumService->getAlbumInfo($albumAbsPath);
+                    $shareOptions = $albumInfo['share_options'];
+                }
+            }
+        }
 
         // Image privée (proxy images.php)
         if (str_contains($imageUrl, 'images.php')) {

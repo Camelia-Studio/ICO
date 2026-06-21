@@ -76,13 +76,14 @@ class SettingsController
         $currentConfig = $this->readCurrentConfig();
 
         $this->view->render('pages/settings', [
-            'site_title'         => $currentConfig['title'],
-            'site_description'   => $currentConfig['description'],
-            'project_path'       => $currentConfig['path'],
-            'slideshow_interval' => $currentConfig['slideshow_interval'],
-            'has_custom_favicon' => file_exists($this->projectRoot . '/favicon-custom.png'),
-            'success_message'    => $successMessage,
-            'error_message'      => $errorMessage,
+            'site_title'            => $currentConfig['title'],
+            'site_description'      => $currentConfig['description'],
+            'project_path'          => $currentConfig['path'],
+            'slideshow_interval'    => $currentConfig['slideshow_interval'],
+            'default_share_options' => $currentConfig['share_options'],
+            'has_custom_favicon'    => file_exists($this->projectRoot . '/favicon-custom.png'),
+            'success_message'       => $successMessage,
+            'error_message'         => $errorMessage,
         ]);
     }
 
@@ -114,7 +115,13 @@ class SettingsController
             return ['', $faviconError];
         }
 
-        $configContent = $siteTitle . "\n" . $siteDescription . "\n" . $projectPath . "\n" . $slideshowInterval;
+        $shareOptions  = [
+            'download' => $request->post('share_default_download', '') !== '',
+            'source'   => $request->post('share_default_source', '') !== '',
+            'share'    => $request->post('share_default_share', '') !== '',
+        ];
+        $configContent = $siteTitle . "\n" . $siteDescription . "\n" . $projectPath . "\n" . $slideshowInterval
+            . "\n" . json_encode($shareOptions);
 
         if (file_put_contents($this->configFile, $configContent) === false) {
             return ['', 'Erreur lors de la sauvegarde de la configuration.'];
@@ -203,22 +210,43 @@ class SettingsController
     /**
      * Relit config.txt pour avoir les valeurs fraîches après une mise à jour.
      *
-     * @return array{title: string, description: string, path: string, slideshow_interval: int}
+     * @return array{title: string, description: string, path: string, slideshow_interval: int, share_options: array{download: bool, source: bool, share: bool}}
      */
     private function readCurrentConfig(): array
     {
+        $defaults = [
+            'title'              => 'ICO',
+            'description'        => '',
+            'path'               => '',
+            'slideshow_interval' => 5,
+            'share_options'      => ['download' => true, 'source' => true, 'share' => true],
+        ];
+
         if (!file_exists($this->configFile)) {
-            return ['title' => 'ICO', 'description' => '', 'path' => '', 'slideshow_interval' => 5];
+            return $defaults;
         }
 
         $lines       = explode("\n", (string) file_get_contents($this->configFile));
         $rawInterval = (int) trim($lines[3] ?? '');
+
+        $shareOptions = $defaults['share_options'];
+        if (isset($lines[4])) {
+            $decoded = json_decode(trim($lines[4]), true);
+            if (is_array($decoded)) {
+                $shareOptions = [
+                    'download' => (bool) ($decoded['download'] ?? true),
+                    'source'   => (bool) ($decoded['source']   ?? true),
+                    'share'    => (bool) ($decoded['share']     ?? true),
+                ];
+            }
+        }
 
         return [
             'title'              => trim($lines[0]),
             'description'        => trim($lines[1] ?? ''),
             'path'               => trim($lines[2] ?? ''),
             'slideshow_interval' => $rawInterval >= 1 ? $rawInterval : 5,
+            'share_options'      => $shareOptions,
         ];
     }
 }

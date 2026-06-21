@@ -177,6 +177,58 @@ class ConfigTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+    // getDefaultShareOptions
+    // -------------------------------------------------------------------------
+
+    public function testGetDefaultShareOptionsDefaultsAllTrueWhenLine4Absent(): void
+    {
+        $configFile  = $this->tmpDir . '/config.txt';
+        $versionFile = $this->tmpDir . '/version.txt';
+
+        file_put_contents($configFile, "Mon Site\nDesc\nbase\n5");
+        file_put_contents($versionFile, '1.0.0');
+
+        $opts = Config::fromFile($configFile, $versionFile)->getDefaultShareOptions();
+
+        $this->assertTrue($opts['download']);
+        $this->assertTrue($opts['source']);
+        $this->assertTrue($opts['share']);
+    }
+
+    public function testGetDefaultShareOptionsReadsFromLine4(): void
+    {
+        $configFile  = $this->tmpDir . '/config.txt';
+        $versionFile = $this->tmpDir . '/version.txt';
+
+        file_put_contents(
+            $configFile,
+            "Mon Site\nDesc\nbase\n5\n" . json_encode(['download' => false, 'source' => true, 'share' => false])
+        );
+        file_put_contents($versionFile, '1.0.0');
+
+        $opts = Config::fromFile($configFile, $versionFile)->getDefaultShareOptions();
+
+        $this->assertFalse($opts['download']);
+        $this->assertTrue($opts['source']);
+        $this->assertFalse($opts['share']);
+    }
+
+    public function testGetDefaultShareOptionsDefaultsAllTrueForInvalidJson(): void
+    {
+        $configFile  = $this->tmpDir . '/config.txt';
+        $versionFile = $this->tmpDir . '/version.txt';
+
+        file_put_contents($configFile, "Mon Site\nDesc\nbase\n5\nnot-valid-json");
+        file_put_contents($versionFile, '1.0.0');
+
+        $opts = Config::fromFile($configFile, $versionFile)->getDefaultShareOptions();
+
+        $this->assertTrue($opts['download']);
+        $this->assertTrue($opts['source']);
+        $this->assertTrue($opts['share']);
+    }
+
+    // -------------------------------------------------------------------------
     // configureSession — vérifie l'absence d'erreur
     // -------------------------------------------------------------------------
 
