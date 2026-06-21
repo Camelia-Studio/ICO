@@ -78,7 +78,7 @@ class ShareKeyRepository
     /**
      * Crée une nouvelle clé de partage. Retourne la valeur de la clé générée.
      *
-     * @param int                      $durationHours Durée de validité en heures
+     * @param int                      $durationHours Durée de validité en heures (0 = illimité)
      * @param array<string, bool>      $options       Options d'affichage (download, source, share)
      */
     public function create(
@@ -94,7 +94,9 @@ class ShareKeyRepository
 
         $defaults        = ['download' => true, 'source' => true, 'share' => true];
         $resolvedOptions = array_merge($defaults, $options);
-        $expiresAt       = date('Y-m-d H:i:s', strtotime(sprintf('+%d hours', $durationHours)));
+        $expiresAt       = $durationHours === 0
+            ? '9999-12-31 23:59:59'
+            : date('Y-m-d H:i:s', strtotime(sprintf('+%d hours', $durationHours)));
 
         $stmt = $this->pdo->prepare(
             'INSERT INTO share_keys (key_value, album_identifier, expires_at, comment, options)

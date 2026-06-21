@@ -282,10 +282,11 @@ class TreeController
         $basePath  = $this->config->getBasePath();
         $baseUrl   = $protocol . $_SERVER['HTTP_HOST'] . ($basePath !== '' ? '/' . $basePath : '');
         $shareUrl  = $baseUrl . '/galeries-privees.php?key=' . urlencode($key);
+        $durationLabel = $duration === 0 ? 'illimité' : ($duration . ' heures');
         $this->logRepo->log(
             (int) $_SESSION['admin_id'],
             'GENERATE_SHARE_LINK',
-            "Création d'un lien de partage valide " . $duration . ' heures',
+            "Création d'un lien de partage valide " . $durationLabel,
             $albumPath,
         );
         $_SESSION['success_message'] = 'Lien de partage généré avec succès.';
