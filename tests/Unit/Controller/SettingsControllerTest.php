@@ -190,7 +190,7 @@ class SettingsControllerTest extends TestCase
     }
 
     // =========================================================================
-    // POST — sauvegarde les options de partage en ligne 4
+    // POST — sauvegarde les options de partage en ligne 5
     // =========================================================================
 
     public function testPostSavesShareOptionsToLine4WhenPartiallyChecked(): void
@@ -284,6 +284,9 @@ class SettingsControllerTest extends TestCase
         $this->assertSame('Ma description', $lines[1]);
         $this->assertSame('sous-chemin', $lines[2]);
         $this->assertSame('7', $lines[3]);
+        $opts = json_decode($lines[4] ?? '{}', true);
+        $this->assertIsArray($opts);
+        $this->assertArrayHasKey('download', $opts);
     }
 
     // =========================================================================
