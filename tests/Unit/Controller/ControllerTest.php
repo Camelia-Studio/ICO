@@ -13,6 +13,7 @@ use ICO\Http\TerminateException;
 use ICO\Repository\AdminRepository;
 use ICO\Repository\LogRepository;
 use ICO\Repository\ShareKeyRepository;
+use ICO\Service\AlbumService;
 use ICO\Service\AuthService;
 use ICO\View\ViewRenderer;
 use PHPUnit\Framework\TestCase;
@@ -168,7 +169,7 @@ class ControllerTest extends TestCase
                 && $data['filename'] === 'photo.jpg'
                 && $data['is_video'] === false));
 
-        $controller = new ShareController($config, $shareKeyMock, $viewMock);
+        $controller = new ShareController($config, $shareKeyMock, $viewMock, $this->makeAlbumService(), sys_get_temp_dir());
         $req = new Request('GET', '/partage.php', ['image' => 'https://example.com/photo.jpg']);
         $controller->show($req);
     }
@@ -192,7 +193,7 @@ class ControllerTest extends TestCase
 
         $imageUrl = 'http://localhost/images.php?path=/liste_albums_prives/img.jpg&key=abc';
 
-        $controller = new ShareController($config, $shareKeyMock, $viewMock);
+        $controller = new ShareController($config, $shareKeyMock, $viewMock, $this->makeAlbumService(), sys_get_temp_dir());
         $req = new Request('GET', '/partage.php', ['image' => $imageUrl]);
         $controller->show($req);
     }
@@ -204,7 +205,7 @@ class ControllerTest extends TestCase
         $viewMock     = $this->createMock(ViewRenderer::class);
         $viewMock->expects($this->never())->method('render');
 
-        $controller = new ShareController($config, $shareKeyMock, $viewMock);
+        $controller = new ShareController($config, $shareKeyMock, $viewMock, $this->makeAlbumService(), sys_get_temp_dir());
         $req = new Request('GET', '/partage.php', ['image' => '']);
 
         $this->expectException(TerminateException::class);
@@ -222,7 +223,7 @@ class ControllerTest extends TestCase
         unset($_SESSION['admin_id']);
 
         $imageUrl = 'http://localhost/images.php?path=/liste_albums_prives/img.jpg&key=badkey';
-        $controller = new ShareController($config, $shareKeyMock, $viewMock);
+        $controller = new ShareController($config, $shareKeyMock, $viewMock, $this->makeAlbumService(), sys_get_temp_dir());
         $req = new Request('GET', '/partage.php', ['image' => $imageUrl]);
 
         $this->expectException(TerminateException::class);
@@ -240,7 +241,7 @@ class ControllerTest extends TestCase
                 fn (array $data): bool => $data['is_video'] === false
             ));
 
-        $controller = new ShareController($config, $shareKeyMock, $viewMock);
+        $controller = new ShareController($config, $shareKeyMock, $viewMock, $this->makeAlbumService(), sys_get_temp_dir());
         $req = new Request('GET', '/partage.php', ['image' => 'https://example.com/photo.jpg']);
         $controller->show($req);
     }
@@ -263,7 +264,7 @@ class ControllerTest extends TestCase
         unset($_SESSION['admin_id']);
 
         $imageUrl = 'http://localhost/videos.php?path=/liste_albums_prives/clip.mp4&key=abc';
-        $controller = new ShareController($config, $shareKeyMock, $viewMock);
+        $controller = new ShareController($config, $shareKeyMock, $viewMock, $this->makeAlbumService(), sys_get_temp_dir());
         $req = new Request('GET', '/partage.php', ['image' => $imageUrl]);
         $controller->show($req);
     }
@@ -279,7 +280,7 @@ class ControllerTest extends TestCase
                 fn (array $data): bool => $data['is_video'] === true
             ));
 
-        $controller = new ShareController($config, $shareKeyMock, $viewMock);
+        $controller = new ShareController($config, $shareKeyMock, $viewMock, $this->makeAlbumService(), sys_get_temp_dir());
         $req = new Request('GET', '/partage.php', ['image' => 'https://example.com/clip.mp4']);
         $controller->show($req);
     }
@@ -458,5 +459,10 @@ class ControllerTest extends TestCase
         rmdir($tmp);
 
         return $config;
+    }
+
+    private function makeAlbumService(): AlbumService
+    {
+        return new AlbumService(sys_get_temp_dir(), sys_get_temp_dir());
     }
 }
