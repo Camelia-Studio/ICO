@@ -3,7 +3,7 @@ function createSubfolder(path) {
     document.getElementById('createFolderModal').style.display = 'block';
 }
 
-function editFolder(path, title, description, matureContent, moreInfoUrl, hasImages, zipDownload = false) {
+function editFolder(path, title, description, matureContent, moreInfoUrl, hasImages, zipDownload = false, shareDownload = true, shareSource = true, shareShare = true) {
     document.getElementById('editPath').value = path;
     document.getElementById('edit_name').value = decodeURIComponent(title);
     document.getElementById('edit_description').value = decodeURIComponent(description);
@@ -24,6 +24,24 @@ function editFolder(path, title, description, matureContent, moreInfoUrl, hasIma
     const zipCheck = document.getElementById('edit_zip_download');
     if (zipCheck) {
         zipCheck.checked = zipDownload === true || zipDownload === 'true';
+    }
+
+    const shareField = document.getElementById('edit_share_options_field');
+    if (shareField) {
+        shareField.style.display = show ? 'block' : 'none';
+    }
+
+    const shareDownloadCheck = document.getElementById('edit_share_download');
+    if (shareDownloadCheck) {
+        shareDownloadCheck.checked = shareDownload === true || shareDownload === 'true';
+    }
+    const shareSourceCheck = document.getElementById('edit_share_source');
+    if (shareSourceCheck) {
+        shareSourceCheck.checked = shareSource === true || shareSource === 'true';
+    }
+    const shareShareCheck = document.getElementById('edit_share_share');
+    if (shareShareCheck) {
+        shareShareCheck.checked = shareShare === true || shareShare === 'true';
     }
 
     const decoded = decodeURIComponent(moreInfoUrl);
