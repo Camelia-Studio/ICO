@@ -72,6 +72,26 @@
                     </div>
                     {% endif %}
                 </div>
+                <div class="form-group">
+                    <label class="form-label">Options de la page de partage :</label>
+                    <div class="share-options">
+                        <label class="toggle-label">
+                            <input type="checkbox" name="opt_share_download" id="create_share_download"
+                                   {{ default_share_options.download ? 'checked' : '' }}>
+                            <span class="toggle-text">Autoriser le téléchargement</span>
+                        </label>
+                        <label class="toggle-label">
+                            <input type="checkbox" name="opt_share_source" id="create_share_source"
+                                   {{ default_share_options.source ? 'checked' : '' }}>
+                            <span class="toggle-text">Afficher le bouton "Source ?"</span>
+                        </label>
+                        <label class="toggle-label">
+                            <input type="checkbox" name="opt_share_share" id="create_share_share"
+                                   {{ default_share_options.share ? 'checked' : '' }}>
+                            <span class="toggle-text">Afficher le bouton "Partager"</span>
+                        </label>
+                    </div>
+                </div>
                 <div class="form-actions">
                     <button type="button" onclick="closeModal()" class="action-button action-button-secondary">Annuler</button>
                     <button type="submit" class="action-button">Créer</button>
@@ -129,6 +149,23 @@
                         <input type="checkbox" name="zip_download" id="edit_zip_download">
                         <span class="toggle-text">Autoriser le téléchargement en ZIP</span>
                     </label>
+                </div>
+                <div class="form-group" id="edit_share_options_field" style="display:none">
+                    <label class="form-label">Options de la page de partage :</label>
+                    <div class="share-options">
+                        <label class="toggle-label">
+                            <input type="checkbox" name="opt_share_download" id="edit_share_download">
+                            <span class="toggle-text">Autoriser le téléchargement</span>
+                        </label>
+                        <label class="toggle-label">
+                            <input type="checkbox" name="opt_share_source" id="edit_share_source">
+                            <span class="toggle-text">Afficher le bouton "Source ?"</span>
+                        </label>
+                        <label class="toggle-label">
+                            <input type="checkbox" name="opt_share_share" id="edit_share_share">
+                            <span class="toggle-text">Afficher le bouton "Partager"</span>
+                        </label>
+                    </div>
                 </div>
                 <div class="form-actions">
                     <button type="button" onclick="closeModal()" class="action-button action-button-secondary">Annuler</button>
