@@ -651,6 +651,152 @@ class TreeControllerTest extends TestCase
     }
 
     // =========================================================================
+    // POST public create_folder — écrit share_options en ligne 5
+    // =========================================================================
+
+    public function testHandlePublicPostCreateFolderWritesShareOptions(): void
+    {
+        $authMock = $this->createMock(AuthService::class);
+        $authMock->method('isLoggedIn')->willReturn(true);
+
+        $fileSvc = $this->createMock(FileService::class);
+        $fileSvc->method('sanitizeFilename')->willReturn('mon-album');
+
+        $_SERVER['REQUEST_METHOD']   = 'POST';
+        $_POST['action']             = 'create_folder';
+        $_POST['path']               = 'liste_albums';
+        $_POST['new_name']           = 'mon-album';
+        $_POST['description']        = '';
+        $_POST['more_info_url']      = '';
+        $_POST['opt_share_download'] = 'on';
+        // opt_share_source non envoyé (décoché)
+        $_POST['opt_share_share']    = 'on';
+
+        try {
+            $this->makeController($authMock, $this->createMock(ViewRenderer::class), null, $fileSvc)
+                ->handlePublic();
+        } catch (TerminateException) {
+        }
+
+        $infosPath = $this->albumsRoot . '/mon-album/infos.txt';
+        $this->assertFileExists($infosPath);
+        $lines = explode("\n", (string) file_get_contents($infosPath));
+        $opts  = json_decode($lines[5] ?? '{}', true);
+        $this->assertIsArray($opts);
+        $this->assertTrue($opts['download']);
+        $this->assertFalse($opts['source']);
+        $this->assertTrue($opts['share']);
+    }
+
+    // =========================================================================
+    // POST public edit_folder — écrit share_options en ligne 5
+    // =========================================================================
+
+    public function testHandlePublicPostEditFolderWritesShareOptions(): void
+    {
+        $existingAlbum = $this->albumsRoot . '/mon-album';
+        mkdir($existingAlbum, 0o775, true);
+        file_put_contents($existingAlbum . '/infos.txt', "Mon Album\nDesc\n18-\n\n0");
+
+        $authMock = $this->createMock(AuthService::class);
+        $authMock->method('isLoggedIn')->willReturn(true);
+
+        $_SERVER['REQUEST_METHOD']  = 'POST';
+        $_POST['action']            = 'edit_folder';
+        $_POST['path']              = 'liste_albums/mon-album';
+        $_POST['new_name']          = 'Mon Album';
+        $_POST['description']       = 'Desc';
+        $_POST['more_info_url']     = '';
+        // opt_share_download non envoyé (décoché)
+        $_POST['opt_share_source']  = 'on';
+        // opt_share_share non envoyé (décoché)
+
+        try {
+            $this->makeController($authMock, $this->createMock(ViewRenderer::class))->handlePublic();
+        } catch (TerminateException) {
+        }
+
+        $lines = explode("\n", (string) file_get_contents($existingAlbum . '/infos.txt'));
+        $opts  = json_decode($lines[5] ?? '{}', true);
+        $this->assertIsArray($opts);
+        $this->assertFalse($opts['download']);
+        $this->assertTrue($opts['source']);
+        $this->assertFalse($opts['share']);
+    }
+
+    // =========================================================================
+    // POST privé create_folder — écrit share_options en ligne 5
+    // =========================================================================
+
+    public function testHandlePrivatePostCreateFolderWritesShareOptions(): void
+    {
+        $authMock = $this->createMock(AuthService::class);
+        $authMock->method('isLoggedIn')->willReturn(true);
+
+        $fileSvc = $this->createMock(FileService::class);
+        $fileSvc->method('sanitizeFilename')->willReturn('secret-album');
+
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST['action']           = 'create_folder';
+        $_POST['path']             = 'liste_albums_prives';
+        $_POST['new_name']         = 'secret-album';
+        $_POST['description']      = '';
+        $_POST['more_info_url']    = '';
+        // Tous les opts share décochés (non envoyés)
+
+        try {
+            $this->makeController($authMock, $this->createMock(ViewRenderer::class), null, $fileSvc)
+                ->handlePrivate();
+        } catch (TerminateException) {
+        }
+
+        $infosPath = $this->privateRoot . '/secret-album/infos.txt';
+        $this->assertFileExists($infosPath);
+        $lines = explode("\n", (string) file_get_contents($infosPath));
+        $opts  = json_decode($lines[5] ?? '{}', true);
+        $this->assertIsArray($opts);
+        $this->assertFalse($opts['download']);
+        $this->assertFalse($opts['source']);
+        $this->assertFalse($opts['share']);
+    }
+
+    // =========================================================================
+    // POST privé edit_folder — écrit share_options en ligne 5
+    // =========================================================================
+
+    public function testHandlePrivatePostEditFolderWritesShareOptions(): void
+    {
+        $existingAlbum = $this->privateRoot . '/secret-album';
+        mkdir($existingAlbum, 0o775, true);
+        file_put_contents($existingAlbum . '/infos.txt', "Secret\nDesc\n18-\n\n0");
+
+        $authMock = $this->createMock(AuthService::class);
+        $authMock->method('isLoggedIn')->willReturn(true);
+
+        $_SERVER['REQUEST_METHOD']   = 'POST';
+        $_POST['action']             = 'edit_folder';
+        $_POST['path']               = 'liste_albums_prives/secret-album';
+        $_POST['new_name']           = 'Secret';
+        $_POST['description']        = 'Desc';
+        $_POST['more_info_url']      = '';
+        $_POST['opt_share_download'] = 'on';
+        $_POST['opt_share_source']   = 'on';
+        $_POST['opt_share_share']    = 'on';
+
+        try {
+            $this->makeController($authMock, $this->createMock(ViewRenderer::class))->handlePrivate();
+        } catch (TerminateException) {
+        }
+
+        $lines = explode("\n", (string) file_get_contents($existingAlbum . '/infos.txt'));
+        $opts  = json_decode($lines[5] ?? '{}', true);
+        $this->assertIsArray($opts);
+        $this->assertTrue($opts['download']);
+        $this->assertTrue($opts['source']);
+        $this->assertTrue($opts['share']);
+    }
+
+    // =========================================================================
     // Factory
     // =========================================================================
 

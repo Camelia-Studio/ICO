@@ -103,7 +103,12 @@ class TreeController
                     if (!file_exists($newPath)) {
                         $moreInfoUrl  = $_POST['more_info_url'] ?? '';
                         mkdir($newPath, 0o775, true);
-                        $infoContent = $newName . "\n" . $description . "\n" . $matureContent . "\n" . $moreInfoUrl . "\n0";
+                        $shareOptions = json_encode([
+                            'download' => isset($_POST['opt_share_download']),
+                            'source'   => isset($_POST['opt_share_source']),
+                            'share'    => isset($_POST['opt_share_share']),
+                        ]);
+                        $infoContent = $newName . "\n" . $description . "\n" . $matureContent . "\n" . $moreInfoUrl . "\n0\n" . $shareOptions;
                         file_put_contents($newPath . '/infos.txt', $infoContent);
                         $_SESSION['success_message'] = 'Dossier « ' . $newName . ' » créé avec succès.';
                     } else {
@@ -124,7 +129,12 @@ class TreeController
                 if ($path && $this->albumService->isSecurePath($path)) {
                     $moreInfoUrl  = $_POST['more_info_url'] ?? '';
                     $zipDownload  = isset($_POST['zip_download']) ? '1' : '0';
-                    $infoContent  = $newName . "\n" . $description . "\n" . $matureContent . "\n" . $moreInfoUrl . "\n" . $zipDownload;
+                    $shareOptions = json_encode([
+                        'download' => isset($_POST['opt_share_download']),
+                        'source'   => isset($_POST['opt_share_source']),
+                        'share'    => isset($_POST['opt_share_share']),
+                    ]);
+                    $infoContent  = $newName . "\n" . $description . "\n" . $matureContent . "\n" . $moreInfoUrl . "\n" . $zipDownload . "\n" . $shareOptions;
                     if (file_put_contents($path . '/infos.txt', $infoContent) !== false) {
                         $_SESSION['success_message'] = 'Dossier « ' . $newName . ' » modifié avec succès.';
                     } else {
@@ -297,7 +307,12 @@ class TreeController
                     if (!file_exists($newPath)) {
                         $moreInfoUrl  = $_POST['more_info_url'] ?? '';
                         mkdir($newPath, 0o775, true);
-                        $infoContent = $newName . "\n" . $description . "\n" . $matureContent . "\n" . $moreInfoUrl . "\n0";
+                        $shareOptions = json_encode([
+                            'download' => isset($_POST['opt_share_download']),
+                            'source'   => isset($_POST['opt_share_source']),
+                            'share'    => isset($_POST['opt_share_share']),
+                        ]);
+                        $infoContent = $newName . "\n" . $description . "\n" . $matureContent . "\n" . $moreInfoUrl . "\n0\n" . $shareOptions;
                         file_put_contents($newPath . '/infos.txt', $infoContent);
                         $_SESSION['success_message'] = 'Dossier privé « ' . $newName . ' » créé avec succès.';
                     } else {
@@ -318,7 +333,12 @@ class TreeController
                 if ($path && $this->albumService->isSecurePrivatePath($path)) {
                     $moreInfoUrl  = $_POST['more_info_url'] ?? '';
                     $zipDownload  = isset($_POST['zip_download']) ? '1' : '0';
-                    $infoContent  = $newName . "\n" . $description . "\n" . $matureContent . "\n" . $moreInfoUrl . "\n" . $zipDownload;
+                    $shareOptions = json_encode([
+                        'download' => isset($_POST['opt_share_download']),
+                        'source'   => isset($_POST['opt_share_source']),
+                        'share'    => isset($_POST['opt_share_share']),
+                    ]);
+                    $infoContent  = $newName . "\n" . $description . "\n" . $matureContent . "\n" . $moreInfoUrl . "\n" . $zipDownload . "\n" . $shareOptions;
                     if (file_put_contents($path . '/infos.txt', $infoContent) !== false) {
                         $_SESSION['success_message'] = 'Dossier privé « ' . $newName . ' » modifié avec succès.';
                     } else {
@@ -433,7 +453,7 @@ class TreeController
             $rootRelPath = $this->relPath($path);
             $output .= '<div class="tree-actions">';
             $output .= '<a href="albums.php?path=' . urlencode($rootRelPath) . '" class="tree-button" target="_blank" title="Voir en mode public" style="text-decoration: none">👁️</a>';
-            $output .= '<button onclick="editFolder(\'' . htmlspecialchars($rootRelPath) . "', '" . rawurlencode($info['title']) . "', '" . rawurlencode($info['description']) . "', " . ($info['mature_content'] ? 'true' : 'false') . ", '" . rawurlencode($info['more_info_url']) . "', " . ($this->albumService->hasImages($path) ? 'true' : 'false') . ', ' . ($info['zip_download'] ? 'true' : 'false') . ')" class="tree-button">✏️</button>';
+            $output .= '<button onclick="editFolder(\'' . htmlspecialchars($rootRelPath) . "', '" . rawurlencode($info['title']) . "', '" . rawurlencode($info['description']) . "', " . ($info['mature_content'] ? 'true' : 'false') . ", '" . rawurlencode($info['more_info_url']) . "', " . ($this->albumService->hasImages($path) ? 'true' : 'false') . ', ' . ($info['zip_download'] ? 'true' : 'false') . ', ' . ($info['share_options']['download'] ? 'true' : 'false') . ', ' . ($info['share_options']['source'] ? 'true' : 'false') . ', ' . ($info['share_options']['share'] ? 'true' : 'false') . ')" class="tree-button">✏️</button>';
             $output .= '<button onclick="createSubfolder(\'' . htmlspecialchars($rootRelPath) . '\')" class="tree-button">➕</button>';
             $output .= '</div></div>';
         }
@@ -484,9 +504,9 @@ class TreeController
             }
 
             if (!$hasSubfolders) {
-                $output .= '<button onclick="editFolder(\'' . htmlspecialchars($relativePath) . "', '" . rawurlencode($info['title']) . "', '" . rawurlencode($info['description']) . "', " . ($info['mature_content'] ? 'true' : 'false') . ", '" . rawurlencode($info['more_info_url']) . "', " . ($hasImages ? 'true' : 'false') . ', ' . ($info['zip_download'] ? 'true' : 'false') . ')" class="tree-button">✏️</button>';
+                $output .= '<button onclick="editFolder(\'' . htmlspecialchars($relativePath) . "', '" . rawurlencode($info['title']) . "', '" . rawurlencode($info['description']) . "', " . ($info['mature_content'] ? 'true' : 'false') . ", '" . rawurlencode($info['more_info_url']) . "', " . ($hasImages ? 'true' : 'false') . ', ' . ($info['zip_download'] ? 'true' : 'false') . ', ' . ($info['share_options']['download'] ? 'true' : 'false') . ', ' . ($info['share_options']['source'] ? 'true' : 'false') . ', ' . ($info['share_options']['share'] ? 'true' : 'false') . ')" class="tree-button">✏️</button>';
             } else {
-                $output .= '<button onclick="editFolder(\'' . htmlspecialchars($relativePath) . "', '" . rawurlencode($info['title']) . "', '" . rawurlencode($info['description']) . "', " . ($info['mature_content'] ? 'true' : 'false') . ', \'\', false, false)" class="tree-button">✏️</button>';
+                $output .= '<button onclick="editFolder(\'' . htmlspecialchars($relativePath) . "', '" . rawurlencode($info['title']) . "', '" . rawurlencode($info['description']) . "', " . ($info['mature_content'] ? 'true' : 'false') . ', \'\', false, false, true, true, true)" class="tree-button">✏️</button>';
             }
 
             if (!$hasImages) {
@@ -524,7 +544,7 @@ class TreeController
             $output .= '</span>';
             $privateRootRelPath = $this->relPath($path);
             $output .= '<div class="tree-actions">';
-            $output .= '<button onclick="editFolder(\'' . htmlspecialchars($privateRootRelPath) . "', '" . rawurlencode($info['title']) . "', '" . rawurlencode($info['description']) . "', " . ($info['mature_content'] ? 'true' : 'false') . ", '" . rawurlencode($info['more_info_url']) . "', " . ($this->albumService->hasImages($path) ? 'true' : 'false') . ', ' . ($info['zip_download'] ? 'true' : 'false') . ')" class="tree-button">✏️</button>';
+            $output .= '<button onclick="editFolder(\'' . htmlspecialchars($privateRootRelPath) . "', '" . rawurlencode($info['title']) . "', '" . rawurlencode($info['description']) . "', " . ($info['mature_content'] ? 'true' : 'false') . ", '" . rawurlencode($info['more_info_url']) . "', " . ($this->albumService->hasImages($path) ? 'true' : 'false') . ', ' . ($info['zip_download'] ? 'true' : 'false') . ', ' . ($info['share_options']['download'] ? 'true' : 'false') . ', ' . ($info['share_options']['source'] ? 'true' : 'false') . ', ' . ($info['share_options']['share'] ? 'true' : 'false') . ')" class="tree-button">✏️</button>';
             $output .= '<button onclick="createSubfolder(\'' . htmlspecialchars($privateRootRelPath) . '\')" class="tree-button">➕</button>';
             $output .= '</div></div>';
         }
@@ -568,14 +588,14 @@ class TreeController
                 if ($hasImages) {
                     $encodedPath  = htmlspecialchars(addslashes($relPath));
                     $encodedTitle = htmlspecialchars(addslashes($info['title']));
-                    $output .= '<button onclick="generateShareLink(\'' . $encodedPath . "', '" . $encodedTitle . '\')" class="tree-button tree-button-share" title="Générer un lien de partage">🔗</button>';
+                    $output .= '<button onclick="generateShareLink(\'' . $encodedPath . "', '" . $encodedTitle . "', " . ($info['share_options']['download'] ? 'true' : 'false') . ', ' . ($info['share_options']['source'] ? 'true' : 'false') . ', ' . ($info['share_options']['share'] ? 'true' : 'false') . ')" class="tree-button tree-button-share" title="Générer un lien de partage">🔗</button>';
                 }
             }
 
             if (!$hasSubfolders) {
-                $output .= '<button onclick="editFolder(\'' . htmlspecialchars($relPath) . "', '" . rawurlencode($info['title']) . "', '" . rawurlencode($info['description']) . "', " . ($info['mature_content'] ? 'true' : 'false') . ", '" . rawurlencode($info['more_info_url']) . "', " . ($hasImages ? 'true' : 'false') . ', ' . ($info['zip_download'] ? 'true' : 'false') . ')" class="tree-button">✏️</button>';
+                $output .= '<button onclick="editFolder(\'' . htmlspecialchars($relPath) . "', '" . rawurlencode($info['title']) . "', '" . rawurlencode($info['description']) . "', " . ($info['mature_content'] ? 'true' : 'false') . ", '" . rawurlencode($info['more_info_url']) . "', " . ($hasImages ? 'true' : 'false') . ', ' . ($info['zip_download'] ? 'true' : 'false') . ', ' . ($info['share_options']['download'] ? 'true' : 'false') . ', ' . ($info['share_options']['source'] ? 'true' : 'false') . ', ' . ($info['share_options']['share'] ? 'true' : 'false') . ')" class="tree-button">✏️</button>';
             } else {
-                $output .= '<button onclick="editFolder(\'' . htmlspecialchars($relPath) . "', '" . rawurlencode($info['title']) . "', '" . rawurlencode($info['description']) . "', " . ($info['mature_content'] ? 'true' : 'false') . ', \'\', false, false)" class="tree-button">✏️</button>';
+                $output .= '<button onclick="editFolder(\'' . htmlspecialchars($relPath) . "', '" . rawurlencode($info['title']) . "', '" . rawurlencode($info['description']) . "', " . ($info['mature_content'] ? 'true' : 'false') . ', \'\', false, false, true, true, true)" class="tree-button">✏️</button>';
             }
 
             if (!$hasImages) {
@@ -599,23 +619,25 @@ class TreeController
     private function renderPublic(string $siteTitle, string $tree, string $allFoldersJson): void
     {
         $this->view->render('pages/tree-public', [
-            'siteTitle'      => $siteTitle,
-            'tree'           => $tree,
-            'version'        => $this->config->getVersion(),
-            'info_pages'     => $this->infoPageRepo->findPublished(),
-            'allFoldersJson' => $allFoldersJson,
+            'siteTitle'             => $siteTitle,
+            'tree'                  => $tree,
+            'version'               => $this->config->getVersion(),
+            'info_pages'            => $this->infoPageRepo->findPublished(),
+            'allFoldersJson'        => $allFoldersJson,
+            'default_share_options' => $this->config->getDefaultShareOptions(),
         ]);
     }
 
     private function renderPrivate(string $siteTitle, string $tree, ?string $shareUrl, string $allFoldersJson): void
     {
         $this->view->render('pages/tree-private', [
-            'siteTitle'      => $siteTitle,
-            'tree'           => $tree,
-            'shareUrl'       => $shareUrl,
-            'version'        => $this->config->getVersion(),
-            'info_pages'     => $this->infoPageRepo->findPublished(),
-            'allFoldersJson' => $allFoldersJson,
+            'siteTitle'             => $siteTitle,
+            'tree'                  => $tree,
+            'shareUrl'              => $shareUrl,
+            'version'               => $this->config->getVersion(),
+            'info_pages'            => $this->infoPageRepo->findPublished(),
+            'allFoldersJson'        => $allFoldersJson,
+            'default_share_options' => $this->config->getDefaultShareOptions(),
         ]);
     }
 
