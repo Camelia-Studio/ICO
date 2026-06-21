@@ -18,6 +18,12 @@
             <div class="message error-message">{{ error_message }}</div>
         {% endif %}
 
+        {% if has_custom_favicon %}
+        <form id="reset-favicon-form" method="post" action="personnalisation.php">
+            <input type="hidden" name="action" value="reset_favicon">
+        </form>
+        {% endif %}
+
         <form method="post" action="personnalisation.php" class="form-container" enctype="multipart/form-data">
             <div class="form-group">
                 <label for="site_title">Titre du site :</label>
@@ -77,18 +83,16 @@
                 </div>
                 <input type="file" id="favicon" name="favicon" accept="image/png">
                 <small class="form-help">Image PNG uniquement, 1 Mo maximum. Laisser vide pour conserver le favicon actuel.</small>
+                {% if has_custom_favicon %}
+                <button type="submit" form="reset-favicon-form" class="action-button action-button-secondary" style="margin-top: 0.5rem;">
+                    Remettre le favicon par défaut
+                </button>
+                {% endif %}
             </div>
 
             <div class="form-actions">
                 <button type="submit" class="action-button">Enregistrer les modifications</button>
             </div>
         </form>
-
-        {% if has_custom_favicon %}
-        <form method="post" action="personnalisation.php" style="margin-top:0.5rem;">
-            <input type="hidden" name="action" value="reset_favicon">
-            <button type="submit" class="action-button action-button-secondary">Remettre le favicon par défaut</button>
-        </form>
-        {% endif %}
     </div>
 {% endblock %}
