@@ -86,9 +86,9 @@ class GalleryController
             'rss_url'           => $rssUrl,
             'zip_url'           => $zipUrl,
             'slideshow_interval' => $this->config->getSlideshowInterval(),
-            'allow_download'    => true,
-            'allow_share'       => true,
-            'allow_source'      => true,
+            'allow_download'    => (bool) $albumInfo['share_options']['download'],
+            'allow_share'       => (bool) $albumInfo['share_options']['share'],
+            'allow_source'      => (bool) $albumInfo['share_options']['source'],
         ]);
     }
 
