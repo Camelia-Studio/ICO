@@ -16,7 +16,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
+          php-version: '8.3'
           extensions: intl, pdo_sqlite, pdo_mysql, pdo_pgsql, zip
           coverage: none
       - name: Install system dependencies
@@ -34,8 +34,8 @@ jobs:
 
           mkdir -p staging/ico
 
-          cp -r public routes src js vendor staging/ico/
-          cp styles.css styles-admin.css favicon.png .htaccess staging/ico/
+          cp -r public routes src js css vendor staging/ico/
+          cp favicon.png .htaccess staging/ico/
           cp init-db.php version.txt README.md LICENSE composer.json composer.lock staging/ico/
 
           mkdir -p staging/ico/img_carrousel staging/ico/liste_albums staging/ico/liste_albums_prives
@@ -43,7 +43,15 @@ jobs:
           cp liste_albums/infos.txt staging/ico/liste_albums/
           cp liste_albums_prives/infos.txt staging/ico/liste_albums_prives/
 
-          cd staging && zip -r "../${ZIP_NAME}" ico/
+          (cd staging && zip -r "../${ZIP_NAME}" ico/)
+
+          forbidden_files=$(unzip -l "${ZIP_NAME}" | awk '{print $4}' | grep -E '^ico/(config\.txt|database\.sqlite)$' || true)
+          if [ -n "${forbidden_files}" ]; then
+            echo "Release ZIP must not include mutable installation files:"
+            echo "${forbidden_files}"
+            exit 1
+          fi
+
           echo "ZIP_NAME=${ZIP_NAME}" >> "${GITHUB_ENV}"
 
       - name: Upload artifact
