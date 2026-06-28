@@ -53,6 +53,7 @@ class AlbumServiceTest extends TestCase
         $this->assertSame('', $info['description']);
         $this->assertFalse($info['mature_content']);
         $this->assertSame('', $info['more_info_url']);
+        $this->assertSame('global', $info['share_options_mode']);
     }
 
     // -------------------------------------------------------------------------
@@ -127,6 +128,7 @@ class AlbumServiceTest extends TestCase
         $this->assertTrue($info['share_options']['download']);
         $this->assertTrue($info['share_options']['source']);
         $this->assertTrue($info['share_options']['share']);
+        $this->assertSame('global', $info['share_options_mode']);
     }
 
     public function testGetAlbumInfoShareOptionsReadsFromLine5(): void
@@ -143,6 +145,51 @@ class AlbumServiceTest extends TestCase
         $this->assertFalse($info['share_options']['download']);
         $this->assertTrue($info['share_options']['source']);
         $this->assertFalse($info['share_options']['share']);
+        $this->assertSame('custom', $info['share_options_mode']);
+    }
+
+    public function testGetAlbumInfoShareOptionsReadsCustomModeFromLine5(): void
+    {
+        $albumPath = $this->albumsRoot . '/share-custom-mode';
+        mkdir($albumPath, 0o775, true);
+        file_put_contents(
+            $albumPath . '/infos.txt',
+            "Titre\nDesc\n18-\n\n0\n" . json_encode([
+                'mode'     => 'custom',
+                'download' => true,
+                'source'   => false,
+                'share'    => true,
+            ])
+        );
+
+        $info = $this->service->getAlbumInfo($albumPath);
+
+        $this->assertSame('custom', $info['share_options_mode']);
+        $this->assertTrue($info['share_options']['download']);
+        $this->assertFalse($info['share_options']['source']);
+        $this->assertTrue($info['share_options']['share']);
+    }
+
+    public function testGetAlbumInfoShareOptionsReadsGlobalModeFromLine5(): void
+    {
+        $albumPath = $this->albumsRoot . '/share-global-mode';
+        mkdir($albumPath, 0o775, true);
+        file_put_contents(
+            $albumPath . '/infos.txt',
+            "Titre\nDesc\n18-\n\n0\n" . json_encode([
+                'mode'     => 'global',
+                'download' => false,
+                'source'   => false,
+                'share'    => false,
+            ])
+        );
+
+        $info = $this->service->getAlbumInfo($albumPath);
+
+        $this->assertSame('global', $info['share_options_mode']);
+        $this->assertFalse($info['share_options']['download']);
+        $this->assertFalse($info['share_options']['source']);
+        $this->assertFalse($info['share_options']['share']);
     }
 
     public function testGetAlbumInfoShareOptionsDefaultAllTrueForInvalidJson(): void
@@ -156,6 +203,7 @@ class AlbumServiceTest extends TestCase
         $this->assertTrue($info['share_options']['download']);
         $this->assertTrue($info['share_options']['source']);
         $this->assertTrue($info['share_options']['share']);
+        $this->assertSame('global', $info['share_options_mode']);
     }
 
     public function testGetAlbumInfoShareOptionsDefaultAllTrueWithoutInfosFile(): void
@@ -168,6 +216,7 @@ class AlbumServiceTest extends TestCase
         $this->assertTrue($info['share_options']['download']);
         $this->assertTrue($info['share_options']['source']);
         $this->assertTrue($info['share_options']['share']);
+        $this->assertSame('global', $info['share_options_mode']);
     }
 
     public function testGetAlbumInfoMatureContentFalseWhenNotExactly18Plus(): void

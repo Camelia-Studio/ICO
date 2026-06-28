@@ -40,9 +40,9 @@ class AlbumService
      *   2 : 18+ | 18-
      *   3 : more_info_url
      *   4 : zip_download (1 = activé, 0 = désactivé)
-     *   5 : share_options (JSON : {"download":true,"source":true,"share":true})
+     *   5 : share_options (JSON : {"mode":"global"} ou {"mode":"custom","download":true,"source":true,"share":true})
      *
-     * @return array{title: string, description: string, mature_content: bool, more_info_url: string, zip_download: bool, share_options: array{download: bool, source: bool, share: bool}}
+     * @return array{title: string, description: string, mature_content: bool, more_info_url: string, zip_download: bool, share_options_mode: string, share_options: array{download: bool, source: bool, share: bool}}
      */
     public function getAlbumInfo(string $albumPath): array
     {
@@ -52,6 +52,7 @@ class AlbumService
             'mature_content' => false,
             'more_info_url'  => '',
             'zip_download'   => false,
+            'share_options_mode' => 'global',
             'share_options'  => ['download' => true, 'source' => true, 'share' => true],
         ];
 
@@ -82,6 +83,8 @@ class AlbumService
             if (isset($lines[5])) {
                 $decoded = json_decode(trim($lines[5]), true);
                 if (is_array($decoded)) {
+                    $mode = $decoded['mode'] ?? null;
+                    $info['share_options_mode'] = $mode === 'global' ? 'global' : 'custom';
                     $info['share_options'] = [
                         'download' => (bool) ($decoded['download'] ?? true),
                         'source'   => (bool) ($decoded['source']   ?? true),
@@ -92,6 +95,35 @@ class AlbumService
         }
 
         return $info;
+    }
+
+    /**
+     * @param array{title?: string, description?: string, mature_content?: bool, more_info_url?: string, zip_download?: bool, share_options_mode?: string, share_options?: array{download?: bool, source?: bool, share?: bool}} $albumInfo
+     * @param array{download: bool, source: bool, share: bool} $defaultShareOptions
+     *
+     * @return array{download: bool, source: bool, share: bool}
+     */
+    public function getEffectiveShareOptions(array $albumInfo, array $defaultShareOptions): array
+    {
+        if (($albumInfo['share_options_mode'] ?? 'global') !== 'custom') {
+            return $this->normalizeShareOptions($defaultShareOptions);
+        }
+
+        return $this->normalizeShareOptions($albumInfo['share_options'] ?? []);
+    }
+
+    /**
+     * @param array{download?: bool, source?: bool, share?: bool} $shareOptions
+     *
+     * @return array{download: bool, source: bool, share: bool}
+     */
+    private function normalizeShareOptions(array $shareOptions): array
+    {
+        return [
+            'download' => (bool) ($shareOptions['download'] ?? true),
+            'source'   => (bool) ($shareOptions['source'] ?? true),
+            'share'    => (bool) ($shareOptions['share'] ?? true),
+        ];
     }
 
     // -------------------------------------------------------------------------

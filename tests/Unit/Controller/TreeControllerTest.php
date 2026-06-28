@@ -668,6 +668,7 @@ class TreeControllerTest extends TestCase
         $_POST['new_name']           = 'mon-album';
         $_POST['description']        = '';
         $_POST['more_info_url']      = '';
+        $_POST['share_options_mode'] = 'custom';
         $_POST['opt_share_download'] = 'on';
         // opt_share_source non envoyé (décoché)
         $_POST['opt_share_share']    = 'on';
@@ -683,6 +684,7 @@ class TreeControllerTest extends TestCase
         $lines = explode("\n", (string) file_get_contents($infosPath));
         $opts  = json_decode($lines[5] ?? '{}', true);
         $this->assertIsArray($opts);
+        $this->assertSame('custom', $opts['mode']);
         $this->assertTrue($opts['download']);
         $this->assertFalse($opts['source']);
         $this->assertTrue($opts['share']);
@@ -707,6 +709,7 @@ class TreeControllerTest extends TestCase
         $_POST['new_name']          = 'Mon Album';
         $_POST['description']       = 'Desc';
         $_POST['more_info_url']     = '';
+        $_POST['share_options_mode'] = 'custom';
         // opt_share_download non envoyé (décoché)
         $_POST['opt_share_source']  = 'on';
         // opt_share_share non envoyé (décoché)
@@ -719,6 +722,7 @@ class TreeControllerTest extends TestCase
         $lines = explode("\n", (string) file_get_contents($existingAlbum . '/infos.txt'));
         $opts  = json_decode($lines[5] ?? '{}', true);
         $this->assertIsArray($opts);
+        $this->assertSame('custom', $opts['mode']);
         $this->assertFalse($opts['download']);
         $this->assertTrue($opts['source']);
         $this->assertFalse($opts['share']);
@@ -755,9 +759,7 @@ class TreeControllerTest extends TestCase
         $lines = explode("\n", (string) file_get_contents($infosPath));
         $opts  = json_decode($lines[5] ?? '{}', true);
         $this->assertIsArray($opts);
-        $this->assertFalse($opts['download']);
-        $this->assertFalse($opts['source']);
-        $this->assertFalse($opts['share']);
+        $this->assertSame(['mode' => 'global'], $opts);
     }
 
     // =========================================================================
@@ -779,6 +781,7 @@ class TreeControllerTest extends TestCase
         $_POST['new_name']           = 'Secret';
         $_POST['description']        = 'Desc';
         $_POST['more_info_url']      = '';
+        $_POST['share_options_mode'] = 'custom';
         $_POST['opt_share_download'] = 'on';
         $_POST['opt_share_source']   = 'on';
         $_POST['opt_share_share']    = 'on';
@@ -791,9 +794,156 @@ class TreeControllerTest extends TestCase
         $lines = explode("\n", (string) file_get_contents($existingAlbum . '/infos.txt'));
         $opts  = json_decode($lines[5] ?? '{}', true);
         $this->assertIsArray($opts);
+        $this->assertSame('custom', $opts['mode']);
         $this->assertTrue($opts['download']);
         $this->assertTrue($opts['source']);
         $this->assertTrue($opts['share']);
+    }
+
+    public function testHandlePublicRendersParentFolderWithStoredShareOptions(): void
+    {
+        $parent = $this->albumsRoot . '/parent';
+        $child  = $parent . '/child';
+        mkdir($child, 0o775, true);
+        file_put_contents(
+            $parent . '/infos.txt',
+            "Parent\nDesc\n18-\n\n0\n" . json_encode(['download' => false, 'source' => true, 'share' => false])
+        );
+        file_put_contents($child . '/infos.txt', "Child\nDesc\n18-\n\n0");
+
+        $authMock = $this->createMock(AuthService::class);
+        $authMock->method('isLoggedIn')->willReturn(true);
+
+        $capturedData = null;
+        $viewMock     = $this->createMock(ViewRenderer::class);
+        $viewMock->expects($this->once())->method('render')
+            ->with('pages/tree-public', $this->callback(function (array $data) use (&$capturedData): bool {
+                $capturedData = $data;
+
+                return true;
+            }));
+
+        $_GET['path'] = 'liste_albums';
+
+        $this->makeController($authMock, $viewMock)->handlePublic();
+
+        $this->assertIsArray($capturedData);
+        $this->assertStringContainsString(
+            "editFolder('liste_albums/parent', 'Parent', 'Desc', false, '', false, false, false, true, false, 'custom', true)",
+            (string) $capturedData['tree']
+        );
+        $this->assertStringContainsString(
+            "createSubfolder('liste_albums/parent', 'custom', false, true, false)",
+            (string) $capturedData['tree']
+        );
+    }
+
+    public function testHandlePublicPostEditFolderAppliesShareOptionsToSubfoldersWhenRequested(): void
+    {
+        $parent     = $this->albumsRoot . '/parent';
+        $child      = $parent . '/child';
+        $grandChild = $child . '/grand-child';
+        mkdir($grandChild, 0o775, true);
+        file_put_contents($parent . '/infos.txt', "Parent\nDesc\n18-\n\n0\n" . json_encode(['download' => true, 'source' => true, 'share' => true]));
+        file_put_contents($child . '/infos.txt', "Child\nChild desc\n18-\n\n0\n" . json_encode(['download' => true, 'source' => false, 'share' => true]));
+        file_put_contents($grandChild . '/infos.txt', "Grand Child\nGrand desc\n18+\n\n1\n" . json_encode(['download' => true, 'source' => true, 'share' => true]));
+
+        $authMock = $this->createMock(AuthService::class);
+        $authMock->method('isLoggedIn')->willReturn(true);
+
+        $_SERVER['REQUEST_METHOD']                   = 'POST';
+        $_POST['action']                             = 'edit_folder';
+        $_POST['path']                               = 'liste_albums/parent';
+        $_POST['new_name']                           = 'Parent';
+        $_POST['description']                        = 'Desc';
+        $_POST['more_info_url']                      = '';
+        $_POST['share_options_mode']                 = 'custom';
+        $_POST['opt_share_source']                   = 'on';
+        $_POST['apply_share_options_to_subfolders']  = 'on';
+
+        try {
+            $this->makeController($authMock, $this->createMock(ViewRenderer::class))->handlePublic();
+        } catch (TerminateException) {
+        }
+
+        $childLines = explode("\n", (string) file_get_contents($child . '/infos.txt'));
+        $childOpts  = json_decode($childLines[5] ?? '{}', true);
+        $grandLines = explode("\n", (string) file_get_contents($grandChild . '/infos.txt'));
+        $grandOpts  = json_decode($grandLines[5] ?? '{}', true);
+
+        $this->assertSame('Child', $childLines[0]);
+        $this->assertSame(['mode' => 'custom', 'download' => false, 'source' => true, 'share' => false], $childOpts);
+        $this->assertSame('Grand Child', $grandLines[0]);
+        $this->assertSame('1', $grandLines[4]);
+        $this->assertSame(['mode' => 'custom', 'download' => false, 'source' => true, 'share' => false], $grandOpts);
+    }
+
+    public function testHandlePublicPostEditFolderAppliesGlobalShareModeToSubfoldersWhenRequested(): void
+    {
+        $parent = $this->albumsRoot . '/global-parent';
+        $child  = $parent . '/child';
+        mkdir($child, 0o775, true);
+        file_put_contents($parent . '/infos.txt', "Parent\nDesc\n18-\n\n0\n" . json_encode(['mode' => 'custom', 'download' => false, 'source' => false, 'share' => false]));
+        file_put_contents($child . '/infos.txt', "Child\nChild desc\n18+\n\n1\n" . json_encode(['mode' => 'custom', 'download' => true, 'source' => false, 'share' => true]));
+
+        $authMock = $this->createMock(AuthService::class);
+        $authMock->method('isLoggedIn')->willReturn(true);
+
+        $_SERVER['REQUEST_METHOD']                  = 'POST';
+        $_POST['action']                            = 'edit_folder';
+        $_POST['path']                              = 'liste_albums/global-parent';
+        $_POST['new_name']                          = 'Parent';
+        $_POST['description']                       = 'Desc';
+        $_POST['more_info_url']                     = '';
+        $_POST['share_options_mode']                = 'global';
+        $_POST['apply_share_options_to_subfolders'] = 'on';
+
+        try {
+            $this->makeController($authMock, $this->createMock(ViewRenderer::class))->handlePublic();
+        } catch (TerminateException) {
+        }
+
+        $childLines = explode("\n", (string) file_get_contents($child . '/infos.txt'));
+        $childOpts  = json_decode($childLines[5] ?? '{}', true);
+
+        $this->assertSame('Child', $childLines[0]);
+        $this->assertSame('18+', $childLines[2]);
+        $this->assertSame('1', $childLines[4]);
+        $this->assertSame(['mode' => 'global'], $childOpts);
+    }
+
+    public function testHandlePrivatePostEditFolderAppliesShareOptionsToSubfoldersWhenRequested(): void
+    {
+        $parent = $this->privateRoot . '/parent';
+        $child  = $parent . '/child';
+        mkdir($child, 0o775, true);
+        file_put_contents($parent . '/infos.txt', "Parent\nDesc\n18-\n\n0\n" . json_encode(['download' => true, 'source' => true, 'share' => true]));
+        file_put_contents($child . '/infos.txt', "Child\nChild desc\n18-\n\n0\n" . json_encode(['download' => false, 'source' => false, 'share' => false]));
+
+        $authMock = $this->createMock(AuthService::class);
+        $authMock->method('isLoggedIn')->willReturn(true);
+
+        $_SERVER['REQUEST_METHOD']                  = 'POST';
+        $_POST['action']                            = 'edit_folder';
+        $_POST['path']                              = 'liste_albums_prives/parent';
+        $_POST['new_name']                          = 'Parent';
+        $_POST['description']                       = 'Desc';
+        $_POST['more_info_url']                     = '';
+        $_POST['share_options_mode']                = 'custom';
+        $_POST['opt_share_download']                = 'on';
+        $_POST['opt_share_share']                   = 'on';
+        $_POST['apply_share_options_to_subfolders'] = 'on';
+
+        try {
+            $this->makeController($authMock, $this->createMock(ViewRenderer::class))->handlePrivate();
+        } catch (TerminateException) {
+        }
+
+        $childLines = explode("\n", (string) file_get_contents($child . '/infos.txt'));
+        $childOpts  = json_decode($childLines[5] ?? '{}', true);
+
+        $this->assertSame('Child', $childLines[0]);
+        $this->assertSame(['mode' => 'custom', 'download' => true, 'source' => false, 'share' => true], $childOpts);
     }
 
     // =========================================================================

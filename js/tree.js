@@ -1,15 +1,29 @@
-function createSubfolder(path) {
+function createSubfolder(path, shareMode = 'global', shareDownload, shareSource, shareShare) {
     document.getElementById('parentPath').value = path;
+
+    if (shareMode === true || shareMode === false || shareMode === 'true' || shareMode === 'false') {
+        shareShare = shareSource;
+        shareSource = shareDownload;
+        shareDownload = shareMode;
+        shareMode = 'custom';
+    }
+
+    setShareOptionsMode('create', shareMode, shareDownload, shareSource, shareShare);
     document.getElementById('createFolderModal').style.display = 'block';
 }
 
-function editFolder(path, title, description, matureContent, moreInfoUrl, hasImages, zipDownload = false, shareDownload = true, shareSource = true, shareShare = true) {
+function editFolder(path, title, description, matureContent, moreInfoUrl, hasImages, zipDownload = false, shareDownload = true, shareSource = true, shareShare = true, shareMode = 'global', hasSubfolders = false) {
     document.getElementById('editPath').value = path;
     document.getElementById('edit_name').value = decodeURIComponent(title);
     document.getElementById('edit_description').value = decodeURIComponent(description);
     document.getElementById('edit_mature_content').checked = matureContent;
 
     const show = hasImages === true || hasImages === 'true';
+    if (shareMode === true || shareMode === false || shareMode === 'true' || shareMode === 'false') {
+        hasSubfolders = shareMode;
+        shareMode = 'custom';
+    }
+    const hasChildren = hasSubfolders === true || hasSubfolders === 'true';
 
     const field = document.getElementById('edit_more_info_url_field');
     if (field) {
@@ -28,21 +42,20 @@ function editFolder(path, title, description, matureContent, moreInfoUrl, hasIma
 
     const shareField = document.getElementById('edit_share_options_field');
     if (shareField) {
-        shareField.style.display = show ? 'block' : 'none';
+        shareField.style.display = 'block';
     }
 
-    const shareDownloadCheck = document.getElementById('edit_share_download');
-    if (shareDownloadCheck) {
-        shareDownloadCheck.checked = shareDownload === true || shareDownload === 'true';
+    const applyShareField = document.getElementById('edit_apply_share_options_field');
+    if (applyShareField) {
+        applyShareField.style.display = hasChildren ? 'block' : 'none';
     }
-    const shareSourceCheck = document.getElementById('edit_share_source');
-    if (shareSourceCheck) {
-        shareSourceCheck.checked = shareSource === true || shareSource === 'true';
+
+    const applyShareCheck = document.getElementById('edit_apply_share_options_to_subfolders');
+    if (applyShareCheck) {
+        applyShareCheck.checked = false;
     }
-    const shareShareCheck = document.getElementById('edit_share_share');
-    if (shareShareCheck) {
-        shareShareCheck.checked = shareShare === true || shareShare === 'true';
-    }
+
+    setShareOptionsMode('edit', shareMode, shareDownload, shareSource, shareShare);
 
     const decoded = decodeURIComponent(moreInfoUrl);
     const isInternalPage = decoded.startsWith('page.php?slug=');
@@ -63,6 +76,66 @@ function editFolder(path, title, description, matureContent, moreInfoUrl, hasIma
     toggleLinkType('edit');
 
     document.getElementById('editFolderModal').style.display = 'block';
+}
+
+function booleanOption(value, fallback) {
+    if (value === undefined || value === null) {
+        return fallback;
+    }
+
+    return value === true || value === 'true';
+}
+
+function getDefaultShareOptions() {
+    if (typeof defaultShareOptions === 'undefined' || defaultShareOptions === null) {
+        return {download: true, source: true, share: true};
+    }
+
+    return defaultShareOptions;
+}
+
+function setCheckbox(id, checked) {
+    const checkbox = document.getElementById(id);
+    if (checkbox) {
+        checkbox.checked = checked;
+    }
+}
+
+function setShareOptionsMode(prefix, shareMode = 'global', shareDownload, shareSource, shareShare) {
+    const defaults = getDefaultShareOptions();
+    const mode = shareMode === 'custom' ? 'custom' : 'global';
+
+    const globalRadio = document.getElementById(prefix + '_share_mode_global');
+    if (globalRadio) {
+        globalRadio.checked = mode === 'global';
+    }
+
+    const customRadio = document.getElementById(prefix + '_share_mode_custom');
+    if (customRadio) {
+        customRadio.checked = mode === 'custom';
+    }
+
+    setCheckbox(prefix + '_share_download', booleanOption(shareDownload, defaults.download));
+    setCheckbox(prefix + '_share_source', booleanOption(shareSource, defaults.source));
+    setCheckbox(prefix + '_share_share', booleanOption(shareShare, defaults.share));
+    toggleShareOptionsMode(prefix);
+}
+
+function toggleShareOptionsMode(prefix) {
+    const customRadio = document.getElementById(prefix + '_share_mode_custom');
+    const isCustom = customRadio ? customRadio.checked : false;
+    const container = document.getElementById(prefix + '_share_options_inputs');
+
+    ['download', 'source', 'share'].forEach((option) => {
+        const checkbox = document.getElementById(prefix + '_share_' + option);
+        if (checkbox) {
+            checkbox.disabled = !isCustom;
+        }
+    });
+
+    if (container) {
+        container.classList.toggle('share-options-disabled', !isCustom);
+    }
 }
 
 function toggleLinkType(prefix) {

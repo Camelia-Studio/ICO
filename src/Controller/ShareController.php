@@ -50,7 +50,7 @@ class ShareController
         $isPrivateImage = false;
         $isVideo        = $this->isVideoUrl($imageUrl);
         $filename       = basename((string) parse_url($imageUrl, PHP_URL_PATH));
-        $shareOptions   = ['download' => true, 'source' => true, 'share' => true];
+        $shareOptions   = $this->config->getDefaultShareOptions();
 
         // Image publique (URL directe, sans proxy) : appliquer les options album
         if (!str_contains($imageUrl, 'images.php') && !str_contains($imageUrl, 'videos.php')) {
@@ -60,7 +60,7 @@ class ShareController
                 $albumAbsPath = $this->projectRoot . '/' . $albumRelPath;
                 if (is_dir($albumAbsPath)) {
                     $albumInfo    = $this->albumService->getAlbumInfo($albumAbsPath);
-                    $shareOptions = $albumInfo['share_options'];
+                    $shareOptions = $this->albumService->getEffectiveShareOptions($albumInfo, $this->config->getDefaultShareOptions());
                 }
             }
         }
