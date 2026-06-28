@@ -31,6 +31,13 @@ jobs:
       - name: Build ZIP
         run: |
           ZIP_NAME="ico-${GITHUB_REF_NAME}.zip"
+          RELEASE_VERSION="${GITHUB_REF_NAME#v}"
+          PROJECT_VERSION="$(tr -d '[:space:]' < version.txt)"
+
+          if [ "${PROJECT_VERSION}" != "${RELEASE_VERSION}" ]; then
+            echo "version.txt (${PROJECT_VERSION}) must match release tag (${RELEASE_VERSION})."
+            exit 1
+          fi
 
           mkdir -p staging/ico
 
