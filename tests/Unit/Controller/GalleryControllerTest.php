@@ -140,7 +140,7 @@ class GalleryControllerTest extends TestCase
 
     public function testShowReadsShareOptionsFromAlbumInfoTxt(): void
     {
-        $shareOptionsJson = json_encode(['download' => false, 'source' => false, 'share' => false]);
+        $shareOptionsJson = json_encode(['mode' => 'custom', 'download' => false, 'source' => false, 'share' => false]);
         file_put_contents(
             $this->albumsRoot . '/album1/infos.txt',
             "Mon album\nDescription\n18-\n\n0\n" . $shareOptionsJson
@@ -164,6 +164,39 @@ class GalleryControllerTest extends TestCase
         $this->assertFalse($capturedData['allow_download']);
         $this->assertFalse($capturedData['allow_share']);
         $this->assertFalse($capturedData['allow_source']);
+    }
+
+    public function testShowUsesGlobalShareOptionsWhenAlbumUsesGlobalMode(): void
+    {
+        file_put_contents(
+            $this->albumsRoot . '/album1/infos.txt',
+            "Mon album\nDescription\n18-\n\n0\n" . json_encode(['mode' => 'global'])
+        );
+
+        $albumService = new AlbumService($this->albumsRoot, $this->privateRoot);
+        $fileService  = $this->createMock(FileService::class);
+        $shareKeyRepo = $this->createMock(ShareKeyRepository::class);
+
+        $capturedData = null;
+        $view = $this->createMock(ViewRenderer::class);
+        $view->method('render')
+            ->willReturnCallback(function (string $tpl, array $data) use (&$capturedData): void {
+                $capturedData = $data;
+            });
+
+        $request    = new Request('GET', '/galeries.php', ['path' => $this->albumsRoot . '/album1']);
+        $controller = $this->makeController(
+            $albumService,
+            $fileService,
+            $shareKeyRepo,
+            $view,
+            $this->makeConfig(['download' => false, 'source' => true, 'share' => false]),
+        );
+        $controller->show($request);
+
+        $this->assertFalse($capturedData['allow_download']);
+        $this->assertFalse($capturedData['allow_share']);
+        $this->assertTrue($capturedData['allow_source']);
     }
 
     public function testShowLinksBreadcrumbHomeToAlbumsPage(): void
@@ -440,6 +473,46 @@ class GalleryControllerTest extends TestCase
         $this->assertTrue($capturedData['allow_source']);
     }
 
+    public function testShowPrivateUsesAlbumEffectiveShareOptionsWhenKeyHasNoOptions(): void
+    {
+        file_put_contents($this->privateRoot . '/secret/img.jpg', '');
+        file_put_contents(
+            $this->privateRoot . '/secret/infos.txt',
+            "Secret\nDesc\n18-\n\n0\n" . json_encode(['mode' => 'global'])
+        );
+
+        $albumService = new AlbumService($this->albumsRoot, $this->privateRoot);
+        $fileService  = $this->createMock(FileService::class);
+        $fileService->method('getSecureImageSize')->willReturn(['width' => 100, 'height' => 100]);
+
+        $shareKeyRepo = $this->createMock(ShareKeyRepository::class);
+        $shareKeyRepo->method('findValidByKey')->willReturn([
+            'path'    => $this->privateRoot . '/secret',
+            'options' => null,
+        ]);
+
+        $capturedData = null;
+        $view = $this->createMock(ViewRenderer::class);
+        $view->method('render')
+            ->willReturnCallback(function (string $tpl, array $data) use (&$capturedData): void {
+                $capturedData = $data;
+            });
+
+        $request    = new Request('GET', '/galeries-privees.php', ['key' => 'valid-key']);
+        $controller = $this->makeController(
+            $albumService,
+            $fileService,
+            $shareKeyRepo,
+            $view,
+            $this->makeConfig(['download' => false, 'source' => true, 'share' => false]),
+        );
+        $controller->showPrivate($request);
+
+        $this->assertFalse($capturedData['allow_download']);
+        $this->assertFalse($capturedData['allow_share']);
+        $this->assertTrue($capturedData['allow_source']);
+    }
+
     public function testShowPrivatePassesDecodedAllowFlagsFromOptions(): void
     {
         file_put_contents($this->privateRoot . '/secret/img.jpg', '');
@@ -467,6 +540,45 @@ class GalleryControllerTest extends TestCase
 
         $this->assertFalse($capturedData['allow_download']);
         $this->assertTrue($capturedData['allow_share']);
+        $this->assertFalse($capturedData['allow_source']);
+    }
+
+    public function testShowPrivateLetsKeyOptionsOverridePrivateAlbumDefaultsPartially(): void
+    {
+        file_put_contents($this->privateRoot . '/secret/img.jpg', '');
+        file_put_contents(
+            $this->privateRoot . '/secret/infos.txt',
+            "Secret\nDesc\n18-\n\n0\n" . json_encode([
+                'mode'     => 'custom',
+                'download' => false,
+                'source'   => true,
+                'share'    => false,
+            ])
+        );
+
+        $albumService = new AlbumService($this->albumsRoot, $this->privateRoot);
+        $fileService  = $this->createMock(FileService::class);
+        $fileService->method('getSecureImageSize')->willReturn(['width' => 100, 'height' => 100]);
+
+        $shareKeyRepo = $this->createMock(ShareKeyRepository::class);
+        $shareKeyRepo->method('findValidByKey')->willReturn([
+            'path'    => $this->privateRoot . '/secret',
+            'options' => json_encode(['source' => false]),
+        ]);
+
+        $capturedData = null;
+        $view = $this->createMock(ViewRenderer::class);
+        $view->method('render')
+            ->willReturnCallback(function (string $tpl, array $data) use (&$capturedData): void {
+                $capturedData = $data;
+            });
+
+        $request    = new Request('GET', '/galeries-privees.php', ['key' => 'valid-key']);
+        $controller = $this->makeController($albumService, $fileService, $shareKeyRepo, $view);
+        $controller->showPrivate($request);
+
+        $this->assertFalse($capturedData['allow_download']);
+        $this->assertFalse($capturedData['allow_share']);
         $this->assertFalse($capturedData['allow_source']);
     }
 
@@ -510,8 +622,9 @@ class GalleryControllerTest extends TestCase
         FileService $fileService,
         ShareKeyRepository $shareKeyRepo,
         ViewRenderer $view,
+        ?Config $config = null,
     ): GalleryController {
-        $config = $this->makeConfig();
+        $config ??= $this->makeConfig();
 
         return new GalleryController(
             $config,
@@ -523,11 +636,19 @@ class GalleryControllerTest extends TestCase
         );
     }
 
-    private function makeConfig(): Config
+    /**
+     * @param array{download: bool, source: bool, share: bool}|null $defaultShareOptions
+     */
+    private function makeConfig(?array $defaultShareOptions = null): Config
     {
         $tmp = sys_get_temp_dir() . '/ico_gallery_cfg_' . uniqid();
         mkdir($tmp, 0o775, true);
-        file_put_contents($tmp . '/config.txt', "Test Site\nDesc\n");
+        $configContent = "Test Site\nDesc\n";
+        if ($defaultShareOptions !== null) {
+            $configContent = "Test Site\nDesc\n\n5\n" . json_encode($defaultShareOptions);
+        }
+
+        file_put_contents($tmp . '/config.txt', $configContent);
         file_put_contents($tmp . '/version.txt', '1.0.0');
         $config = Config::fromFile($tmp . '/config.txt', $tmp . '/version.txt');
         unlink($tmp . '/config.txt');

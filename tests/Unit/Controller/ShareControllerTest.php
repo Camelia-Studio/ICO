@@ -56,7 +56,7 @@ class ShareControllerTest extends TestCase
     {
         file_put_contents(
             $this->albumsRoot . '/mon-album/infos.txt',
-            "Album\nDesc\n18-\n\n0\n" . json_encode(['download' => false, 'source' => true, 'share' => true])
+            "Album\nDesc\n18-\n\n0\n" . json_encode(['mode' => 'custom', 'download' => false, 'source' => true, 'share' => true])
         );
 
         $view = $this->createMock(ViewRenderer::class);
@@ -88,6 +88,30 @@ class ShareControllerTest extends TestCase
             ));
 
         $this->makeController(view: $view)->show(
+            new Request('GET', '/partage.php', query: ['image' => 'liste_albums/mon-album/photo.jpg'])
+        );
+    }
+
+    public function testShowUsesGlobalShareOptionsForPublicImageInGlobalMode(): void
+    {
+        file_put_contents(
+            $this->albumsRoot . '/mon-album/infos.txt',
+            "Album\nDesc\n18-\n\n0\n" . json_encode(['mode' => 'global'])
+        );
+
+        $view = $this->createMock(ViewRenderer::class);
+        $view->expects($this->once())->method('render')
+            ->with('pages/share', $this->callback(
+                fn (array $d): bool =>
+                    $d['allow_download'] === false &&
+                    $d['allow_source']   === true &&
+                    $d['allow_share']    === false
+            ));
+
+        $this->makeController(
+            view: $view,
+            config: $this->makeConfig(['download' => false, 'source' => true, 'share' => false]),
+        )->show(
             new Request('GET', '/partage.php', query: ['image' => 'liste_albums/mon-album/photo.jpg'])
         );
     }
@@ -139,15 +163,9 @@ class ShareControllerTest extends TestCase
     private function makeController(
         ?ShareKeyRepository $shareKeyRepo = null,
         ?ViewRenderer       $view         = null,
+        ?Config             $config       = null,
     ): ShareController {
-        $cfgDir = sys_get_temp_dir() . '/ico_share_cfg_' . uniqid();
-        mkdir($cfgDir, 0o775, true);
-        file_put_contents($cfgDir . '/config.txt', "Test\n\n");
-        file_put_contents($cfgDir . '/version.txt', '1.0.0');
-        $config = Config::fromFile($cfgDir . '/config.txt', $cfgDir . '/version.txt');
-        unlink($cfgDir . '/config.txt');
-        unlink($cfgDir . '/version.txt');
-        rmdir($cfgDir);
+        $config ??= $this->makeConfig();
 
         return new ShareController(
             $config,
@@ -156,6 +174,28 @@ class ShareControllerTest extends TestCase
             $this->albumService,
             $this->tmpDir,
         );
+    }
+
+    /**
+     * @param array{download: bool, source: bool, share: bool}|null $defaultShareOptions
+     */
+    private function makeConfig(?array $defaultShareOptions = null): Config
+    {
+        $cfgDir = sys_get_temp_dir() . '/ico_share_cfg_' . uniqid();
+        mkdir($cfgDir, 0o775, true);
+        $configContent = "Test\n\n";
+        if ($defaultShareOptions !== null) {
+            $configContent = "Test\n\n\n5\n" . json_encode($defaultShareOptions);
+        }
+
+        file_put_contents($cfgDir . '/config.txt', $configContent);
+        file_put_contents($cfgDir . '/version.txt', '1.0.0');
+        $config = Config::fromFile($cfgDir . '/config.txt', $cfgDir . '/version.txt');
+        unlink($cfgDir . '/config.txt');
+        unlink($cfgDir . '/version.txt');
+        rmdir($cfgDir);
+
+        return $config;
     }
 
     private function removeDirRecursive(string $dir): void

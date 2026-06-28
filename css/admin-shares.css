@@ -131,6 +131,36 @@ body[data-page="carrousel"] .admin-header {
     margin-top: 0.25rem;
 }
 
+.share-mode-toggle {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin: 0.5rem 0 0.75rem;
+    font-size: 0.95rem;
+}
+
+.share-mode-toggle label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+}
+
+.share-mode-toggle input[type="radio"] {
+    width: auto;
+    padding: 0;
+    cursor: pointer;
+}
+
+.share-options-disabled {
+    opacity: 0.55;
+}
+
+.share-options-disabled .toggle-label,
+.share-options-disabled input[type="checkbox"] {
+    cursor: not-allowed;
+}
+
 @media (max-width: 768px) {
     .filters {
         flex-direction: column;

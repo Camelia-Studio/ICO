@@ -65,8 +65,9 @@ class GalleryController
             throw new TerminateException();
         }
 
-        $albumInfo = $this->albumService->getAlbumInfo($currentPath);
-        $images    = $this->buildPublicImageList($currentPath);
+        $albumInfo    = $this->albumService->getAlbumInfo($currentPath);
+        $shareOptions = $this->albumService->getEffectiveShareOptions($albumInfo, $this->config->getDefaultShareOptions());
+        $images       = $this->buildPublicImageList($currentPath);
 
         $parentAbsolute = realpath(dirname($currentPath)) ?: $this->albumsRoot;
         if (!$this->albumService->isSecurePath($parentAbsolute)) {
@@ -86,9 +87,9 @@ class GalleryController
             'rss_url'           => $rssUrl,
             'zip_url'           => $zipUrl,
             'slideshow_interval' => $this->config->getSlideshowInterval(),
-            'allow_download'    => (bool) $albumInfo['share_options']['download'],
-            'allow_share'       => (bool) $albumInfo['share_options']['share'],
-            'allow_source'      => (bool) $albumInfo['share_options']['source'],
+            'allow_download'    => $shareOptions['download'],
+            'allow_share'       => $shareOptions['share'],
+            'allow_source'      => $shareOptions['source'],
         ]);
     }
 
@@ -122,6 +123,7 @@ class GalleryController
 
         $currentPath = $albumInfo['path'];
         $albumData   = $this->albumService->getAlbumInfo($currentPath);
+        $shareOptions = $this->albumService->getEffectiveShareOptions($albumData, $this->config->getDefaultShareOptions());
         $images      = $this->buildPrivateImageList($currentPath, $shareKey);
 
         $rawOptions = $albumInfo['options'] ?? '{}';
@@ -129,6 +131,8 @@ class GalleryController
         if (!is_array($decoded)) {
             $decoded = [];
         }
+
+        $shareOptions = array_merge($shareOptions, $decoded);
 
         $this->view->render('pages/gallery-private', [
             'error_title'        => null,
@@ -139,9 +143,9 @@ class GalleryController
             'share_key'          => $shareKey,
             'site_title'         => $this->config->getSiteTitle(),
             'slideshow_interval' => $this->config->getSlideshowInterval(),
-            'allow_download'     => (bool) ($decoded['download'] ?? true),
-            'allow_share'        => (bool) ($decoded['share']    ?? true),
-            'allow_source'       => (bool) ($decoded['source']   ?? true),
+            'allow_download'     => (bool) ($shareOptions['download'] ?? true),
+            'allow_share'        => (bool) ($shareOptions['share']    ?? true),
+            'allow_source'       => (bool) ($shareOptions['source']   ?? true),
         ]);
     }
 

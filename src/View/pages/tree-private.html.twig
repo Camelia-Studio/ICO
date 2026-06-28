@@ -74,20 +74,24 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Options de la page de partage :</label>
-                    <div class="share-options">
+                    <div class="share-mode-toggle">
+                        <label><input type="radio" name="share_options_mode" id="create_share_mode_global" value="global" checked onchange="toggleShareOptionsMode('create')"> Configuration globale</label>
+                        <label><input type="radio" name="share_options_mode" id="create_share_mode_custom" value="custom" onchange="toggleShareOptionsMode('create')"> Configuration personnalisée</label>
+                    </div>
+                    <div class="share-options share-options-disabled" id="create_share_options_inputs">
                         <label class="toggle-label">
                             <input type="checkbox" name="opt_share_download" id="create_share_download"
-                                   {{ default_share_options.download ? 'checked' : '' }}>
+                                   {{ default_share_options.download ? 'checked' : '' }} disabled>
                             <span class="toggle-text">Autoriser le téléchargement</span>
                         </label>
                         <label class="toggle-label">
                             <input type="checkbox" name="opt_share_source" id="create_share_source"
-                                   {{ default_share_options.source ? 'checked' : '' }}>
+                                   {{ default_share_options.source ? 'checked' : '' }} disabled>
                             <span class="toggle-text">Afficher le bouton "Source ?"</span>
                         </label>
                         <label class="toggle-label">
                             <input type="checkbox" name="opt_share_share" id="create_share_share"
-                                   {{ default_share_options.share ? 'checked' : '' }}>
+                                   {{ default_share_options.share ? 'checked' : '' }} disabled>
                             <span class="toggle-text">Afficher le bouton "Partager"</span>
                         </label>
                     </div>
@@ -152,20 +156,30 @@
                 </div>
                 <div class="form-group" id="edit_share_options_field" style="display:none">
                     <label class="form-label">Options de la page de partage :</label>
-                    <div class="share-options">
+                    <div class="share-mode-toggle">
+                        <label><input type="radio" name="share_options_mode" id="edit_share_mode_global" value="global" checked onchange="toggleShareOptionsMode('edit')"> Configuration globale</label>
+                        <label><input type="radio" name="share_options_mode" id="edit_share_mode_custom" value="custom" onchange="toggleShareOptionsMode('edit')"> Configuration personnalisée</label>
+                    </div>
+                    <div class="share-options share-options-disabled" id="edit_share_options_inputs">
                         <label class="toggle-label">
-                            <input type="checkbox" name="opt_share_download" id="edit_share_download">
+                            <input type="checkbox" name="opt_share_download" id="edit_share_download" disabled>
                             <span class="toggle-text">Autoriser le téléchargement</span>
                         </label>
                         <label class="toggle-label">
-                            <input type="checkbox" name="opt_share_source" id="edit_share_source">
+                            <input type="checkbox" name="opt_share_source" id="edit_share_source" disabled>
                             <span class="toggle-text">Afficher le bouton "Source ?"</span>
                         </label>
                         <label class="toggle-label">
-                            <input type="checkbox" name="opt_share_share" id="edit_share_share">
+                            <input type="checkbox" name="opt_share_share" id="edit_share_share" disabled>
                             <span class="toggle-text">Afficher le bouton "Partager"</span>
                         </label>
                     </div>
+                </div>
+                <div class="form-group" id="edit_apply_share_options_field" style="display:none">
+                    <label class="toggle-label">
+                        <input type="checkbox" name="apply_share_options_to_subfolders" id="edit_apply_share_options_to_subfolders">
+                        <span class="toggle-text">Appliquer ces options aux sous-dossiers existants</span>
+                    </label>
                 </div>
                 <div class="form-actions">
                     <button type="button" onclick="closeModal()" class="action-button action-button-secondary">Annuler</button>
@@ -264,7 +278,10 @@
 {% endblock %}
 
 {% block scripts %}
-    <script>const allFolders = {{ allFoldersJson|raw }};</script>
+    <script>
+        const allFolders = {{ allFoldersJson|raw }};
+        const defaultShareOptions = {{ default_share_options|json_encode|raw }};
+    </script>
     <script src="js/tree.js"></script>
     <script src="js/tree-private.js"></script>
     <script src="js/scroll-top.js"></script>
