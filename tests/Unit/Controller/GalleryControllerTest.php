@@ -166,6 +166,27 @@ class GalleryControllerTest extends TestCase
         $this->assertFalse($capturedData['allow_source']);
     }
 
+    public function testShowLinksBreadcrumbHomeToAlbumsPage(): void
+    {
+        $albumService = new AlbumService($this->albumsRoot, $this->privateRoot);
+        $fileService  = $this->createMock(FileService::class);
+        $shareKeyRepo = $this->createMock(ShareKeyRepository::class);
+
+        $capturedData = null;
+        $view = $this->createMock(ViewRenderer::class);
+        $view->method('render')
+            ->willReturnCallback(function (string $tpl, array $data) use (&$capturedData): void {
+                $capturedData = $data;
+            });
+
+        $request    = new Request('GET', '/galeries.php', ['path' => $this->albumsRoot . '/album1']);
+        $controller = $this->makeController($albumService, $fileService, $shareKeyRepo, $view);
+        $controller->show($request);
+
+        $this->assertSame('Accueil', $capturedData['breadcrumbs'][0]['label']);
+        $this->assertSame('albums.php', $capturedData['breadcrumbs'][0]['url']);
+    }
+
     // =========================================================================
     // showPrivate() — private gallery
     // =========================================================================

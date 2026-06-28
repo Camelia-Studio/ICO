@@ -313,7 +313,7 @@ class GalleryController
             return [['label' => 'Accueil', 'url' => null]];
         }
 
-        $breadcrumbs = [['label' => 'Accueil', 'url' => 'index.php']];
+        $breadcrumbs = [['label' => 'Accueil', 'url' => 'albums.php']];
         $segments    = explode(DIRECTORY_SEPARATOR, $relativePart);
         $accum       = $this->albumsRoot;
 
