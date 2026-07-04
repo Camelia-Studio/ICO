@@ -106,6 +106,36 @@ class VideoControllerTest extends TestCase
         $controller->serve($request);
     }
 
+    public function testServeReturns403WhenShareKeyTargetsSiblingFolder(): void
+    {
+        $parentPath  = $this->tmpDir . '/liste_albums_prives/parent';
+        $siblingPath = $this->tmpDir . '/liste_albums_prives/sibling';
+        mkdir($parentPath, 0o775, true);
+        mkdir($siblingPath, 0o775, true);
+
+        file_put_contents($siblingPath . '/clip.mp4', 'fake-video-data');
+
+        $albumService = $this->makeAlbumService();
+        $shareRepo    = $this->createMock(ShareKeyRepository::class);
+        $shareRepo->method('findValidForPath')->willReturn(null);
+
+        $controller = new VideoController($albumService, $shareRepo, $this->tmpDir);
+
+        http_response_code(200);
+        ob_start();
+        try {
+            $controller->serve($this->createRequest([
+                'path' => 'liste_albums_prives/sibling/clip.mp4',
+                'key'  => 'parent-key',
+            ]));
+        } catch (TerminateException) {
+            $this->assertSame(403, http_response_code());
+        } finally {
+            ob_end_clean();
+            http_response_code(200);
+        }
+    }
+
     // =========================================================================
     // Helpers
     // =========================================================================

@@ -76,6 +76,27 @@ class ShareKeyRepository
     }
 
     /**
+     * Valide une clé pour un chemin précis.
+     * La clé donne accès à son album associé et à tous ses descendants.
+     *
+     * @return array<string, mixed>|null ['path', 'identifier', 'options']
+     */
+    public function findValidForPath(string $key, string $path): ?array
+    {
+        $row = $this->findValidByKey($key);
+        if ($row === null) {
+            return null;
+        }
+
+        $sharedPath = (string) ($row['path'] ?? '');
+        if (!$this->isSameOrDescendantPath($path, $sharedPath)) {
+            return null;
+        }
+
+        return $row;
+    }
+
+    /**
      * Crée une nouvelle clé de partage. Retourne la valeur de la clé générée.
      *
      * @param int                      $durationHours Durée de validité en heures (0 = illimité)
@@ -135,5 +156,45 @@ class ShareKeyRepository
         $stmt->execute();
 
         return $stmt->rowCount();
+    }
+
+    private function isSameOrDescendantPath(string $path, string $sharedPath): bool
+    {
+        $normalizedPath       = $this->normalizePath($path);
+        $normalizedSharedPath = $this->normalizePath($sharedPath);
+
+        if ($normalizedPath === '' || $normalizedSharedPath === '') {
+            return false;
+        }
+
+        return $normalizedPath === $normalizedSharedPath
+            || str_starts_with($normalizedPath, $normalizedSharedPath . '/');
+    }
+
+    private function normalizePath(string $path): string
+    {
+        $realPath = realpath($path);
+        if ($realPath !== false) {
+            $path = $realPath;
+        }
+
+        $path       = str_replace('\\', '/', $path);
+        $isAbsolute = str_starts_with($path, '/');
+        $parts      = [];
+
+        foreach (explode('/', $path) as $part) {
+            if ($part === '' || $part === '.') {
+                continue;
+            }
+
+            if ($part === '..') {
+                array_pop($parts);
+                continue;
+            }
+
+            $parts[] = $part;
+        }
+
+        return ($isAbsolute ? '/' : '') . implode('/', $parts);
     }
 }

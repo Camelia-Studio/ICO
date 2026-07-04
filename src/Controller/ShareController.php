@@ -78,7 +78,7 @@ class ShareController
 
             if (str_contains($path, 'liste_albums_prives')) {
                 $isPrivateImage = true;
-                $shareKeyData   = $key !== '' ? $this->shareKeyRepo->findValidByKey($key) : null;
+                $shareKeyData   = $key !== '' ? $this->shareKeyRepo->findValidForPath($key, $this->resolveMediaPath($path)) : null;
 
                 // Accès refusé aux non-admins sans clé valide
                 if (!isset($_SESSION['admin_id']) && ($key === '' || $shareKeyData === null)) {
@@ -108,7 +108,7 @@ class ShareController
 
             if (str_contains($path, 'liste_albums_prives')) {
                 $isPrivateImage = true;
-                $shareKeyData   = $key !== '' ? $this->shareKeyRepo->findValidByKey($key) : null;
+                $shareKeyData   = $key !== '' ? $this->shareKeyRepo->findValidForPath($key, $this->resolveMediaPath($path)) : null;
 
                 if (!isset($_SESSION['admin_id']) && ($key === '' || $shareKeyData === null)) {
                     Response::redirect('index.php')->send();
@@ -166,5 +166,14 @@ class ShareController
         $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
 
         return in_array($ext, ['mp4', 'webm'], true);
+    }
+
+    private function resolveMediaPath(string $path): string
+    {
+        if ($path !== '' && !str_starts_with($path, '/') && !preg_match('/^[A-Za-z]:[\\/]/', $path)) {
+            return $this->projectRoot . '/' . ltrim($path, '/');
+        }
+
+        return $path;
     }
 }

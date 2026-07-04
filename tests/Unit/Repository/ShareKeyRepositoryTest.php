@@ -105,6 +105,23 @@ class ShareKeyRepositoryTest extends TestCase
         $this->assertNull($this->repo->findValidByKey('unknown'));
     }
 
+    public function testFindValidForPathReturnsRowForDescendantPath(): void
+    {
+        $this->insertKey('parent-key', 'album-uuid', date('Y-m-d H:i:s', strtotime('+1 hour')));
+
+        $result = $this->repo->findValidForPath('parent-key', './liste_albums_prives/test/child/photo.jpg');
+
+        $this->assertNotNull($result);
+        $this->assertSame('./liste_albums_prives/test', $result['path']);
+    }
+
+    public function testFindValidForPathReturnsNullForSiblingPath(): void
+    {
+        $this->insertKey('parent-key', 'album-uuid', date('Y-m-d H:i:s', strtotime('+1 hour')));
+
+        $this->assertNull($this->repo->findValidForPath('parent-key', './liste_albums_prives/test-sibling/photo.jpg'));
+    }
+
     // --- create ---
 
     public function testCreateInsertsKeyAndReturnsValue(): void

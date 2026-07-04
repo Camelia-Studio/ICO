@@ -49,6 +49,7 @@ class Lightbox {
             src:      t.dataset.src,
             type:     t.dataset.type || 'image',
             mime:     t.dataset.mime || null,
+            downloadName: t.dataset.downloadName || '',
             shareUrl: t.dataset.shareUrl || null,
         }));
 
@@ -156,6 +157,7 @@ class Lightbox {
         // Télécharger
         this.#downloadLinks.forEach(el => {
             el.href = item.src;
+            el.download = item.downloadName || '';
             el.style.display = allowDl ? '' : 'none';
         });
 

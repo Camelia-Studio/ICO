@@ -391,6 +391,43 @@ class TreeControllerTest extends TestCase
         $this->assertStringContainsString('title="Accéder à la galerie privée"', (string) $capturedData['tree']);
     }
 
+    public function testHandlePrivateRendersShareButtonForParentFolder(): void
+    {
+        $privParent = $this->privateRoot . '/parent-folder';
+        $child      = $privParent . '/child';
+        mkdir($child, 0o775, true);
+        file_put_contents($privParent . '/infos.txt', "Parent Folder\nDesc\n18-\n");
+        file_put_contents($child . '/infos.txt', "Child\nDesc\n18-\n");
+        file_put_contents($child . '/photo.png', '');
+
+        $authMock = $this->createMock(AuthService::class);
+        $authMock->method('isLoggedIn')->willReturn(true);
+
+        $capturedData = null;
+        $viewMock     = $this->createMock(ViewRenderer::class);
+        $viewMock->expects($this->once())->method('render')
+            ->with('pages/tree-private', $this->callback(function (array $data) use (&$capturedData): bool {
+                $capturedData = $data;
+
+                return true;
+            }));
+
+        $_GET['path'] = 'liste_albums_prives';
+
+        $this->makeController($authMock, $viewMock)->handlePrivate();
+
+        $this->assertIsArray($capturedData);
+        $this->assertStringContainsString(
+            "generateShareLink('liste_albums_prives/parent-folder'",
+            (string) $capturedData['tree']
+        );
+        $this->assertStringContainsString(
+            'href="galeries-privees.php?path=liste_albums_prives%2Fparent-folder"',
+            (string) $capturedData['tree']
+        );
+        $this->assertStringContainsString('title="Accéder à la galerie privée"', (string) $capturedData['tree']);
+    }
+
     // =========================================================================
     // handlePublic — POST create_folder when folder already exists
     // =========================================================================

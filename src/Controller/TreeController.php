@@ -790,6 +790,11 @@ class TreeController
         $relPath       = $this->relPath($fullPath);
         $actions       = [];
 
+        if ($hasSubfolders) {
+            $actions[] = $this->privateGalleryButton($relPath);
+            $actions[] = $this->generateShareLinkButton($relPath, $info);
+        }
+
         if (!$hasSubfolders) {
             if ($hasImages) {
                 $actions[] = $this->privateGalleryButton($relPath);

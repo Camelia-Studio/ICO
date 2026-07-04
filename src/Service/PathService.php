@@ -13,12 +13,17 @@ namespace ICO\Service;
  */
 final readonly class PathService
 {
+    /** Chemin absolu vers la racine du projet, sans slash final */
+    private string $projectRoot;
+
     public function __construct(
-        /** Chemin absolu vers la racine du projet, sans slash final */
-        private string $projectRoot,
+        string $projectRoot,
         /** URL publique de base, sans slash final (ex: https://host ou https://host/base) */
         private string $baseUrl,
     ) {
+        $resolvedRoot      = realpath($projectRoot);
+        $normalizedRoot    = str_replace('\\', '/', $resolvedRoot !== false ? $resolvedRoot : $projectRoot);
+        $this->projectRoot = rtrim($normalizedRoot, '/') ?: '/';
     }
 
     /**
@@ -29,7 +34,10 @@ final readonly class PathService
      */
     public function toRelative(string $absolutePath): string
     {
-        return ltrim(str_replace('\\', '/', substr($absolutePath, strlen($this->projectRoot))), '/');
+        $resolvedPath   = realpath($absolutePath);
+        $normalizedPath = str_replace('\\', '/', $resolvedPath !== false ? $resolvedPath : $absolutePath);
+
+        return ltrim(substr($normalizedPath, strlen($this->projectRoot)), '/');
     }
 
     /**
@@ -40,7 +48,10 @@ final readonly class PathService
      */
     public function toUrl(string $absolutePath): string
     {
-        $relative = str_replace('\\', '/', substr($absolutePath, strlen($this->projectRoot) + 1));
+        $resolvedPath   = realpath($absolutePath);
+        $normalizedPath = str_replace('\\', '/', $resolvedPath !== false ? $resolvedPath : $absolutePath);
+        $relative       = substr($normalizedPath, strlen($this->projectRoot) + 1);
+
         return $this->baseUrl . '/' . ltrim($relative, '/');
     }
 

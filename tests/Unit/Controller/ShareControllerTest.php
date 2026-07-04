@@ -7,6 +7,7 @@ namespace ICO\Tests\Unit\Controller;
 use ICO\Config\Config;
 use ICO\Controller\ShareController;
 use ICO\Http\Request;
+use ICO\Http\TerminateException;
 use ICO\Repository\ShareKeyRepository;
 use ICO\Service\AlbumService;
 use ICO\View\ViewRenderer;
@@ -129,7 +130,7 @@ class ShareControllerTest extends TestCase
         );
 
         $shareKey = $this->createMock(ShareKeyRepository::class);
-        $shareKey->method('findValidByKey')->willReturn([
+        $shareKey->method('findValidForPath')->willReturn([
             'path'       => $this->privateRoot . '/secret-album',
             'identifier' => 'uuid-abc',
             'options'    => json_encode(['download' => false, 'source' => false, 'share' => true]),
@@ -150,6 +151,33 @@ class ShareControllerTest extends TestCase
             . '&key=validkey';
 
         $_SESSION['admin_id'] = 1;
+
+        $this->makeController(shareKeyRepo: $shareKey, view: $view)->show(
+            new Request('GET', '/partage.php', query: ['image' => $imageUrl])
+        );
+    }
+
+    public function testShowRedirectsWhenPrivateImageIsOutsideSharedFolder(): void
+    {
+        $parent  = $this->privateRoot . '/parent';
+        $sibling = $this->privateRoot . '/sibling';
+        mkdir($parent, 0o775, true);
+        mkdir($sibling, 0o775, true);
+
+        $shareKey = $this->createMock(ShareKeyRepository::class);
+        $shareKey->expects($this->once())
+            ->method('findValidForPath')
+            ->with('parent-key', $sibling . '/photo.jpg')
+            ->willReturn(null);
+
+        $view = $this->createMock(ViewRenderer::class);
+        $view->expects($this->never())->method('render');
+
+        $imageUrl = 'images.php?path='
+            . rawurlencode($sibling . '/photo.jpg')
+            . '&key=parent-key';
+
+        $this->expectException(TerminateException::class);
 
         $this->makeController(shareKeyRepo: $shareKey, view: $view)->show(
             new Request('GET', '/partage.php', query: ['image' => $imageUrl])

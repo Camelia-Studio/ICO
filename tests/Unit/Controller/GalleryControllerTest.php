@@ -64,6 +64,7 @@ class GalleryControllerTest extends TestCase
 
         $this->assertSame('pages/gallery-public', 'pages/gallery-public');
         $this->assertCount(1, $capturedData['images']);
+        $this->assertSame('photo.jpg', $capturedData['images'][0]['filename']);
         $this->assertNotNull($capturedData['header_image']);
     }
 
@@ -295,6 +296,97 @@ class GalleryControllerTest extends TestCase
 
         $this->assertNull($capturedData['error_title']);
         $this->assertCount(1, $capturedData['images']);
+        $this->assertSame('img.jpg', $capturedData['images'][0]['filename']);
+    }
+
+    public function testShowPrivateParentKeyRendersSubfolderNavigation(): void
+    {
+        $parent = $this->privateRoot . '/parent';
+        $child  = $parent . '/child';
+        mkdir($child, 0o775, true);
+        file_put_contents($this->privateRoot . '/infos.txt', "Albums privés\nDesc\n18-\n");
+        file_put_contents($parent . '/infos.txt', "Parent\nDesc\n18-\n");
+        file_put_contents($child . '/infos.txt', "Child\nDesc\n18-\n");
+        file_put_contents($child . '/photo.jpg', '');
+
+        $albumService = new AlbumService($this->albumsRoot, $this->privateRoot);
+        $fileService  = $this->createMock(FileService::class);
+        $fileService->method('getSecureImageSize')->willReturn(['width' => 100, 'height' => 100]);
+
+        $shareKeyRepo = $this->createMock(ShareKeyRepository::class);
+        $shareKeyRepo->method('findValidByKey')->willReturn([
+            'path'       => $parent,
+            'identifier' => 'parent-id',
+        ]);
+
+        $capturedData = null;
+        $view = $this->createMock(ViewRenderer::class);
+        $view->expects($this->once())->method('render')
+            ->willReturnCallback(function (string $tpl, array $data) use (&$capturedData): void {
+                $this->assertSame('pages/albums', $tpl);
+                $capturedData = $data;
+            });
+
+        $request    = new Request('GET', '/galeries-privees.php', ['key' => 'parent-key']);
+        $controller = $this->makeController($albumService, $fileService, $shareKeyRepo, $view);
+        $controller->showPrivate($request);
+
+        $this->assertSame('Parent', $capturedData['current_album_info']['title']);
+        $this->assertSame('Albums privés', $capturedData['breadcrumbs'][0]['label']);
+        $this->assertSame('galeries-privees.php?key=parent-key', $capturedData['breadcrumbs'][0]['url']);
+        $this->assertSame('Parent', $capturedData['breadcrumbs'][1]['label']);
+        $this->assertNull($capturedData['breadcrumbs'][1]['url']);
+        $this->assertCount(1, $capturedData['albums']);
+        $this->assertSame('Child', $capturedData['albums'][0]['title']);
+        $this->assertNotEmpty($capturedData['albums'][0]['images']);
+        $this->assertStringContainsString('/images.php?path=liste_albums_prives%2Fparent%2Fchild%2Fphoto.jpg', $capturedData['albums'][0]['images'][0]['url']);
+        $this->assertStringContainsString('key=parent-key', $capturedData['albums'][0]['images'][0]['url']);
+        $this->assertStringContainsString('galeries-privees.php?key=parent-key', $capturedData['albums'][0]['url']);
+        $this->assertStringContainsString('path=liste_albums_prives%2Fparent%2Fchild', $capturedData['albums'][0]['url']);
+    }
+
+    public function testShowPrivateParentKeyRendersDescendantGalleryWhenPathIsRequested(): void
+    {
+        $parent = $this->privateRoot . '/parent-gallery';
+        $child  = $parent . '/child';
+        mkdir($child, 0o775, true);
+        file_put_contents($parent . '/infos.txt', "Parent\nDesc\n18-\n");
+        file_put_contents($child . '/infos.txt', "Child\nDesc\n18-\n");
+        file_put_contents($child . '/photo.jpg', '');
+
+        $albumService = new AlbumService($this->albumsRoot, $this->privateRoot);
+        $fileService  = $this->createMock(FileService::class);
+        $fileService->method('getSecureImageSize')->willReturn(['width' => 100, 'height' => 100]);
+
+        $shareKeyRepo = $this->createMock(ShareKeyRepository::class);
+        $shareKeyRepo->method('findValidByKey')->willReturn([
+            'path'       => $parent,
+            'identifier' => 'parent-id',
+        ]);
+        $shareKeyRepo->method('findValidForPath')->willReturn([
+            'path'       => $parent,
+            'identifier' => 'parent-id',
+        ]);
+
+        $capturedData = null;
+        $view = $this->createMock(ViewRenderer::class);
+        $view->expects($this->once())->method('render')
+            ->willReturnCallback(function (string $tpl, array $data) use (&$capturedData): void {
+                $this->assertSame('pages/gallery-private', $tpl);
+                $capturedData = $data;
+            });
+
+        $request = new Request('GET', '/galeries-privees.php', [
+            'key'  => 'parent-key',
+            'path' => 'liste_albums_prives/parent-gallery/child',
+        ]);
+        $controller = $this->makeController($albumService, $fileService, $shareKeyRepo, $view);
+        $controller->showPrivate($request);
+
+        $this->assertNull($capturedData['error_title']);
+        $this->assertCount(1, $capturedData['images']);
+        $this->assertStringContainsString('liste_albums_prives%2Fparent-gallery%2Fchild%2Fphoto.jpg', $capturedData['images'][0]['url']);
+        $this->assertStringContainsString('key=parent-key', $capturedData['images'][0]['url']);
     }
 
     public function testShowPrivateWithAdminPathRendersGalleryWithoutShareKey(): void
@@ -325,6 +417,55 @@ class GalleryControllerTest extends TestCase
         $this->assertStringContainsString('/images.php?path=', $capturedData['images'][0]['url']);
         $this->assertStringContainsString('liste_albums_prives%2Fsecret%2Fimg.jpg', $capturedData['images'][0]['url']);
         $this->assertStringNotContainsString('key=', $capturedData['images'][0]['url']);
+
+        unset($_SESSION['admin_id']);
+    }
+
+    public function testShowPrivateWithAdminParentPathRendersSubfolderNavigationWithoutShareKey(): void
+    {
+        $parent = $this->privateRoot . '/admin-parent';
+        $child  = $parent . '/child';
+        mkdir($child, 0o775, true);
+        file_put_contents($this->privateRoot . '/infos.txt', "Albums privés\nDesc\n18-\n");
+        file_put_contents($parent . '/infos.txt', "Admin Parent\nDesc\n18-\n");
+        file_put_contents($child . '/infos.txt', "Child\nDesc\n18-\n");
+        file_put_contents($child . '/photo.jpg', '');
+        $_SESSION['admin_id'] = 1;
+
+        $albumService = new AlbumService($this->albumsRoot, $this->privateRoot);
+        $fileService  = $this->createMock(FileService::class);
+        $fileService->method('getSecureImageSize')->willReturn(['width' => 100, 'height' => 100]);
+
+        $shareKeyRepo = $this->createMock(ShareKeyRepository::class);
+        $shareKeyRepo->expects($this->never())->method('findValidByKey');
+
+        $capturedData = null;
+        $view = $this->createMock(ViewRenderer::class);
+        $view->expects($this->once())->method('render')
+            ->willReturnCallback(function (string $tpl, array $data) use (&$capturedData): void {
+                $this->assertSame('pages/albums', $tpl);
+                $capturedData = $data;
+            });
+
+        $request    = new Request('GET', '/galeries-privees.php', ['path' => 'liste_albums_prives/admin-parent']);
+        $controller = $this->makeController($albumService, $fileService, $shareKeyRepo, $view);
+        $controller->showPrivate($request);
+
+        $this->assertSame('Admin Parent', $capturedData['current_album_info']['title']);
+        $this->assertSame('Albums privés', $capturedData['breadcrumbs'][0]['label']);
+        $this->assertSame('galeries-privees.php?path=liste_albums_prives', $capturedData['breadcrumbs'][0]['url']);
+        $this->assertSame('Admin Parent', $capturedData['breadcrumbs'][1]['label']);
+        $this->assertNull($capturedData['breadcrumbs'][1]['url']);
+        $this->assertCount(1, $capturedData['albums']);
+        $this->assertSame('Child', $capturedData['albums'][0]['title']);
+        $this->assertNotEmpty($capturedData['albums'][0]['images']);
+        $this->assertStringContainsString('/images.php?path=liste_albums_prives%2Fadmin-parent%2Fchild%2Fphoto.jpg', $capturedData['albums'][0]['images'][0]['url']);
+        $this->assertStringNotContainsString('key=', $capturedData['albums'][0]['images'][0]['url']);
+        $this->assertStringContainsString(
+            'galeries-privees.php?path=liste_albums_prives%2Fadmin-parent%2Fchild',
+            $capturedData['albums'][0]['url']
+        );
+        $this->assertStringNotContainsString('key=', $capturedData['albums'][0]['url']);
 
         unset($_SESSION['admin_id']);
     }
@@ -668,6 +809,7 @@ class GalleryControllerTest extends TestCase
 
         $video = $capturedData['images'][0];
         $this->assertSame('video', $video['type']);
+        $this->assertSame('clip.mp4', $video['filename']);
         $this->assertNotNull($video['share_url']);
         $this->assertStringContainsString('partage.php', $video['share_url']);
         $this->assertStringContainsString('videos.php', $video['share_url']);
