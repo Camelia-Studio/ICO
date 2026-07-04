@@ -94,6 +94,7 @@
                      data-type="video"
                      data-src="{{ image.url }}"
                      data-mime="{{ image.mime }}"
+                     data-download-name="{{ image.filename }}"
                      data-share-url="partage.php?image={{ image.url|url_encode }}">
                     <video muted preload="none" class="gallery-video gallery-video-thumb">
                         <source src="{{ image.url }}" type="{{ image.mime }}">
@@ -109,6 +110,7 @@
                    class="gallery-lightbox-trigger"
                    data-type="image"
                    data-src="{{ image.url }}"
+                   data-download-name="{{ image.filename }}"
                    data-share-url="partage.php?image={{ image.url|url_encode }}"
                    target="_blank">
                     <img src="{{ image.url }}"

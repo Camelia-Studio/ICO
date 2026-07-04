@@ -81,6 +81,7 @@
                      data-type="video"
                      data-src="{{ image.url }}"
                      data-mime="{{ image.mime }}"
+                     data-download-name="{{ image.filename }}"
                      {% if image.share_url %}data-share-url="{{ image.share_url }}"{% endif %}>
                     <video muted preload="none" class="gallery-video gallery-video-thumb">
                         <source src="{{ image.url }}" type="{{ image.mime }}">
@@ -96,6 +97,7 @@
                    class="gallery-lightbox-trigger"
                    data-type="image"
                    data-src="{{ image.url }}"
+                   data-download-name="{{ image.filename }}"
                    {% if image.share_url %}data-share-url="{{ image.share_url }}"{% endif %}
                    target="_blank">
                     <img src="{{ image.url }}"

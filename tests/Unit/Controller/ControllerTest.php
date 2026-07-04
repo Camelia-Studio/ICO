@@ -180,8 +180,8 @@ class ControllerTest extends TestCase
         $shareKeyMock = $this->createMock(ShareKeyRepository::class);
         $viewMock     = $this->createMock(ViewRenderer::class);
 
-        // Clé valide → findValidByKey retourne quelque chose
-        $shareKeyMock->method('findValidByKey')->willReturn([
+        // Clé valide pour le média demandé.
+        $shareKeyMock->method('findValidForPath')->willReturn([
             'id' => 1, 'key_value' => 'abc', 'path' => '/some/path', 'expires_at' => date('Y-m-d H:i:s', time() + 3600),
         ]);
 
@@ -216,7 +216,7 @@ class ControllerTest extends TestCase
     {
         $config       = $this->makeConfig();
         $shareKeyMock = $this->createMock(ShareKeyRepository::class);
-        $shareKeyMock->method('findValidByKey')->willReturn(null);
+        $shareKeyMock->method('findValidForPath')->willReturn(null);
         $viewMock     = $this->createMock(ViewRenderer::class);
         $viewMock->expects($this->never())->method('render');
 
@@ -257,7 +257,7 @@ class ControllerTest extends TestCase
                 fn (array $data): bool => $data['is_video'] === true
             ));
 
-        $shareKeyMock->method('findValidByKey')->willReturn([
+        $shareKeyMock->method('findValidForPath')->willReturn([
             'id' => 1, 'key_value' => 'abc', 'path' => '/path', 'expires_at' => date('Y-m-d H:i:s', time() + 3600),
         ]);
 

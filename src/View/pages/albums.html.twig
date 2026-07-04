@@ -16,7 +16,8 @@
 
     <div class="albums-grid">
         {% for album in albums %}
-        <a href="{{ album.hasSubfolders ? 'albums.php' : 'galeries.php' }}?path={{ album.path|url_encode }}"
+        {% set album_url = album.url|default((album.hasSubfolders ? 'albums.php' : 'galeries.php') ~ '?path=' ~ (album.path|url_encode)) %}
+        <a href="{{ album_url }}"
            class="album-card{{ album.mature_content ? ' album-card-mature' : '' }}"
            {{ album.mature_content ? 'data-mature-warning="Contenu réservé aux plus de 18 ans"' : '' }}>
             <div class="album-images">

@@ -68,7 +68,7 @@ class VideoController
                 Response::html('', 403)->send();
                 throw new TerminateException();
             }
-        } elseif ($key === '' || $this->shareKeyRepo->findValidByKey($key) === null) {
+        } elseif ($key === '' || $this->shareKeyRepo->findValidForPath($key, $path) === null) {
             Response::html('', 403)->send();
             throw new TerminateException();
         }
