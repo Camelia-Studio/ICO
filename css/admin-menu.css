@@ -37,11 +37,13 @@
 .menu-icon svg {
     width: 64px;
     height: 64px;
+    color: #fff;
     stroke: #fff;
     transition: all 0.3s ease;
 }
 
 .admin-menu-item:hover .menu-icon svg {
+    color: #2196f3;
     stroke: #2196f3;
     transform: scale(1.1);
 }
