@@ -360,6 +360,37 @@ class TreeControllerTest extends TestCase
         $controller->handlePrivate();
     }
 
+    public function testHandlePrivateRendersGalleryPreviewLinkForAlbumWithImages(): void
+    {
+        $privAlbum = $this->privateRoot . '/secret-album';
+        mkdir($privAlbum, 0o775, true);
+        file_put_contents($privAlbum . '/infos.txt', "Secret Album\nDesc\n18-\n");
+        file_put_contents($privAlbum . '/photo.png', '');
+
+        $authMock = $this->createMock(AuthService::class);
+        $authMock->method('isLoggedIn')->willReturn(true);
+
+        $capturedData = null;
+        $viewMock     = $this->createMock(ViewRenderer::class);
+        $viewMock->expects($this->once())->method('render')
+            ->with('pages/tree-private', $this->callback(function (array $data) use (&$capturedData): bool {
+                $capturedData = $data;
+
+                return true;
+            }));
+
+        $_GET['path'] = 'liste_albums_prives';
+
+        $this->makeController($authMock, $viewMock)->handlePrivate();
+
+        $this->assertIsArray($capturedData);
+        $this->assertStringContainsString(
+            'href="galeries-privees.php?path=liste_albums_prives%2Fsecret-album"',
+            (string) $capturedData['tree']
+        );
+        $this->assertStringContainsString('title="Accéder à la galerie privée"', (string) $capturedData['tree']);
+    }
+
     // =========================================================================
     // handlePublic — POST create_folder when folder already exists
     // =========================================================================

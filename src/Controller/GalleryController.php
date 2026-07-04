@@ -11,6 +11,7 @@ use ICO\Http\Response;
 use ICO\Http\TerminateException;
 use ICO\Repository\ShareKeyRepository;
 use ICO\Service\AlbumService;
+use ICO\Service\AuthService;
 use ICO\Service\FileService;
 use ICO\Service\PathService;
 use ICO\View\ViewRenderer;
@@ -37,6 +38,7 @@ class GalleryController
         private readonly FileService        $fileService,
         private readonly ShareKeyRepository $shareKeyRepo,
         private readonly PathService        $pathService,
+        private readonly AuthService        $auth,
         private readonly ViewRenderer       $view,
     ) {
         $this->albumsRoot = $pathService->toAbsolute('liste_albums');
@@ -103,6 +105,12 @@ class GalleryController
      */
     public function showPrivate(Request $request): void
     {
+        $adminPath = (string) $request->query('path', '');
+        if ($adminPath !== '') {
+            $this->showPrivateForAdmin($adminPath);
+            return;
+        }
+
         $shareKey = (string) $request->query('key', '');
 
         if ($shareKey === '') {
@@ -152,6 +160,49 @@ class GalleryController
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
+
+    /**
+     * Rend une galerie privée depuis l'admin, sans créer de clé de partage.
+     */
+    private function showPrivateForAdmin(string $rawPath): void
+    {
+        if (!$this->auth->isLoggedIn()) {
+            $this->view->render('pages/gallery-private', $this->errorData(
+                'Accès refusé',
+                'Vous devez être connecté à l\'administration pour visualiser cette galerie privée.',
+                '',
+            ));
+            return;
+        }
+
+        $currentPath = realpath($this->pathService->toAbsolute(ltrim($rawPath, '/')));
+        if ($currentPath === false || !$this->albumService->isSecurePrivatePath($currentPath)) {
+            $this->view->render('pages/gallery-private', $this->errorData(
+                'Galerie privée introuvable',
+                'Ce dossier privé n\'existe pas ou n\'est pas accessible.',
+                '',
+            ));
+            return;
+        }
+
+        $albumData    = $this->albumService->getAlbumInfo($currentPath);
+        $shareOptions = $this->albumService->getEffectiveShareOptions($albumData, $this->config->getDefaultShareOptions());
+        $images       = $this->buildPrivateImageList($currentPath, '');
+
+        $this->view->render('pages/gallery-private', [
+            'error_title'        => null,
+            'error_message'      => null,
+            'album_data'         => $albumData,
+            'images'             => $images,
+            'header_image'       => $this->firstImageUrl($images),
+            'share_key'          => '',
+            'site_title'         => $this->config->getSiteTitle(),
+            'slideshow_interval' => $this->config->getSlideshowInterval(),
+            'allow_download'     => $shareOptions['download'],
+            'allow_share'        => $shareOptions['share'],
+            'allow_source'       => $shareOptions['source'],
+        ]);
+    }
 
     /**
      * Construit la liste de médias publics (images + vidéos) avec tri top-first.
@@ -235,8 +286,7 @@ class GalleryController
 
             if (in_array($ext, self::EXTENSIONS, true)) {
                 $relativePath = $this->pathService->toRelative($file->getPathname());
-                // L'URL proxy encode le path une seule fois
-                $proxyUrl = $baseUrl . '/images.php?path=' . rawurlencode($relativePath) . '&key=' . rawurlencode($shareKey);
+                $proxyUrl = $this->privateMediaUrl($baseUrl, 'images.php', $relativePath, $shareKey);
                 // L'URL de partage encode l'URL proxy une seule fois (rawurlencode pour ne pas ré-encoder les %)
                 $shareUrl = $baseUrl . '/partage.php?image=' . rawurlencode($proxyUrl);
                 $size     = $this->fileService->getSecureImageSize($file->getPathname());
@@ -251,7 +301,7 @@ class GalleryController
                 ];
             } elseif (in_array($ext, self::VIDEO_EXTENSIONS, true)) {
                 $relativePath = $this->pathService->toRelative($file->getPathname());
-                $proxyUrl     = $baseUrl . '/videos.php?path=' . rawurlencode($relativePath) . '&key=' . rawurlencode($shareKey);
+                $proxyUrl     = $this->privateMediaUrl($baseUrl, 'videos.php', $relativePath, $shareKey);
                 $shareUrl     = $baseUrl . '/partage.php?image=' . rawurlencode($proxyUrl);
 
                 $items[] = [
@@ -278,6 +328,17 @@ class GalleryController
         });
 
         return $items;
+    }
+
+    private function privateMediaUrl(string $baseUrl, string $endpoint, string $relativePath, string $shareKey): string
+    {
+        $url = $baseUrl . '/' . $endpoint . '?path=' . rawurlencode($relativePath);
+
+        if ($shareKey !== '') {
+            $url .= '&key=' . rawurlencode($shareKey);
+        }
+
+        return $url;
     }
 
     /**
