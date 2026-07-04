@@ -69,9 +69,10 @@ class Lightbox {
         this.goTo(index);
     }
 
-    close() {
+    async close() {
         this.stopSlideshow();
         this.#pauseVideo();
+        await this.#exitFullscreenIfActive();
         this.#isOpen = false;
         this.#el.setAttribute('aria-hidden', 'true');
         this.#el.classList.remove('is-open');
@@ -143,6 +144,27 @@ class Lightbox {
     #pauseVideo() {
         if (!this.#video.paused) this.#video.pause();
         this.#video.src = '';
+    }
+
+    #isLightboxFullscreen() {
+        const fullscreenElement = document.fullscreenElement;
+
+        return fullscreenElement !== null
+            && (fullscreenElement === this.#el || this.#el.contains(fullscreenElement));
+    }
+
+    #exitFullscreenIfActive() {
+        if (!this.#isLightboxFullscreen()) {
+            return Promise.resolve();
+        }
+
+        const exit = document.exitFullscreen?.();
+
+        if (!exit) {
+            return Promise.resolve();
+        }
+
+        return exit.catch(() => {});
     }
 
     #updateUI() {
