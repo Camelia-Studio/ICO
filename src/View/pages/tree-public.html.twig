@@ -85,6 +85,11 @@
                                    {{ default_share_options.share ? 'checked' : '' }} disabled>
                             <span class="toggle-text">Afficher le bouton "Partager"</span>
                         </label>
+                        <label class="toggle-label">
+                            <input type="checkbox" name="opt_share_rss" id="create_share_rss"
+                                   {{ default_share_options.rss ? 'checked' : '' }} disabled>
+                            <span class="toggle-text">Afficher le bouton du flux RSS</span>
+                        </label>
                     </div>
                 </div>
                 <div class="form-actions">
@@ -163,6 +168,10 @@
                         <label class="toggle-label">
                             <input type="checkbox" name="opt_share_share" id="edit_share_share" disabled>
                             <span class="toggle-text">Afficher le bouton "Partager"</span>
+                        </label>
+                        <label class="toggle-label">
+                            <input type="checkbox" name="opt_share_rss" id="edit_share_rss" disabled>
+                            <span class="toggle-text">Afficher le bouton du flux RSS</span>
                         </label>
                     </div>
                 </div>

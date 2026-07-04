@@ -40,9 +40,9 @@ class AlbumService
      *   2 : 18+ | 18-
      *   3 : more_info_url
      *   4 : zip_download (1 = activé, 0 = désactivé)
-     *   5 : share_options (JSON : {"mode":"global"} ou {"mode":"custom","download":true,"source":true,"share":true})
+     *   5 : share_options (JSON : {"mode":"global"} ou {"mode":"custom","download":true,"source":true,"share":true,"rss":true})
      *
-     * @return array{title: string, description: string, mature_content: bool, more_info_url: string, zip_download: bool, share_options_mode: string, share_options: array{download: bool, source: bool, share: bool}}
+     * @return array{title: string, description: string, mature_content: bool, more_info_url: string, zip_download: bool, share_options_mode: string, share_options: array{download: bool, source: bool, share: bool, rss: bool}}
      */
     public function getAlbumInfo(string $albumPath): array
     {
@@ -53,7 +53,7 @@ class AlbumService
             'more_info_url'  => '',
             'zip_download'   => false,
             'share_options_mode' => 'global',
-            'share_options'  => ['download' => true, 'source' => true, 'share' => true],
+            'share_options'  => ['download' => true, 'source' => true, 'share' => true, 'rss' => true],
         ];
 
         $infoFile = rtrim($albumPath, '/') . '/infos.txt';
@@ -89,6 +89,7 @@ class AlbumService
                         'download' => (bool) ($decoded['download'] ?? true),
                         'source'   => (bool) ($decoded['source']   ?? true),
                         'share'    => (bool) ($decoded['share']     ?? true),
+                        'rss'      => (bool) ($decoded['rss']       ?? true),
                     ];
                 }
             }
@@ -98,10 +99,10 @@ class AlbumService
     }
 
     /**
-     * @param array{title?: string, description?: string, mature_content?: bool, more_info_url?: string, zip_download?: bool, share_options_mode?: string, share_options?: array{download?: bool, source?: bool, share?: bool}} $albumInfo
-     * @param array{download: bool, source: bool, share: bool} $defaultShareOptions
+     * @param array{title?: string, description?: string, mature_content?: bool, more_info_url?: string, zip_download?: bool, share_options_mode?: string, share_options?: array{download?: bool, source?: bool, share?: bool, rss?: bool}} $albumInfo
+     * @param array{download: bool, source: bool, share: bool, rss: bool} $defaultShareOptions
      *
-     * @return array{download: bool, source: bool, share: bool}
+     * @return array{download: bool, source: bool, share: bool, rss: bool}
      */
     public function getEffectiveShareOptions(array $albumInfo, array $defaultShareOptions): array
     {
@@ -113,9 +114,9 @@ class AlbumService
     }
 
     /**
-     * @param array{download?: bool, source?: bool, share?: bool} $shareOptions
+     * @param array{download?: bool, source?: bool, share?: bool, rss?: bool} $shareOptions
      *
-     * @return array{download: bool, source: bool, share: bool}
+     * @return array{download: bool, source: bool, share: bool, rss: bool}
      */
     private function normalizeShareOptions(array $shareOptions): array
     {
@@ -123,6 +124,7 @@ class AlbumService
             'download' => (bool) ($shareOptions['download'] ?? true),
             'source'   => (bool) ($shareOptions['source'] ?? true),
             'share'    => (bool) ($shareOptions['share'] ?? true),
+            'rss'      => (bool) ($shareOptions['rss'] ?? true),
         ];
     }
 

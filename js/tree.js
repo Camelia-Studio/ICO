@@ -1,18 +1,19 @@
-function createSubfolder(path, shareMode = 'global', shareDownload, shareSource, shareShare) {
+function createSubfolder(path, shareMode = 'global', shareDownload, shareSource, shareShare, shareRss) {
     document.getElementById('parentPath').value = path;
 
     if (shareMode === true || shareMode === false || shareMode === 'true' || shareMode === 'false') {
+        shareRss = true;
         shareShare = shareSource;
         shareSource = shareDownload;
         shareDownload = shareMode;
         shareMode = 'custom';
     }
 
-    setShareOptionsMode('create', shareMode, shareDownload, shareSource, shareShare);
+    setShareOptionsMode('create', shareMode, shareDownload, shareSource, shareShare, shareRss);
     document.getElementById('createFolderModal').style.display = 'block';
 }
 
-function editFolder(path, title, description, matureContent, moreInfoUrl, hasImages, zipDownload = false, shareDownload = true, shareSource = true, shareShare = true, shareMode = 'global', hasSubfolders = false) {
+function editFolder(path, title, description, matureContent, moreInfoUrl, hasImages, zipDownload = false, shareDownload = true, shareSource = true, shareShare = true, shareRss = true, shareMode = 'global', hasSubfolders = false) {
     document.getElementById('editPath').value = path;
     document.getElementById('edit_name').value = decodeURIComponent(title);
     document.getElementById('edit_description').value = decodeURIComponent(description);
@@ -22,6 +23,7 @@ function editFolder(path, title, description, matureContent, moreInfoUrl, hasIma
     if (shareMode === true || shareMode === false || shareMode === 'true' || shareMode === 'false') {
         hasSubfolders = shareMode;
         shareMode = 'custom';
+        shareRss = true;
     }
     const hasChildren = hasSubfolders === true || hasSubfolders === 'true';
 
@@ -55,7 +57,7 @@ function editFolder(path, title, description, matureContent, moreInfoUrl, hasIma
         applyShareCheck.checked = false;
     }
 
-    setShareOptionsMode('edit', shareMode, shareDownload, shareSource, shareShare);
+    setShareOptionsMode('edit', shareMode, shareDownload, shareSource, shareShare, shareRss);
 
     const decoded = decodeURIComponent(moreInfoUrl);
     const isInternalPage = decoded.startsWith('page.php?slug=');
@@ -88,7 +90,7 @@ function booleanOption(value, fallback) {
 
 function getDefaultShareOptions() {
     if (typeof defaultShareOptions === 'undefined' || defaultShareOptions === null) {
-        return {download: true, source: true, share: true};
+        return {download: true, source: true, share: true, rss: true};
     }
 
     return defaultShareOptions;
@@ -101,7 +103,7 @@ function setCheckbox(id, checked) {
     }
 }
 
-function setShareOptionsMode(prefix, shareMode = 'global', shareDownload, shareSource, shareShare) {
+function setShareOptionsMode(prefix, shareMode = 'global', shareDownload, shareSource, shareShare, shareRss) {
     const defaults = getDefaultShareOptions();
     const mode = shareMode === 'custom' ? 'custom' : 'global';
 
@@ -118,6 +120,7 @@ function setShareOptionsMode(prefix, shareMode = 'global', shareDownload, shareS
     setCheckbox(prefix + '_share_download', booleanOption(shareDownload, defaults.download));
     setCheckbox(prefix + '_share_source', booleanOption(shareSource, defaults.source));
     setCheckbox(prefix + '_share_share', booleanOption(shareShare, defaults.share));
+    setCheckbox(prefix + '_share_rss', booleanOption(shareRss, defaults.rss));
     toggleShareOptionsMode(prefix);
 }
 
@@ -126,7 +129,7 @@ function toggleShareOptionsMode(prefix) {
     const isCustom = customRadio ? customRadio.checked : false;
     const container = document.getElementById(prefix + '_share_options_inputs');
 
-    ['download', 'source', 'share'].forEach((option) => {
+    ['download', 'source', 'share', 'rss'].forEach((option) => {
         const checkbox = document.getElementById(prefix + '_share_' + option);
         if (checkbox) {
             checkbox.disabled = !isCustom;

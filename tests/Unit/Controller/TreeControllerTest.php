@@ -781,6 +781,7 @@ class TreeControllerTest extends TestCase
         // opt_share_download non envoyé (décoché)
         $_POST['opt_share_source']  = 'on';
         // opt_share_share non envoyé (décoché)
+        $_POST['opt_share_rss']     = 'on';
 
         try {
             $this->makeController($authMock, $this->createMock(ViewRenderer::class))->handlePublic();
@@ -794,6 +795,7 @@ class TreeControllerTest extends TestCase
         $this->assertFalse($opts['download']);
         $this->assertTrue($opts['source']);
         $this->assertFalse($opts['share']);
+        $this->assertTrue($opts['rss']);
     }
 
     // =========================================================================
@@ -897,11 +899,11 @@ class TreeControllerTest extends TestCase
 
         $this->assertIsArray($capturedData);
         $this->assertStringContainsString(
-            "editFolder('liste_albums/parent', 'Parent', 'Desc', false, '', false, false, false, true, false, 'custom', true)",
+            "editFolder('liste_albums/parent', 'Parent', 'Desc', false, '', false, false, false, true, false, true, 'custom', true)",
             (string) $capturedData['tree']
         );
         $this->assertStringContainsString(
-            "createSubfolder('liste_albums/parent', 'custom', false, true, false)",
+            "createSubfolder('liste_albums/parent', 'custom', false, true, false, true)",
             (string) $capturedData['tree']
         );
     }
@@ -927,6 +929,7 @@ class TreeControllerTest extends TestCase
         $_POST['more_info_url']                      = '';
         $_POST['share_options_mode']                 = 'custom';
         $_POST['opt_share_source']                   = 'on';
+        $_POST['opt_share_rss']                      = 'on';
         $_POST['apply_share_options_to_subfolders']  = 'on';
 
         try {
@@ -940,10 +943,10 @@ class TreeControllerTest extends TestCase
         $grandOpts  = json_decode($grandLines[5] ?? '{}', true);
 
         $this->assertSame('Child', $childLines[0]);
-        $this->assertSame(['mode' => 'custom', 'download' => false, 'source' => true, 'share' => false], $childOpts);
+        $this->assertSame(['mode' => 'custom', 'download' => false, 'source' => true, 'share' => false, 'rss' => true], $childOpts);
         $this->assertSame('Grand Child', $grandLines[0]);
         $this->assertSame('1', $grandLines[4]);
-        $this->assertSame(['mode' => 'custom', 'download' => false, 'source' => true, 'share' => false], $grandOpts);
+        $this->assertSame(['mode' => 'custom', 'download' => false, 'source' => true, 'share' => false, 'rss' => true], $grandOpts);
     }
 
     public function testHandlePublicPostEditFolderAppliesGlobalShareModeToSubfoldersWhenRequested(): void

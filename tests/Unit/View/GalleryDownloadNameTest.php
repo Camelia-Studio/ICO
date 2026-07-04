@@ -46,9 +46,38 @@ class GalleryDownloadNameTest extends TestCase
             'allow_download'     => true,
             'allow_share'        => true,
             'allow_source'       => true,
+            'allow_rss'          => true,
         ]);
 
         $this->assertStringContainsString('data-download-name="screenshot-2026-07-04-at-15.44.22.png"', $output);
+    }
+
+    public function testPublicGalleryHidesRssLinksWhenDisabled(): void
+    {
+        $output = $this->render('pages/gallery-public', [
+            'album_info'         => [
+                'title'          => 'Album public',
+                'description'    => '',
+                'mature_content' => false,
+                'more_info_url'  => '',
+                'zip_download'   => false,
+            ],
+            'images'             => [],
+            'header_image'       => null,
+            'parent_path'        => 'liste_albums',
+            'breadcrumbs'        => [['label' => 'Accueil', 'url' => 'albums.php']],
+            'site_title'         => 'ICO',
+            'rss_url'            => 'rss.php?path=liste_albums%2Fpublic',
+            'zip_url'            => 'zip.php?path=liste_albums%2Fpublic',
+            'slideshow_interval' => 5,
+            'allow_download'     => true,
+            'allow_share'        => true,
+            'allow_source'       => true,
+            'allow_rss'          => false,
+        ]);
+
+        $this->assertStringNotContainsString('rel="alternate"', $output);
+        $this->assertStringNotContainsString("S'abonner au flux RSS", $output);
     }
 
     public function testPublicGalleryExposesOriginalFilenameForLightboxDownload(): void
