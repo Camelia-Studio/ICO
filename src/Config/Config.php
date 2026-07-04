@@ -26,7 +26,7 @@ final readonly class Config
         private string $basePath,
         private string $version,
         private int    $slideshowInterval,
-        /** @var array{download: bool, source: bool, share: bool} */
+        /** @var array{download: bool, source: bool, share: bool, rss: bool} */
         private array  $defaultShareOptions,
     ) {
     }
@@ -43,7 +43,7 @@ final readonly class Config
         $siteDescription  = '';
         $basePath         = '';
         $slideshowInterval = 5;
-        $defaultShareOpts  = ['download' => true, 'source' => true, 'share' => true];
+        $defaultShareOpts  = ['download' => true, 'source' => true, 'share' => true, 'rss' => true];
 
         if (file_exists($configFile)) {
             $lines             = explode("\n", file_get_contents($configFile));
@@ -60,6 +60,7 @@ final readonly class Config
                         'download' => (bool) ($decoded['download'] ?? true),
                         'source'   => (bool) ($decoded['source']   ?? true),
                         'share'    => (bool) ($decoded['share']     ?? true),
+                        'rss'      => (bool) ($decoded['rss']       ?? true),
                     ];
                 }
             }
@@ -137,7 +138,7 @@ final readonly class Config
     /**
      * Options de partage globales par défaut (ligne 5 de config.txt).
      *
-     * @return array{download: bool, source: bool, share: bool}
+     * @return array{download: bool, source: bool, share: bool, rss: bool}
      */
     public function getDefaultShareOptions(): array
     {

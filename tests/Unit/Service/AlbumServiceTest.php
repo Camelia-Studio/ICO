@@ -128,6 +128,7 @@ class AlbumServiceTest extends TestCase
         $this->assertTrue($info['share_options']['download']);
         $this->assertTrue($info['share_options']['source']);
         $this->assertTrue($info['share_options']['share']);
+        $this->assertTrue($info['share_options']['rss']);
         $this->assertSame('global', $info['share_options_mode']);
     }
 
@@ -137,7 +138,12 @@ class AlbumServiceTest extends TestCase
         mkdir($albumPath, 0o775, true);
         file_put_contents(
             $albumPath . '/infos.txt',
-            "Titre\nDesc\n18-\n\n0\n" . json_encode(['download' => false, 'source' => true, 'share' => false])
+            "Titre\nDesc\n18-\n\n0\n" . json_encode([
+                'download' => false,
+                'source'   => true,
+                'share'    => false,
+                'rss'      => false,
+            ])
         );
 
         $info = $this->service->getAlbumInfo($albumPath);
@@ -145,6 +151,7 @@ class AlbumServiceTest extends TestCase
         $this->assertFalse($info['share_options']['download']);
         $this->assertTrue($info['share_options']['source']);
         $this->assertFalse($info['share_options']['share']);
+        $this->assertFalse($info['share_options']['rss']);
         $this->assertSame('custom', $info['share_options_mode']);
     }
 
@@ -159,6 +166,7 @@ class AlbumServiceTest extends TestCase
                 'download' => true,
                 'source'   => false,
                 'share'    => true,
+                'rss'      => false,
             ])
         );
 
@@ -168,6 +176,7 @@ class AlbumServiceTest extends TestCase
         $this->assertTrue($info['share_options']['download']);
         $this->assertFalse($info['share_options']['source']);
         $this->assertTrue($info['share_options']['share']);
+        $this->assertFalse($info['share_options']['rss']);
     }
 
     public function testGetAlbumInfoShareOptionsReadsGlobalModeFromLine5(): void
@@ -190,6 +199,7 @@ class AlbumServiceTest extends TestCase
         $this->assertFalse($info['share_options']['download']);
         $this->assertFalse($info['share_options']['source']);
         $this->assertFalse($info['share_options']['share']);
+        $this->assertTrue($info['share_options']['rss']);
     }
 
     public function testGetAlbumInfoShareOptionsDefaultAllTrueForInvalidJson(): void
@@ -203,6 +213,7 @@ class AlbumServiceTest extends TestCase
         $this->assertTrue($info['share_options']['download']);
         $this->assertTrue($info['share_options']['source']);
         $this->assertTrue($info['share_options']['share']);
+        $this->assertTrue($info['share_options']['rss']);
         $this->assertSame('global', $info['share_options_mode']);
     }
 
@@ -216,6 +227,7 @@ class AlbumServiceTest extends TestCase
         $this->assertTrue($info['share_options']['download']);
         $this->assertTrue($info['share_options']['source']);
         $this->assertTrue($info['share_options']['share']);
+        $this->assertTrue($info['share_options']['rss']);
         $this->assertSame('global', $info['share_options_mode']);
     }
 

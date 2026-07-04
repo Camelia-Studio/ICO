@@ -119,6 +119,7 @@ class SettingsController
             'download' => $request->post('share_default_download', '') !== '',
             'source'   => $request->post('share_default_source', '') !== '',
             'share'    => $request->post('share_default_share', '') !== '',
+            'rss'      => $request->post('share_default_rss', '') !== '',
         ];
         $configContent = $siteTitle . "\n" . $siteDescription . "\n" . $projectPath . "\n" . $slideshowInterval
             . "\n" . json_encode($shareOptions);
@@ -210,7 +211,7 @@ class SettingsController
     /**
      * Relit config.txt pour avoir les valeurs fraîches après une mise à jour.
      *
-     * @return array{title: string, description: string, path: string, slideshow_interval: int, share_options: array{download: bool, source: bool, share: bool}}
+     * @return array{title: string, description: string, path: string, slideshow_interval: int, share_options: array{download: bool, source: bool, share: bool, rss: bool}}
      */
     private function readCurrentConfig(): array
     {
@@ -219,7 +220,7 @@ class SettingsController
             'description'        => '',
             'path'               => '',
             'slideshow_interval' => 5,
-            'share_options'      => ['download' => true, 'source' => true, 'share' => true],
+            'share_options'      => ['download' => true, 'source' => true, 'share' => true, 'rss' => true],
         ];
 
         if (!file_exists($this->configFile)) {
@@ -237,6 +238,7 @@ class SettingsController
                     'download' => (bool) ($decoded['download'] ?? true),
                     'source'   => (bool) ($decoded['source']   ?? true),
                     'share'    => (bool) ($decoded['share']     ?? true),
+                    'rss'      => (bool) ($decoded['rss']       ?? true),
                 ];
             }
         }

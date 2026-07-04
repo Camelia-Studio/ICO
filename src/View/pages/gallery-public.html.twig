@@ -3,7 +3,9 @@
 {% block page_title %}{{ album_info.title }} - {{ site_title }}{% endblock %}
 
 {% block extra_head %}
+    {% if allow_rss is not defined or allow_rss %}
     <link rel="alternate" type="application/rss+xml" title="{{ album_info.title }}" href="{{ rss_url }}">
+    {% endif %}
     <link rel="stylesheet" href="css/lightbox.css">
 {% endblock %}
 
@@ -67,6 +69,7 @@
                 </a>
             </div>
             {% endif %}
+            {% if allow_rss is not defined or allow_rss %}
             <div class="rss-button">
                 <a href="{{ rss_url }}" class="action-button">
                     <svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
@@ -77,6 +80,7 @@
                     S'abonner au flux RSS
                 </a>
             </div>
+            {% endif %}
         </div>
     </div>
 

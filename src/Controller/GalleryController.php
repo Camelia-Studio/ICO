@@ -92,6 +92,7 @@ class GalleryController
             'allow_download'    => $shareOptions['download'],
             'allow_share'       => $shareOptions['share'],
             'allow_source'      => $shareOptions['source'],
+            'allow_rss'         => $shareOptions['rss'],
         ]);
     }
 

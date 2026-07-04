@@ -138,11 +138,18 @@ class GalleryControllerTest extends TestCase
         $this->assertTrue($capturedData['allow_download']);
         $this->assertTrue($capturedData['allow_share']);
         $this->assertTrue($capturedData['allow_source']);
+        $this->assertTrue($capturedData['allow_rss']);
     }
 
     public function testShowReadsShareOptionsFromAlbumInfoTxt(): void
     {
-        $shareOptionsJson = json_encode(['mode' => 'custom', 'download' => false, 'source' => false, 'share' => false]);
+        $shareOptionsJson = json_encode([
+            'mode'     => 'custom',
+            'download' => false,
+            'source'   => false,
+            'share'    => false,
+            'rss'      => false,
+        ]);
         file_put_contents(
             $this->albumsRoot . '/album1/infos.txt',
             "Mon album\nDescription\n18-\n\n0\n" . $shareOptionsJson
@@ -166,6 +173,7 @@ class GalleryControllerTest extends TestCase
         $this->assertFalse($capturedData['allow_download']);
         $this->assertFalse($capturedData['allow_share']);
         $this->assertFalse($capturedData['allow_source']);
+        $this->assertFalse($capturedData['allow_rss']);
     }
 
     public function testShowUsesGlobalShareOptionsWhenAlbumUsesGlobalMode(): void
@@ -192,13 +200,14 @@ class GalleryControllerTest extends TestCase
             $fileService,
             $shareKeyRepo,
             $view,
-            $this->makeConfig(['download' => false, 'source' => true, 'share' => false]),
+            $this->makeConfig(['download' => false, 'source' => true, 'share' => false, 'rss' => false]),
         );
         $controller->show($request);
 
         $this->assertFalse($capturedData['allow_download']);
         $this->assertFalse($capturedData['allow_share']);
         $this->assertTrue($capturedData['allow_source']);
+        $this->assertFalse($capturedData['allow_rss']);
     }
 
     public function testShowLinksBreadcrumbHomeToAlbumsPage(): void
@@ -848,7 +857,7 @@ class GalleryControllerTest extends TestCase
     }
 
     /**
-     * @param array{download: bool, source: bool, share: bool}|null $defaultShareOptions
+     * @param array{download: bool, source: bool, share: bool, rss?: bool}|null $defaultShareOptions
      */
     private function makeConfig(?array $defaultShareOptions = null): Config
     {

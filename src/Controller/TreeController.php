@@ -59,15 +59,21 @@ class TreeController
     }
 
     /**
-     * @return array{download: bool, source: bool, share: bool}
+     * @return array{download: bool, source: bool, share: bool, rss?: bool}
      */
-    private function buildShareOptionsFromPost(): array
+    private function buildShareOptionsFromPost(bool $includeRss = true): array
     {
-        return [
+        $options = [
             'download' => isset($_POST['opt_share_download']),
             'source'   => isset($_POST['opt_share_source']),
             'share'    => isset($_POST['opt_share_share']),
         ];
+
+        if ($includeRss) {
+            $options['rss'] = isset($_POST['opt_share_rss']);
+        }
+
+        return $options;
     }
 
     private function buildShareOptionsModeFromPost(): string
@@ -76,7 +82,7 @@ class TreeController
     }
 
     /**
-     * @param array{download: bool, source: bool, share: bool} $shareOptions
+     * @param array{download: bool, source: bool, share: bool, rss?: bool} $shareOptions
      *
      * @return array<string, bool|string>
      */
@@ -86,16 +92,22 @@ class TreeController
             return ['mode' => 'global'];
         }
 
-        return [
+        $payload = [
             'mode'     => 'custom',
             'download' => $shareOptions['download'],
             'source'   => $shareOptions['source'],
             'share'    => $shareOptions['share'],
         ];
+
+        if (array_key_exists('rss', $shareOptions)) {
+            $payload['rss'] = $shareOptions['rss'];
+        }
+
+        return $payload;
     }
 
     /**
-     * @param array{download: bool, source: bool, share: bool} $shareOptions
+     * @param array{download: bool, source: bool, share: bool, rss?: bool} $shareOptions
      */
     private function buildInfoContent(
         string $title,
@@ -115,7 +127,7 @@ class TreeController
     }
 
     /**
-     * @param array{download: bool, source: bool, share: bool} $shareOptions
+     * @param array{download: bool, source: bool, share: bool, rss?: bool} $shareOptions
      */
     private function writeAlbumInfo(
         string $path,
@@ -134,7 +146,7 @@ class TreeController
     }
 
     /**
-     * @param array{download: bool, source: bool, share: bool} $shareOptions
+     * @param array{download: bool, source: bool, share: bool, rss?: bool} $shareOptions
      */
     private function applyShareOptionsToSubfolders(string $path, string $shareOptionsMode, array $shareOptions): void
     {
@@ -169,13 +181,14 @@ class TreeController
     }
 
     /**
-     * @param array{download: bool, source: bool, share: bool} $shareOptions
+     * @param array{download: bool, source: bool, share: bool, rss?: bool} $shareOptions
      */
     private function shareOptionsJsArgs(array $shareOptions): string
     {
         return $this->jsBool($shareOptions['download'])
             . ', ' . $this->jsBool($shareOptions['source'])
-            . ', ' . $this->jsBool($shareOptions['share']);
+            . ', ' . $this->jsBool($shareOptions['share'])
+            . ', ' . $this->jsBool($shareOptions['rss'] ?? true);
     }
 
     /**
@@ -187,9 +200,9 @@ class TreeController
     }
 
     /**
-     * @param array{share_options_mode?: string, share_options?: array{download?: bool, source?: bool, share?: bool}} $info
+     * @param array{share_options_mode?: string, share_options?: array{download?: bool, source?: bool, share?: bool, rss?: bool}} $info
      *
-     * @return array{download: bool, source: bool, share: bool}
+     * @return array{download: bool, source: bool, share: bool, rss: bool}
      */
     private function effectiveShareOptions(array $info): array
     {
@@ -197,7 +210,7 @@ class TreeController
     }
 
     /**
-     * @param array{title: string, description: string, mature_content: bool, more_info_url: string, zip_download: bool, share_options_mode?: string, share_options: array{download: bool, source: bool, share: bool}} $info
+     * @param array{title: string, description: string, mature_content: bool, more_info_url: string, zip_download: bool, share_options_mode?: string, share_options: array{download: bool, source: bool, share: bool, rss?: bool}} $info
      */
     private function editFolderButton(string $relativePath, array $info, bool $hasImages, bool $hasSubfolders): string
     {
@@ -219,7 +232,7 @@ class TreeController
     }
 
     /**
-     * @param array{download: bool, source: bool, share: bool} $shareOptions
+     * @param array{download: bool, source: bool, share: bool, rss?: bool} $shareOptions
      */
     private function createSubfolderButton(string $relativePath, string $shareOptionsMode, array $shareOptions): string
     {
@@ -232,7 +245,7 @@ class TreeController
     }
 
     /**
-     * @param array{title: string, description: string, mature_content: bool, more_info_url: string, zip_download: bool, share_options_mode?: string, share_options: array{download: bool, source: bool, share: bool}} $info
+     * @param array{title: string, description: string, mature_content: bool, more_info_url: string, zip_download: bool, share_options_mode?: string, share_options: array{download: bool, source: bool, share: bool, rss?: bool}} $info
      */
     private function treeTitle(string $icon, array $info, int $imageCount = 0): string
     {
@@ -536,7 +549,7 @@ class TreeController
                             $moreInfoUrl,
                             '0',
                             $shareOptionsMode,
-                            $this->buildShareOptionsFromPost(),
+                            $this->buildShareOptionsFromPost(includeRss: false),
                         );
                         $_SESSION['success_message'] = 'Dossier privé « ' . $newName . ' » créé avec succès.';
                     } else {
@@ -558,7 +571,7 @@ class TreeController
                     $moreInfoUrl      = $_POST['more_info_url'] ?? '';
                     $zipDownload      = isset($_POST['zip_download']) ? '1' : '0';
                     $shareOptionsMode = $this->buildShareOptionsModeFromPost();
-                    $shareOptions     = $this->buildShareOptionsFromPost();
+                    $shareOptions     = $this->buildShareOptionsFromPost(includeRss: false);
                     if ($this->writeAlbumInfo($path, $newName, $description, $matureContent, $moreInfoUrl, $zipDownload, $shareOptionsMode, $shareOptions)) {
                         if (isset($_POST['apply_share_options_to_subfolders'])) {
                             $this->applyShareOptionsToSubfolders($path, $shareOptionsMode, $shareOptions);
@@ -831,7 +844,7 @@ class TreeController
     }
 
     /**
-     * @param array{title: string, description: string, mature_content: bool, more_info_url: string, zip_download: bool, share_options_mode?: string, share_options: array{download: bool, source: bool, share: bool}} $info
+     * @param array{title: string, description: string, mature_content: bool, more_info_url: string, zip_download: bool, share_options_mode?: string, share_options: array{download: bool, source: bool, share: bool, rss?: bool}} $info
      */
     private function generateShareLinkButton(string $relPath, array $info): string
     {

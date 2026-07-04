@@ -193,6 +193,7 @@ class ConfigTest extends TestCase
         $this->assertTrue($opts['download']);
         $this->assertTrue($opts['source']);
         $this->assertTrue($opts['share']);
+        $this->assertTrue($opts['rss']);
     }
 
     public function testGetDefaultShareOptionsReadsFromLine4(): void
@@ -202,7 +203,12 @@ class ConfigTest extends TestCase
 
         file_put_contents(
             $configFile,
-            "Mon Site\nDesc\nbase\n5\n" . json_encode(['download' => false, 'source' => true, 'share' => false])
+            "Mon Site\nDesc\nbase\n5\n" . json_encode([
+                'download' => false,
+                'source'   => true,
+                'share'    => false,
+                'rss'      => false,
+            ])
         );
         file_put_contents($versionFile, '1.0.0');
 
@@ -211,6 +217,7 @@ class ConfigTest extends TestCase
         $this->assertFalse($opts['download']);
         $this->assertTrue($opts['source']);
         $this->assertFalse($opts['share']);
+        $this->assertFalse($opts['rss']);
     }
 
     public function testGetDefaultShareOptionsDefaultsAllTrueForInvalidJson(): void
@@ -226,6 +233,7 @@ class ConfigTest extends TestCase
         $this->assertTrue($opts['download']);
         $this->assertTrue($opts['source']);
         $this->assertTrue($opts['share']);
+        $this->assertTrue($opts['rss']);
     }
 
     // -------------------------------------------------------------------------

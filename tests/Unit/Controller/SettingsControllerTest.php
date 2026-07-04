@@ -169,7 +169,12 @@ class SettingsControllerTest extends TestCase
     {
         file_put_contents(
             $this->configFile,
-            "ICO\nDescription\nbase-path\n5\n" . json_encode(['download' => false, 'source' => true, 'share' => true])
+            "ICO\nDescription\nbase-path\n5\n" . json_encode([
+                'download' => false,
+                'source'   => true,
+                'share'    => true,
+                'rss'      => false,
+            ])
         );
 
         $auth = $this->createMock(AuthService::class);
@@ -182,7 +187,8 @@ class SettingsControllerTest extends TestCase
                     isset($d['default_share_options']) &&
                     $d['default_share_options']['download'] === false &&
                     $d['default_share_options']['source'] === true &&
-                    $d['default_share_options']['share'] === true
+                    $d['default_share_options']['share'] === true &&
+                    $d['default_share_options']['rss'] === false
             ));
 
         $controller = $this->makeController(auth: $auth, view: $view);
@@ -222,6 +228,7 @@ class SettingsControllerTest extends TestCase
         $this->assertFalse($opts['download']);
         $this->assertTrue($opts['source']);
         $this->assertFalse($opts['share']);
+        $this->assertFalse($opts['rss']);
     }
 
     public function testPostSavesShareOptionsAllTrueWhenAllChecked(): void
@@ -245,6 +252,7 @@ class SettingsControllerTest extends TestCase
                 'share_default_download' => 'on',
                 'share_default_source'   => 'on',
                 'share_default_share'    => 'on',
+                'share_default_rss'      => 'on',
             ]));
         } catch (TerminateException) {
         }
@@ -254,6 +262,7 @@ class SettingsControllerTest extends TestCase
         $this->assertTrue($opts['download']);
         $this->assertTrue($opts['source']);
         $this->assertTrue($opts['share']);
+        $this->assertTrue($opts['rss']);
     }
 
     public function testPostPreservesLines0To3WhenSavingShareOptions(): void
@@ -287,6 +296,7 @@ class SettingsControllerTest extends TestCase
         $opts = json_decode($lines[4] ?? '{}', true);
         $this->assertIsArray($opts);
         $this->assertArrayHasKey('download', $opts);
+        $this->assertArrayHasKey('rss', $opts);
     }
 
     // =========================================================================
