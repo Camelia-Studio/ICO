@@ -10,6 +10,7 @@ use ICO\Http\Request;
 use ICO\Http\TerminateException;
 use ICO\Repository\ShareKeyRepository;
 use ICO\Service\AlbumService;
+use ICO\Service\AuthService;
 use ICO\Service\FileService;
 use ICO\Service\PathService;
 use ICO\View\ViewRenderer;
@@ -294,6 +295,65 @@ class GalleryControllerTest extends TestCase
 
         $this->assertNull($capturedData['error_title']);
         $this->assertCount(1, $capturedData['images']);
+    }
+
+    public function testShowPrivateWithAdminPathRendersGalleryWithoutShareKey(): void
+    {
+        file_put_contents($this->privateRoot . '/secret/img.jpg', '');
+        $_SESSION['admin_id'] = 1;
+
+        $albumService = new AlbumService($this->albumsRoot, $this->privateRoot);
+        $fileService  = $this->createMock(FileService::class);
+        $fileService->method('getSecureImageSize')->willReturn(['width' => 100, 'height' => 100]);
+
+        $shareKeyRepo = $this->createMock(ShareKeyRepository::class);
+        $shareKeyRepo->expects($this->never())->method('findValidByKey');
+
+        $capturedData = null;
+        $view = $this->createMock(ViewRenderer::class);
+        $view->expects($this->once())->method('render')
+            ->willReturnCallback(function (string $tpl, array $data) use (&$capturedData): void {
+                $capturedData = $data;
+            });
+
+        $request    = new Request('GET', '/galeries-privees.php', ['path' => 'liste_albums_prives/secret']);
+        $controller = $this->makeController($albumService, $fileService, $shareKeyRepo, $view);
+        $controller->showPrivate($request);
+
+        $this->assertNull($capturedData['error_title']);
+        $this->assertCount(1, $capturedData['images']);
+        $this->assertStringContainsString('/images.php?path=', $capturedData['images'][0]['url']);
+        $this->assertStringContainsString('liste_albums_prives%2Fsecret%2Fimg.jpg', $capturedData['images'][0]['url']);
+        $this->assertStringNotContainsString('key=', $capturedData['images'][0]['url']);
+
+        unset($_SESSION['admin_id']);
+    }
+
+    public function testShowPrivateWithAdminPathRequiresLoggedInAdmin(): void
+    {
+        file_put_contents($this->privateRoot . '/secret/img.jpg', '');
+        unset($_SESSION['admin_id']);
+
+        $albumService = new AlbumService($this->albumsRoot, $this->privateRoot);
+        $fileService  = $this->createMock(FileService::class);
+
+        $shareKeyRepo = $this->createMock(ShareKeyRepository::class);
+        $shareKeyRepo->expects($this->never())->method('findValidByKey');
+
+        $capturedData = null;
+        $view = $this->createMock(ViewRenderer::class);
+        $view->expects($this->once())->method('render')
+            ->with('pages/gallery-private', $this->callback(fn (array $data): bool => $data['error_title'] === 'Accès refusé'))
+            ->willReturnCallback(function (string $tpl, array $data) use (&$capturedData): void {
+                $capturedData = $data;
+            });
+
+        $request    = new Request('GET', '/galeries-privees.php', ['path' => 'liste_albums_prives/secret']);
+        $controller = $this->makeController($albumService, $fileService, $shareKeyRepo, $view);
+        $controller->showPrivate($request);
+
+        $this->assertSame('Accès refusé', $capturedData['error_title']);
+        $this->assertSame([], $capturedData['images']);
     }
 
     public function testShowPrivateWithNonExistentPathRendersEmptyGallery(): void
@@ -632,8 +692,17 @@ class GalleryControllerTest extends TestCase
             $fileService,
             $shareKeyRepo,
             new PathService($this->tmpDir, 'http://localhost'),
+            $this->makeAuthService(),
             $view,
         );
+    }
+
+    private function makeAuthService(): AuthService
+    {
+        $auth = $this->createMock(AuthService::class);
+        $auth->method('isLoggedIn')->willReturnCallback(static fn (): bool => isset($_SESSION['admin_id']));
+
+        return $auth;
     }
 
     /**

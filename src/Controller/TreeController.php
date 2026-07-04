@@ -791,6 +791,10 @@ class TreeController
         $actions       = [];
 
         if (!$hasSubfolders) {
+            if ($hasImages) {
+                $actions[] = $this->privateGalleryButton($relPath);
+            }
+
             $actions[] = '<a href="arbre-img-prive.php?path=' . urlencode($relPath) . '&private=1" class="tree-button" style="text-decoration: none">🖼️</a>';
             if ($hasImages) {
                 $actions[] = $this->generateShareLinkButton($relPath, $info);
@@ -812,6 +816,13 @@ class TreeController
             . '<div class="tree-actions">' . implode('', $actions) . '</div></div>'
             . $this->generatePrivateTree($fullPath, $currentPath)
             . '</li>';
+    }
+
+    private function privateGalleryButton(string $relPath): string
+    {
+        return '<a href="galeries-privees.php?path='
+            . urlencode($relPath)
+            . '" class="tree-button" target="_blank" title="Accéder à la galerie privée" style="text-decoration: none">👁️</a>';
     }
 
     /**

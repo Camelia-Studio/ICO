@@ -210,6 +210,7 @@ final class Container
             ->addArgument(new Reference(FileService::class))
             ->addArgument(new Reference(ShareKeyRepository::class))
             ->addArgument(new Reference(PathService::class))
+            ->addArgument(new Reference(AuthService::class))
             ->addArgument(new Reference(ViewRenderer::class));
 
         $container->register(ImageController::class)
