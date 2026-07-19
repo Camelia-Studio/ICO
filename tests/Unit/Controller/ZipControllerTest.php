@@ -10,6 +10,7 @@ use ICO\Http\TerminateException;
 use ICO\Service\AlbumService;
 use ICO\Service\PathService;
 use PHPUnit\Framework\TestCase;
+use ZipArchive;
 
 class ZipControllerTest extends TestCase
 {
@@ -92,16 +93,49 @@ class ZipControllerTest extends TestCase
         $relPath    = 'liste_albums/photos';
         $request    = new Request('GET', '/zip.php', ['path' => $relPath]);
 
-        ob_start();
+        $existingTemporaryZipFiles = glob(sys_get_temp_dir() . '/ico_zip_*') ?: [];
+        $temporaryZipFiles         = [];
+        $output                    = '';
+
+        ob_start(
+            static function (string $buffer) use (
+                &$output,
+                &$temporaryZipFiles,
+                $existingTemporaryZipFiles,
+            ): string {
+                $output .= $buffer;
+
+                $currentTemporaryZipFiles = glob(sys_get_temp_dir() . '/ico_zip_*') ?: [];
+                $temporaryZipFiles        = array_values(array_unique([
+                    ...$temporaryZipFiles,
+                    ...array_diff($currentTemporaryZipFiles, $existingTemporaryZipFiles),
+                ]));
+
+                return '';
+            },
+            1,
+        );
+
         try {
             $controller->download($request);
         } catch (TerminateException) {
+        } finally {
+            ob_end_clean();
         }
 
-        $output = ob_get_clean();
+        $archivePath = $this->tmpDir . '/download.zip';
+        file_put_contents($archivePath, $output);
 
-        // Vérification de la signature ZIP (magic bytes PK)
-        $this->assertStringStartsWith('PK', $output);
+        $zip = new ZipArchive();
+
+        $this->assertSame([], $temporaryZipFiles);
+        $this->assertTrue($zip->open($archivePath) === true);
+        $this->assertSame(2, $zip->numFiles);
+        $this->assertSame('img_a', $zip->getFromName('a.jpg'));
+        $this->assertSame('img_b', $zip->getFromName('b.png'));
+        $this->assertFalse($zip->locateName('readme.txt'));
+
+        $zip->close();
     }
 
     // =========================================================================

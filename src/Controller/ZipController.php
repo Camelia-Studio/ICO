@@ -9,7 +9,8 @@ use ICO\Http\Request;
 use ICO\Http\TerminateException;
 use ICO\Service\AlbumService;
 use ICO\Service\PathService;
-use ZipArchive;
+use ZipStream\CompressionMethod;
+use ZipStream\ZipStream;
 
 /**
  * Génère et sert un fichier ZIP contenant toutes les images d'un album public.
@@ -47,14 +48,14 @@ class ZipController
             throw new TerminateException();
         }
 
-        $tmpFile = tempnam(sys_get_temp_dir(), 'ico_zip_');
-        if ($tmpFile === false) {
-            http_response_code(500);
-            throw new TerminateException();
-        }
-
-        $zip = new ZipArchive();
-        $zip->open($tmpFile, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+        $safeName = preg_replace('/[^a-z0-9_\-]/i', '_', $albumInfo['title']) ?: 'album';
+        $filename = $safeName . '.zip';
+        $zip      = new ZipStream(
+            defaultCompressionMethod: CompressionMethod::STORE,
+            outputName: $filename,
+            contentType: 'application/zip',
+            flushOutput: true,
+        );
 
         foreach (new DirectoryIterator($currentPath) as $file) {
             if ($file->isDot() || !$file->isFile()) {
@@ -65,23 +66,13 @@ class ZipController
                 continue;
             }
 
-            $zip->addFile($file->getPathname(), $file->getFilename());
+            $zip->addFileFromPath(
+                fileName: $file->getFilename(),
+                path: $file->getPathname(),
+            );
         }
 
-        $zip->close();
-
-        $safeName = preg_replace('/[^a-z0-9_\-]/i', '_', $albumInfo['title']) ?: 'album';
-        $filename = $safeName . '.zip';
-        $size     = filesize($tmpFile);
-
-        header('Content-Type: application/zip');
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
-        if ($size !== false) {
-            header('Content-Length: ' . $size);
-        }
-
-        readfile($tmpFile);
-        unlink($tmpFile);
+        $zip->finish();
         throw new TerminateException();
     }
 }
