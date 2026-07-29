@@ -332,13 +332,13 @@ class AlbumService
         }
 
         $albumsReal = realpath($this->albumsRoot);
-        if ($albumsReal !== false && str_starts_with($realPath, $albumsReal)) {
+        if ($albumsReal !== false && $this->isSameOrUnderRoot($realPath, $albumsReal)) {
             return true;
         }
 
         if ($this->carouselRoot !== '') {
             $carouselReal = realpath($this->carouselRoot);
-            if ($carouselReal !== false && str_starts_with($realPath, $carouselReal)) {
+            if ($carouselReal !== false && $this->isSameOrUnderRoot($realPath, $carouselReal)) {
                 return true;
             }
         }
@@ -356,7 +356,17 @@ class AlbumService
 
         return $realPath !== false
             && $privateReal !== false
-            && str_starts_with($realPath, $privateReal);
+            && $this->isSameOrUnderRoot($realPath, $privateReal);
+    }
+
+    /**
+     * Vérifie que $realPath est égal à $root, ou situé sous $root en respectant
+     * une frontière de séparateur de répertoire (évite qu'un dossier comme
+     * "liste_albums_prives" ne soit reconnu à tort comme sous-dossier de "liste_albums").
+     */
+    private function isSameOrUnderRoot(string $realPath, string $root): bool
+    {
+        return $realPath === $root || str_starts_with($realPath, $root . DIRECTORY_SEPARATOR);
     }
 
     // -------------------------------------------------------------------------

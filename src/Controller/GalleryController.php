@@ -208,6 +208,11 @@ class GalleryController
 
         $shareOptions = array_merge($shareOptions, $decoded);
 
+        $zipUrl = $this->pathService->getBaseUrl() . '/zip.php?path=' . urlencode($this->pathService->toRelative($currentPath));
+        if ($shareKey !== '') {
+            $zipUrl .= '&key=' . urlencode($shareKey);
+        }
+
         $this->view->render('pages/gallery-private', [
             'error_title'        => null,
             'error_message'      => null,
@@ -217,6 +222,7 @@ class GalleryController
             'share_key'          => $shareKey,
             'site_title'         => $this->config->getSiteTitle(),
             'slideshow_interval' => $this->config->getSlideshowInterval(),
+            'zip_url'            => $zipUrl,
             'allow_download'     => (bool) ($shareOptions['download'] ?? true),
             'allow_share'        => (bool) ($shareOptions['share']    ?? true),
             'allow_source'       => (bool) ($shareOptions['source']   ?? true),

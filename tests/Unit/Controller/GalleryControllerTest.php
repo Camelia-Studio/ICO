@@ -308,6 +308,37 @@ class GalleryControllerTest extends TestCase
         $this->assertSame('img.jpg', $capturedData['images'][0]['filename']);
     }
 
+    public function testShowPrivateWithValidKeyExposesZipUrlWithShareKey(): void
+    {
+        file_put_contents($this->privateRoot . '/secret/img.jpg', '');
+
+        $albumService = new AlbumService($this->albumsRoot, $this->privateRoot);
+        $fileService  = $this->createMock(FileService::class);
+        $fileService->method('getSecureImageSize')->willReturn(['width' => 100, 'height' => 100]);
+
+        $shareKeyRepo = $this->createMock(ShareKeyRepository::class);
+        $shareKeyRepo->method('findValidByKey')->willReturn([
+            'path'       => $this->privateRoot . '/secret',
+            'identifier' => 'abc123',
+        ]);
+
+        $capturedData = null;
+        $view = $this->createMock(ViewRenderer::class);
+        $view->expects($this->once())->method('render')
+            ->willReturnCallback(function (string $tpl, array $data) use (&$capturedData): void {
+                $capturedData = $data;
+            });
+
+        $request    = new Request('GET', '/galeries-privees.php', ['key' => 'valid-key']);
+        $controller = $this->makeController($albumService, $fileService, $shareKeyRepo, $view);
+        $controller->showPrivate($request);
+
+        $this->assertSame(
+            'http://localhost/zip.php?path=liste_albums_prives%2Fsecret&key=valid-key',
+            $capturedData['zip_url'],
+        );
+    }
+
     public function testShowPrivateParentKeyRendersSubfolderNavigation(): void
     {
         $parent = $this->privateRoot . '/parent';

@@ -7,6 +7,7 @@ namespace ICO\Tests\Unit\Controller;
 use ICO\Controller\ZipController;
 use ICO\Http\Request;
 use ICO\Http\TerminateException;
+use ICO\Repository\ShareKeyRepository;
 use ICO\Service\AlbumService;
 use ICO\Service\PathService;
 use PHPUnit\Framework\TestCase;
@@ -139,15 +140,94 @@ class ZipControllerTest extends TestCase
     }
 
     // =========================================================================
+    // Albums privés
+    // =========================================================================
+
+    public function testDownloadReturnsForbiddenForPrivateAlbumWithoutKey(): void
+    {
+        $album = $this->privateRoot . '/secret';
+        mkdir($album, 0o775, true);
+        file_put_contents($album . '/infos.txt', "Secret\nDesc\n18-\n\n1");
+        file_put_contents($album . '/photo.jpg', 'fake');
+
+        $shareKeyRepo = $this->createMock(ShareKeyRepository::class);
+        $shareKeyRepo->expects($this->never())->method('findValidForPath');
+
+        $controller = $this->makeController($shareKeyRepo);
+        $request    = new Request('GET', '/zip.php', ['path' => 'liste_albums_prives/secret']);
+
+        $this->expectException(TerminateException::class);
+        $controller->download($request);
+    }
+
+    public function testDownloadReturnsForbiddenForPrivateAlbumWithInvalidKey(): void
+    {
+        $album = $this->privateRoot . '/secret';
+        mkdir($album, 0o775, true);
+        file_put_contents($album . '/infos.txt', "Secret\nDesc\n18-\n\n1");
+        file_put_contents($album . '/photo.jpg', 'fake');
+
+        $shareKeyRepo = $this->createMock(ShareKeyRepository::class);
+        $shareKeyRepo->method('findValidForPath')->willReturn(null);
+
+        $controller = $this->makeController($shareKeyRepo);
+        $request    = new Request('GET', '/zip.php', ['path' => 'liste_albums_prives/secret', 'key' => 'bad-key']);
+
+        $this->expectException(TerminateException::class);
+        $controller->download($request);
+    }
+
+    public function testDownloadStreamsZipForPrivateAlbumWithValidKey(): void
+    {
+        $album = $this->privateRoot . '/secret';
+        mkdir($album, 0o775, true);
+        file_put_contents($album . '/infos.txt', "Secret\nDesc\n18-\n\n1");
+        file_put_contents($album . '/a.jpg', 'img_a');
+
+        $shareKeyRepo = $this->createMock(ShareKeyRepository::class);
+        $shareKeyRepo->method('findValidForPath')->willReturn(['path' => $album]);
+
+        $controller = $this->makeController($shareKeyRepo);
+        $request    = new Request('GET', '/zip.php', ['path' => 'liste_albums_prives/secret', 'key' => 'good-key']);
+
+        $output = '';
+        ob_start(
+            static function (string $buffer) use (&$output): string {
+                $output .= $buffer;
+
+                return '';
+            },
+            1,
+        );
+
+        try {
+            $controller->download($request);
+        } catch (TerminateException) {
+        } finally {
+            ob_end_clean();
+        }
+
+        $archivePath = $this->tmpDir . '/private-download.zip';
+        file_put_contents($archivePath, $output);
+
+        $zip = new ZipArchive();
+
+        $this->assertTrue($zip->open($archivePath) === true);
+        $this->assertSame('img_a', $zip->getFromName('a.jpg'));
+
+        $zip->close();
+    }
+
+    // =========================================================================
     // Helpers
     // =========================================================================
 
-    private function makeController(): ZipController
+    private function makeController(?ShareKeyRepository $shareKeyRepo = null): ZipController
     {
         $albumService = new AlbumService($this->albumsRoot, $this->privateRoot);
         $pathService  = new PathService($this->tmpDir, 'http://localhost');
 
-        return new ZipController($albumService, $pathService);
+        return new ZipController($albumService, $pathService, $shareKeyRepo ?? $this->createMock(ShareKeyRepository::class));
     }
 
     private function removeDirRecursive(string $dir): void

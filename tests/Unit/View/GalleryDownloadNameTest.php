@@ -29,6 +29,7 @@ class GalleryDownloadNameTest extends TestCase
                 'description'    => '',
                 'mature_content' => false,
                 'more_info_url'  => '',
+                'zip_download'   => false,
             ],
             'images'             => [[
                 'url'          => 'images.php?path=liste_albums_prives%2Fsecret%2Fscreenshot-2026-07-04-at-15.44.22.png&key=abc',
@@ -50,6 +51,33 @@ class GalleryDownloadNameTest extends TestCase
         ]);
 
         $this->assertStringContainsString('data-download-name="screenshot-2026-07-04-at-15.44.22.png"', $output);
+    }
+
+    public function testPrivateGalleryShowsZipDownloadButtonWhenEnabled(): void
+    {
+        $output = $this->render('pages/gallery-private', [
+            'error_title'        => null,
+            'error_message'      => null,
+            'album_data'         => [
+                'title'          => 'Album privé',
+                'description'    => '',
+                'mature_content' => false,
+                'more_info_url'  => '',
+                'zip_download'   => true,
+            ],
+            'images'             => [],
+            'header_image'       => null,
+            'share_key'          => 'abc',
+            'site_title'         => 'ICO',
+            'slideshow_interval' => 5,
+            'zip_url'            => 'zip.php?path=liste_albums_prives%2Fsecret&key=abc',
+            'allow_download'     => true,
+            'allow_share'        => true,
+            'allow_source'       => true,
+        ]);
+
+        $this->assertStringContainsString('zip.php?path=liste_albums_prives%2Fsecret&amp;key=abc', $output);
+        $this->assertStringContainsString("Télécharger l'album en ZIP", $output);
     }
 
     public function testPublicGalleryHidesRssLinksWhenDisabled(): void
