@@ -295,7 +295,8 @@ final class Container
         $container->register(ZipController::class)
             ->setPublic(true)
             ->addArgument(new Reference(AlbumService::class))
-            ->addArgument(new Reference(PathService::class));
+            ->addArgument(new Reference(PathService::class))
+            ->addArgument(new Reference(ShareKeyRepository::class));
 
         $container->compile();
 
