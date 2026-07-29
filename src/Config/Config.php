@@ -17,8 +17,8 @@ final readonly class Config
     /** Extensions vidéo autorisées */
     private const array VIDEO_EXTENSIONS = ['mp4', 'webm'];
 
-    /** Durée de vie de session en secondes (24h) */
-    private const int SESSION_LIFETIME = 86400;
+    /** Durée de vie de session en secondes (7 jours, glissant) */
+    private const int SESSION_LIFETIME = 604800;
 
     private function __construct(
         private string $siteTitle,
@@ -146,12 +146,28 @@ final readonly class Config
     }
 
     /**
+     * Durée de vie de session en secondes (7 jours).
+     */
+    public function getSessionLifetime(): int
+    {
+        return self::SESSION_LIFETIME;
+    }
+
+    /**
      * Configure la durée de vie de session PHP.
      * Doit être appelée avant session_start().
      */
     public function configureSession(): void
     {
         ini_set('session.gc_maxlifetime', (string) self::SESSION_LIFETIME);
-        session_set_cookie_params(self::SESSION_LIFETIME);
+
+        session_set_cookie_params([
+            'lifetime' => self::SESSION_LIFETIME,
+            'path'     => '/',
+            'domain'   => '',
+            'secure'   => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
     }
 }

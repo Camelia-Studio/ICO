@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ICO\Service;
 
+use ICO\Config\Config;
 use ICO\Repository\AdminRepository;
 
 /**
@@ -11,11 +12,11 @@ use ICO\Repository\AdminRepository;
  */
 class AuthService
 {
-    /** Durée de vie de session en secondes (24h). */
-    private const int SESSION_TIMEOUT = 86400;
-
-    public function __construct(private readonly AdminRepository $adminRepository)
-    {
+    public function __construct(
+        private readonly AdminRepository     $adminRepository,
+        private readonly Config              $config,
+        private readonly SessionCookieService $sessionCookie,
+    ) {
     }
 
     /**
@@ -43,10 +44,11 @@ class AuthService
     }
 
     /**
-     * Détruit la session courante (logout).
+     * Détruit la session courante (logout) et invalide le cookie côté navigateur.
      */
     public function logout(): void
     {
+        $this->sessionCookie->expire();
         $_SESSION = [];
         session_destroy();
     }
@@ -54,7 +56,9 @@ class AuthService
     /**
      * Vérifie que la session admin est active et non expirée.
      *
-     * Retourne true si la session est valide.
+     * Retourne true si la session est valide. La fenêtre glissante est
+     * rafraîchie côté serveur (last_activity) ET côté navigateur (expiration
+     * du cookie repoussée), pour une vraie persistance de plusieurs jours.
      * Retourne false si l'admin n'est pas connecté ou si la session a expiré
      * (dans ce cas la session est détruite).
      */
@@ -64,14 +68,17 @@ class AuthService
             return false;
         }
 
+        $sessionLifetime = $this->config->getSessionLifetime();
+
         if (isset($_SESSION['last_activity'])
-            && (time() - $_SESSION['last_activity']) > self::SESSION_TIMEOUT
+            && (time() - $_SESSION['last_activity']) > $sessionLifetime
         ) {
             session_destroy();
             return false;
         }
 
         $_SESSION['last_activity'] = time();
+        $this->sessionCookie->refresh(time() + $sessionLifetime);
 
         return true;
     }

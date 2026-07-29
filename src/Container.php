@@ -35,6 +35,7 @@ use ICO\Service\AuthService;
 use ICO\Service\FileService;
 use ICO\Service\PasswordValidator;
 use ICO\Service\PathService;
+use ICO\Service\SessionCookieService;
 use ICO\Service\UpdateService;
 use ICO\View\ViewRenderer;
 use PDO;
@@ -125,8 +126,12 @@ final class Container
         // Services
         // -------------------------------------------------------------------------
 
+        $container->register(SessionCookieService::class);
+
         $container->register(AuthService::class)
-            ->addArgument(new Reference(AdminRepository::class));
+            ->addArgument(new Reference(AdminRepository::class))
+            ->addArgument(new Reference(Config::class))
+            ->addArgument(new Reference(SessionCookieService::class));
 
         $container->register(AlbumService::class)
             ->addArgument('%albums_root%')
