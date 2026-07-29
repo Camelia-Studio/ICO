@@ -55,5 +55,29 @@ trait DatabaseTestTrait
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (admin_id) REFERENCES admins(id)
         )');
+
+        $this->pdo->exec('CREATE TABLE info_pages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            slug TEXT UNIQUE NOT NULL,
+            content TEXT NOT NULL DEFAULT \'\',
+            is_published INTEGER NOT NULL DEFAULT 1,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )');
+
+        $this->pdo->exec('CREATE TABLE social_links (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            label TEXT NOT NULL,
+            url TEXT NOT NULL,
+            display_order INTEGER NOT NULL DEFAULT 0,
+            is_active INTEGER NOT NULL DEFAULT 1,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )');
+
+        $this->pdo->exec('CREATE TABLE carousel_positions (
+            filename TEXT PRIMARY KEY,
+            position INTEGER NOT NULL
+        )');
     }
 }

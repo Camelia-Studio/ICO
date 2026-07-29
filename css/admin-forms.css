@@ -86,6 +86,58 @@
     margin: 0 auto;
 }
 
+.form-container-wide {
+    max-width: 1100px;
+}
+
+.markdown-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 0.5rem;
+}
+
+.markdown-toolbar button {
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+    border: none;
+    border-radius: 0.35rem;
+    padding: 0.4rem 0.7rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.markdown-toolbar button:hover {
+    background-color: #333;
+    color: #fff;
+}
+
+.markdown-editor {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.markdown-editor .form-textarea {
+    min-height: 400px;
+}
+
+.markdown-preview {
+    padding: 0.8rem;
+    border-radius: 0.5rem;
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+    line-height: 1.6;
+    overflow-y: auto;
+    min-height: 400px;
+}
+
+@media (max-width: 900px) {
+    .markdown-editor {
+        grid-template-columns: 1fr;
+    }
+}
+
 .form-actions {
     margin-top: 2rem;
     display: flex;

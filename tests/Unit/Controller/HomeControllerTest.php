@@ -7,16 +7,22 @@ namespace ICO\Tests\Unit\Controller;
 use ICO\Config\Config;
 use ICO\Controller\HomeController;
 use ICO\Http\Request;
+use ICO\Repository\CarouselPositionRepository;
 use ICO\Service\PathService;
+use ICO\Tests\Support\DatabaseTestTrait;
 use ICO\View\ViewRenderer;
 use PHPUnit\Framework\TestCase;
 
 class HomeControllerTest extends TestCase
 {
+    use DatabaseTestTrait;
+
     private string $tmpDir;
 
     protected function setUp(): void
     {
+        $this->setUpDatabase();
+
         $this->tmpDir = sys_get_temp_dir() . '/ico_home_test_' . uniqid();
         mkdir($this->tmpDir, 0o775, true);
     }
@@ -37,7 +43,7 @@ class HomeControllerTest extends TestCase
                 && is_array($d['carousel_images'])
             ));
 
-        $controller = new HomeController($config, new PathService($this->tmpDir, 'http://localhost'), $view);
+        $controller = $this->makeController($config, $view);
         $controller->index($this->makeRequest());
     }
 
@@ -47,7 +53,7 @@ class HomeControllerTest extends TestCase
         $view   = $this->createMock(ViewRenderer::class);
         $view->method('render');
 
-        $controller = new HomeController($config, new PathService($this->tmpDir, 'http://localhost'), $view);
+        $controller = $this->makeController($config, $view);
         $controller->index($this->makeRequest());
 
         $this->assertDirectoryExists($this->tmpDir . '/img_carrousel');
@@ -69,7 +75,7 @@ class HomeControllerTest extends TestCase
                 $capturedData = $data;
             });
 
-        $controller = new HomeController($config, new PathService($this->tmpDir, 'http://localhost'), $view);
+        $controller = $this->makeController($config, $view);
         $controller->index($this->makeRequest());
 
         $this->assertCount(2, $capturedData['carousel_images']);
@@ -96,7 +102,7 @@ class HomeControllerTest extends TestCase
                 $capturedData = $data;
             });
 
-        $controller = new HomeController($config, new PathService($this->tmpDir, 'http://localhost'), $view);
+        $controller = $this->makeController($config, $view);
         $controller->index($this->makeRequest());
 
         $this->assertLessThanOrEqual(5, count($capturedData['carousel_images']));
@@ -119,7 +125,7 @@ class HomeControllerTest extends TestCase
                 $capturedData = $data;
             });
 
-        $controller = new HomeController($config, new PathService($this->tmpDir, 'http://localhost'), $view);
+        $controller = $this->makeController($config, $view);
         $controller->index($this->makeRequest());
 
         $this->assertCount(2, $capturedData['carousel_images']);
@@ -143,15 +149,50 @@ class HomeControllerTest extends TestCase
                 $capturedData = $data;
             });
 
-        $controller = new HomeController($config, new PathService($this->tmpDir, 'http://localhost'), $view);
+        $controller = $this->makeController($config, $view);
         $controller->index($this->makeRequest());
 
         $this->assertCount(1, $capturedData['carousel_images']);
     }
 
+    public function testIndexUsesManualPositionOverCtime(): void
+    {
+        $carouselDir = $this->tmpDir . '/img_carrousel';
+        mkdir($carouselDir, 0o775, true);
+        file_put_contents($carouselDir . '/older.jpg', '');
+        file_put_contents($carouselDir . '/newer.jpg', '');
+
+        (new CarouselPositionRepository($this->pdo))->saveOrder(['older.jpg', 'newer.jpg']);
+
+        $config = $this->makeConfig();
+
+        $capturedData = null;
+        $view = $this->createMock(ViewRenderer::class);
+        $view->method('render')
+            ->willReturnCallback(function (string $tpl, array $data) use (&$capturedData): void {
+                $capturedData = $data;
+            });
+
+        $controller = $this->makeController($config, $view);
+        $controller->index($this->makeRequest());
+
+        $this->assertStringContainsString('older.jpg', $capturedData['carousel_images'][0]);
+        $this->assertStringContainsString('newer.jpg', $capturedData['carousel_images'][1]);
+    }
+
     // =========================================================================
     // Helpers
     // =========================================================================
+
+    private function makeController(Config $config, ViewRenderer $view): HomeController
+    {
+        return new HomeController(
+            $config,
+            new PathService($this->tmpDir, 'http://localhost'),
+            $view,
+            new CarouselPositionRepository($this->pdo),
+        );
+    }
 
     private function makeConfig(): Config
     {

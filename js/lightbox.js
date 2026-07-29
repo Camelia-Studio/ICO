@@ -11,6 +11,7 @@ class Lightbox {
     // DOM refs
     #el;
     #backdrop;
+    #progress;
     #img;
     #video;
     #counter;
@@ -27,6 +28,7 @@ class Lightbox {
         this.#el          = el;
         this.#interval    = parseInt(el.dataset.slideshowInterval, 10) || 5;
         this.#backdrop    = el.querySelector('.lightbox-backdrop');
+        this.#progress    = el.querySelector('.lightbox-progress');
         this.#img         = el.querySelector('.lightbox-img');
         this.#video       = el.querySelector('.lightbox-video');
         this.#counter     = el.querySelector('.lightbox-counter');
@@ -40,6 +42,11 @@ class Lightbox {
         if (this.#intervalInput) {
             this.#intervalInput.value = String(this.#interval);
         }
+
+        this.#img.addEventListener('load', () => this.#hideProgress());
+        this.#img.addEventListener('error', () => this.#hideProgress());
+        this.#video.addEventListener('loadeddata', () => this.#hideProgress());
+        this.#video.addEventListener('error', () => this.#hideProgress());
 
         this.#bindEvents();
     }
@@ -129,6 +136,8 @@ class Lightbox {
     // -------------------------------------------------------------------------
 
     #loadMedia(item) {
+        this.#showProgress();
+
         if (item.type === 'video') {
             this.#img.style.display  = 'none';
             this.#video.style.display = 'block';
@@ -139,6 +148,14 @@ class Lightbox {
             this.#img.style.display  = 'block';
             this.#img.src = item.src;
         }
+    }
+
+    #showProgress() {
+        this.#progress?.classList.add('is-loading');
+    }
+
+    #hideProgress() {
+        this.#progress?.classList.remove('is-loading');
     }
 
     #pauseVideo() {

@@ -20,19 +20,23 @@
         {% endif %}
 
         <div class="keys-list">
-            <table class="admin-table">
+            {% if links|length > 1 %}
+            <p class="form-help">Glissez-déposez les lignes pour réordonner les liens.</p>
+            {% endif %}
+            <table class="admin-table" id="socialLinksTable" data-reorderable="{{ links|length > 1 ? '1' : '0' }}">
                 <thead>
                     <tr>
+                        <th></th>
                         <th>Nom</th>
                         <th>URL</th>
-                        <th>Ordre</th>
                         <th>Statut</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for link in links %}
-                    <tr>
+                    <tr data-id="{{ link.id }}">
+                        <td class="drag-handle-cell"><span class="row-drag-handle" title="Glisser pour réordonner">⠿</span></td>
                         <td>{{ link.label }}</td>
                         <td>
                             <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer"
@@ -40,7 +44,6 @@
                                 {{ link.url }}
                             </a>
                         </td>
-                        <td>{{ link.display_order }}</td>
                         <td>
                             {% if link.is_active %}
                                 <span class="status-badge status-active">Actif</span>
@@ -73,5 +76,6 @@
 {% endblock %}
 
 {% block scripts %}
+    <script src="js/social-links-reorder.js"></script>
     <script src="js/scroll-top.js"></script>
 {% endblock %}

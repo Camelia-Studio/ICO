@@ -48,11 +48,12 @@ class SocialLinkController
         $action = (string) $request->query('action', 'list');
 
         match ($action) {
-            'new'    => $this->showForm($request),
-            'edit'   => $this->showForm($request),
-            'save'   => $this->save($request),
-            'delete' => $this->delete($request),
-            default  => $this->list(),
+            'new'     => $this->showForm($request),
+            'edit'    => $this->showForm($request),
+            'save'    => $this->save($request),
+            'delete'  => $this->delete($request),
+            'reorder' => $this->reorder($request),
+            default   => $this->list(),
         };
     }
 
@@ -115,11 +116,10 @@ class SocialLinkController
             throw new TerminateException();
         }
 
-        $id           = (int) $request->post('id', 0);
-        $label        = trim((string) $request->post('label', ''));
-        $url          = trim((string) $request->post('url', ''));
-        $displayOrder = (int) $request->post('display_order', 0);
-        $isActive     = $request->post('is_active') === '1';
+        $id       = (int) $request->post('id', 0);
+        $label    = trim((string) $request->post('label', ''));
+        $url      = trim((string) $request->post('url', ''));
+        $isActive = $request->post('is_active') === '1';
 
         if ($label === '') {
             $_SESSION['error_message'] = 'Le nom est requis.';
@@ -138,6 +138,9 @@ class SocialLinkController
         $adminId = $this->authService->getLoggedInAdminId();
 
         if ($id > 0) {
+            $existing     = $this->socialLinkRepo->findById($id);
+            $displayOrder = $existing !== null ? (int) $existing['display_order'] : $this->socialLinkRepo->nextDisplayOrder();
+
             $this->socialLinkRepo->update($id, $label, $url, $displayOrder, $isActive);
             if ($adminId !== null) {
                 $this->logRepo->log($adminId, 'UPDATE_SOCIAL_LINK', sprintf('Modification du lien « %s »', $label), $url);
@@ -145,13 +148,34 @@ class SocialLinkController
 
             $_SESSION['success_message'] = sprintf('Lien « %s » mis à jour.', $label);
         } else {
-            $this->socialLinkRepo->create($label, $url, $displayOrder, $isActive);
+            $this->socialLinkRepo->create($label, $url, $this->socialLinkRepo->nextDisplayOrder(), $isActive);
             if ($adminId !== null) {
                 $this->logRepo->log($adminId, 'CREATE_SOCIAL_LINK', sprintf('Ajout du lien « %s »', $label), $url);
             }
 
             $_SESSION['success_message'] = sprintf('Lien « %s » ajouté.', $label);
         }
+
+        Response::redirect('liens-sociaux.php')->send();
+        throw new TerminateException();
+    }
+
+    // -------------------------------------------------------------------------
+    // Réordonnancement (glisser/déposer)
+    // -------------------------------------------------------------------------
+
+    private function reorder(Request $request): void
+    {
+        if (!$request->isPost()) {
+            Response::redirect('liens-sociaux.php')->send();
+            throw new TerminateException();
+        }
+
+        /** @var string[] $rawIds */
+        $rawIds     = array_filter((array) $request->post('order', []), is_string(...));
+        $orderedIds = array_map(intval(...), $rawIds);
+
+        $this->socialLinkRepo->reorder($orderedIds);
 
         Response::redirect('liens-sociaux.php')->send();
         throw new TerminateException();

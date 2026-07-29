@@ -5,6 +5,8 @@
 {% block extra_head %}{% endblock %}
 
 {% block content %}
+    {% include 'partials/breadcrumb.html.twig' with {'breadcrumbs': breadcrumbs} %}
+
     <div class="admin-header">
         <h1>
             {{ pageTitle }}
@@ -45,19 +47,26 @@
             </form>
         </div>
 
+        {% if isCarousel %}
+        <p class="form-help">Glissez-déposez les images pour réordonner le carrousel de la page d'accueil.</p>
+        {% endif %}
+
         <form method="post" id="imagesForm">
             <input type="hidden" name="action" id="formAction" value="">
-            <div class="images-grid">
+            <div class="images-grid"{% if isCarousel %} data-reorderable="1"{% endif %}>
                 {% for item in imageData %}
-                    <div class="image-item">
+                    <div class="image-item" data-name="{{ item.name|e('html_attr') }}">
                         <input type="checkbox" name="images[]" value="{{ item.name }}"
                                class="image-checkbox" onchange="updateActionButtons()">
                         <div class="image-wrapper">
+                            {% if isCarousel %}
+                            <span class="drag-handle" title="Glisser pour réordonner">⠿</span>
+                            {% endif %}
                             <a href="{{ item.shareUrl }}" target="_blank" class="image-share-link">
                                 {% if item.type == 'video' %}
-                                    <video src="{{ item.url }}" muted preload="none" class="admin-video-thumb"></video>
+                                    <video src="{{ item.url }}" muted preload="none" class="admin-video-thumb" draggable="false"></video>
                                 {% else %}
-                                    <img src="{{ item.url }}" alt="{{ item.name }}" loading="lazy">
+                                    <img src="{{ item.url }}" alt="{{ item.name }}" loading="lazy" draggable="false">
                                 {% endif %}
                             </a>
                             <div class="image-actions">
@@ -127,5 +136,6 @@
 {% block scripts %}
     <script src="js/tree-image.js"></script>
     <script src="js/tree-image-move.js"></script>
+    <script src="js/carousel-reorder.js"></script>
     <script src="js/scroll-top.js"></script>
 {% endblock %}

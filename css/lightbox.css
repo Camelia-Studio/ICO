@@ -28,6 +28,35 @@
     cursor: pointer;
 }
 
+.lightbox-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 4;
+    height: 3px;
+    background: transparent;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+}
+
+.lightbox-progress.is-loading {
+    opacity: 1;
+}
+
+.lightbox-progress-bar {
+    height: 100%;
+    width: 30%;
+    background: #fff;
+    animation: lightbox-progress-slide 1s ease-in-out infinite;
+}
+
+@keyframes lightbox-progress-slide {
+    0%   { margin-left: -30%; }
+    100% { margin-left: 100%; }
+}
+
 .lightbox-media-wrap {
     position: relative;
     z-index: 1;

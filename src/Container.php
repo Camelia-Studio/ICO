@@ -26,6 +26,7 @@ use ICO\Controller\ZipController;
 use ICO\Database\Database;
 use ICO\Repository\AdminRepository;
 use ICO\Repository\AlbumIdentifierRepository;
+use ICO\Repository\CarouselPositionRepository;
 use ICO\Repository\InfoPageRepository;
 use ICO\Repository\LogRepository;
 use ICO\Repository\ShareKeyRepository;
@@ -33,6 +34,7 @@ use ICO\Repository\SocialLinkRepository;
 use ICO\Service\AlbumService;
 use ICO\Service\AuthService;
 use ICO\Service\FileService;
+use ICO\Service\MarkdownService;
 use ICO\Service\PasswordValidator;
 use ICO\Service\PathService;
 use ICO\Service\SessionCookieService;
@@ -122,6 +124,9 @@ final class Container
             ->setPublic(true)
             ->addArgument(new Reference(PDO::class));
 
+        $container->register(CarouselPositionRepository::class)
+            ->addArgument(new Reference(PDO::class));
+
         // -------------------------------------------------------------------------
         // Services
         // -------------------------------------------------------------------------
@@ -147,6 +152,8 @@ final class Container
             ->addArgument('%base_url%');
 
         $container->register(PasswordValidator::class);
+
+        $container->register(MarkdownService::class);
 
         $container->register(UpdateService::class)
             ->addArgument('%current_version%');
@@ -193,13 +200,15 @@ final class Container
             ->addArgument(new Reference(AuthService::class))
             ->addArgument(new Reference(AlbumService::class))
             ->addArgument(new Reference(LogRepository::class))
-            ->addArgument(new Reference(ViewRenderer::class));
+            ->addArgument(new Reference(ViewRenderer::class))
+            ->addArgument(new Reference(CarouselPositionRepository::class));
 
         $container->register(HomeController::class)
             ->setPublic(true)
             ->addArgument(new Reference(Config::class))
             ->addArgument(new Reference(PathService::class))
-            ->addArgument(new Reference(ViewRenderer::class));
+            ->addArgument(new Reference(ViewRenderer::class))
+            ->addArgument(new Reference(CarouselPositionRepository::class));
 
         $container->register(AlbumController::class)
             ->setPublic(true)
@@ -275,13 +284,15 @@ final class Container
             ->addArgument(new Reference(ViewRenderer::class))
             ->addArgument(new Reference(AlbumService::class))
             ->addArgument('%albums_root%')
-            ->addArgument('%project_root%');
+            ->addArgument('%project_root%')
+            ->addArgument(new Reference(MarkdownService::class));
 
         $container->register(PublicPageController::class)
             ->setPublic(true)
             ->addArgument(new Reference(Config::class))
             ->addArgument(new Reference(InfoPageRepository::class))
-            ->addArgument(new Reference(ViewRenderer::class));
+            ->addArgument(new Reference(ViewRenderer::class))
+            ->addArgument(new Reference(MarkdownService::class));
 
         $container->register(SocialLinkController::class)
             ->setPublic(true)
