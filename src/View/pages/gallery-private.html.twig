@@ -29,6 +29,8 @@
     </div>
     {% endif %}
 
+    {% include 'partials/breadcrumb.html.twig' with {'breadcrumbs': breadcrumbs} %}
+
     <div class="private-gallery-badge">
         <span class="private-icon">🔒</span> Album privé
     </div>

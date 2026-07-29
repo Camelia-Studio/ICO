@@ -42,7 +42,7 @@
                                 </span>
                             {% endif %}
                         </td>
-                        <td>{{ user.created_at }}</td>
+                        <td>{{ user.created_at|format_date }}</td>
                         <td class="table-actions">
                             <button onclick="editUser({{ user.id }}, '{{ user.username|e('js') }}')"
                                 class="tree-button">
