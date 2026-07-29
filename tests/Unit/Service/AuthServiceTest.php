@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace ICO\Tests\Unit\Service;
 
+use ICO\Config\Config;
 use ICO\Repository\AdminRepository;
 use ICO\Service\AuthService;
+use ICO\Service\SessionCookieService;
 use ICO\Tests\Support\DatabaseTestTrait;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 class AuthServiceTest extends TestCase
@@ -17,11 +20,15 @@ class AuthServiceTest extends TestCase
 
     private AuthService     $auth;
 
+    private SessionCookieService&MockObject $sessionCookie;
+
     protected function setUp(): void
     {
         $this->setUpDatabase();
-        $this->adminRepo = new AdminRepository($this->pdo);
-        $this->auth      = new AuthService($this->adminRepo);
+        $this->adminRepo     = new AdminRepository($this->pdo);
+        $this->sessionCookie = $this->createMock(SessionCookieService::class);
+        $config              = Config::fromFile('/nonexistent-config.txt', '/nonexistent-version.txt');
+        $this->auth          = new AuthService($this->adminRepo, $config, $this->sessionCookie);
 
         // Démarrer une session propre pour chaque test
         if (session_status() === PHP_SESSION_NONE) {
@@ -123,8 +130,8 @@ class AuthServiceTest extends TestCase
     public function testIsLoggedInReturnsFalseForExpiredSession(): void
     {
         $_SESSION['admin_id']      = 1;
-        // Activité il y a 25h → expiré
-        $_SESSION['last_activity'] = time() - (86400 + 1);
+        // Activité il y a 7 jours + 1s → expiré
+        $_SESSION['last_activity'] = time() - (604800 + 1);
 
         $this->assertFalse($this->auth->isLoggedIn());
     }
@@ -138,6 +145,25 @@ class AuthServiceTest extends TestCase
         $this->auth->isLoggedIn();
 
         $this->assertGreaterThan($before, $_SESSION['last_activity']);
+    }
+
+    public function testIsLoggedInRefreshesSessionCookie(): void
+    {
+        $_SESSION['admin_id']      = 1;
+        $_SESSION['last_activity'] = time();
+
+        $this->sessionCookie->expects($this->once())
+            ->method('refresh')
+            ->with($this->greaterThanOrEqual(time() + 604800 - 1));
+
+        $this->auth->isLoggedIn();
+    }
+
+    public function testIsLoggedInDoesNotRefreshCookieWhenNotLoggedIn(): void
+    {
+        $this->sessionCookie->expects($this->never())->method('refresh');
+
+        $this->auth->isLoggedIn();
     }
 
     // -------------------------------------------------------------------------
@@ -175,6 +201,9 @@ class AuthServiceTest extends TestCase
     public function testLogoutDestroysSession(): void
     {
         $_SESSION['admin_id'] = 1;
+
+        $this->sessionCookie->expects($this->once())->method('expire');
+
         $this->auth->logout();
 
         // Après logout, isLoggedIn doit retourner false

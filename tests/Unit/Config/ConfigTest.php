@@ -252,4 +252,38 @@ class ConfigTest extends TestCase
         $this->expectNotToPerformAssertions();
         $config->configureSession();
     }
+
+    // -------------------------------------------------------------------------
+    // getSessionLifetime
+    // -------------------------------------------------------------------------
+
+    public function testGetSessionLifetimeReturns7Days(): void
+    {
+        $config = Config::fromFile(
+            $this->tmpDir . '/noconfig.txt',
+            $this->tmpDir . '/noversion.txt',
+        );
+
+        $this->assertSame(604800, $config->getSessionLifetime());
+    }
+
+    // -------------------------------------------------------------------------
+    // configureSession — flags de cookie
+    // -------------------------------------------------------------------------
+
+    public function testConfigureSessionSetsSevenDayLifetimeAndSecureFlags(): void
+    {
+        $config = Config::fromFile(
+            $this->tmpDir . '/noconfig.txt',
+            $this->tmpDir . '/noversion.txt',
+        );
+
+        $config->configureSession();
+
+        $params = session_get_cookie_params();
+
+        $this->assertSame(604800, $params['lifetime']);
+        $this->assertTrue($params['httponly']);
+        $this->assertSame('Lax', $params['samesite']);
+    }
 }
