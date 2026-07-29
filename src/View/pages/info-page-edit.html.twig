@@ -46,6 +46,16 @@
 
             <div class="form-group">
                 <label for="content">Contenu (Markdown) :</label>
+                <div class="markdown-toolbar" data-target="content" role="toolbar" aria-label="Mise en forme Markdown">
+                    <button type="button" data-md-action="heading" title="Titre">H</button>
+                    <button type="button" data-md-action="bold" title="Gras"><strong>G</strong></button>
+                    <button type="button" data-md-action="italic" title="Italique"><em>I</em></button>
+                    <button type="button" data-md-action="link" title="Lien">🔗</button>
+                    <button type="button" data-md-action="ul" title="Liste à puces">☰</button>
+                    <button type="button" data-md-action="ol" title="Liste numérotée">1.</button>
+                    <button type="button" data-md-action="quote" title="Citation">❝</button>
+                    <button type="button" data-md-action="code" title="Code">&lt;/&gt;</button>
+                </div>
                 <div class="markdown-editor">
                     <textarea id="content" name="content" rows="18"
                               class="form-textarea" style="font-family: monospace; font-size: .9rem;">{{ page.content|default('') }}</textarea>
@@ -95,6 +105,7 @@
 {% endblock %}
 
 {% block scripts %}
+    <script src="js/markdown-toolbar.js"></script>
     <script>
     function generateSlug(title) {
         const map = {
