@@ -12,6 +12,7 @@ use ICO\Repository\InfoPageRepository;
 use ICO\Repository\LogRepository;
 use ICO\Service\AlbumService;
 use ICO\Service\AuthService;
+use ICO\Service\MarkdownService;
 use ICO\View\ViewRenderer;
 
 /**
@@ -36,6 +37,7 @@ class InfoPageController
         private readonly AlbumService        $albumService,
         private readonly string              $albumsRoot,
         private readonly string              $projectRoot,
+        private readonly MarkdownService     $markdown,
     ) {
     }
 
@@ -53,12 +55,29 @@ class InfoPageController
         $action = (string) $request->query('action', 'list');
 
         match ($action) {
-            'new'    => $this->showForm($request),
-            'edit'   => $this->showForm($request),
-            'save'   => $this->save($request),
-            'delete' => $this->delete($request),
-            default  => $this->list(),
+            'new'     => $this->showForm($request),
+            'edit'    => $this->showForm($request),
+            'save'    => $this->save($request),
+            'delete'  => $this->delete($request),
+            'preview' => $this->preview($request),
+            default   => $this->list(),
         };
+    }
+
+    // -------------------------------------------------------------------------
+    // Aperçu Markdown en direct (fragment HTML, sans layout)
+    // -------------------------------------------------------------------------
+
+    private function preview(Request $request): void
+    {
+        if (!$request->isPost()) {
+            Response::redirect('pages-info.php')->send();
+            throw new TerminateException();
+        }
+
+        header('Content-Type: text/html; charset=utf-8');
+        echo $this->markdown->toHtml((string) $request->post('content', ''));
+        throw new TerminateException();
     }
 
     // -------------------------------------------------------------------------

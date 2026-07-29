@@ -7,6 +7,7 @@ namespace ICO\Controller;
 use DirectoryIterator;
 use ICO\Config\Config;
 use ICO\Http\TerminateException;
+use ICO\Repository\CarouselPositionRepository;
 use ICO\Repository\LogRepository;
 use ICO\Service\AlbumService;
 use ICO\Service\AuthService;
@@ -28,12 +29,13 @@ class TreeImageController
     private readonly string $carouselRoot;
 
     public function __construct(
-        private readonly Config        $config,
-        private readonly PathService   $pathService,
-        private readonly AuthService   $auth,
-        private readonly AlbumService  $albumService,
-        private readonly LogRepository $logRepo,
-        private readonly ViewRenderer  $view,
+        private readonly Config                      $config,
+        private readonly PathService                 $pathService,
+        private readonly AuthService                 $auth,
+        private readonly AlbumService                $albumService,
+        private readonly LogRepository                $logRepo,
+        private readonly ViewRenderer                 $view,
+        private readonly CarouselPositionRepository   $carouselPositionRepo,
     ) {
         $this->albumsRoot   = $pathService->toAbsolute('liste_albums');
         $this->privateRoot  = $pathService->toAbsolute('liste_albums_prives');
@@ -65,6 +67,10 @@ class TreeImageController
         }
 
         $images    = $this->listImages($currentPath);
+        if ($this->isCarouselPath($currentPath)) {
+            $images = $this->sortByCarouselPosition($currentPath, $images);
+        }
+
         $siteTitle = $this->config->getSiteTitle();
         $this->renderPublic($siteTitle, $currentPath, $images);
     }
@@ -88,6 +94,10 @@ class TreeImageController
 
             case 'move':
                 $this->handleMove($currentPath);
+                break;
+
+            case 'reorder':
+                $this->handleReorder($currentPath);
                 break;
         }
     }
@@ -243,9 +253,7 @@ class TreeImageController
         $isTop = str_contains($info['filename'], '--top--');
 
         // Dans le carrousel, une seule image peut être "première" — retirer le flag des autres
-        $carouselReal = realpath($this->carouselRoot) ?: $this->carouselRoot;
-        $isCarousel   = str_starts_with($currentPath, $carouselReal);
-        if ($isCarousel && !$isTop) {
+        if ($this->isCarouselPath($currentPath) && !$isTop) {
             foreach (new DirectoryIterator($currentPath) as $file) {
                 if ($file->isDot() || !$file->isFile()) {
                     continue;
@@ -359,9 +367,58 @@ class TreeImageController
         }
     }
 
+    /**
+     * Enregistre l'ordre manuel (glisser/déposer) des images du carrousel.
+     */
+    private function handleReorder(string $currentPath): void
+    {
+        if (!$this->isCarouselPath($currentPath)) {
+            return;
+        }
+
+        /** @var string[] $order */
+        $order = array_filter((array) ($_POST['order'] ?? []), is_string(...));
+        $order = array_map(basename(...), $order);
+
+        $this->carouselPositionRepo->saveOrder(array_values($order));
+        $_SESSION['success_message'] = 'Ordre du carrousel mis à jour.';
+    }
+
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
+
+    private function isCarouselPath(string $path): bool
+    {
+        $carouselReal = realpath($this->carouselRoot) ?: $this->carouselRoot;
+
+        return str_starts_with($path, $carouselReal);
+    }
+
+    /**
+     * Trie les noms de fichiers du carrousel selon leur position manuelle,
+     * les images sans position enregistrée gardant le tri par date de création décroissante.
+     *
+     * @param string[] $filenames
+     *
+     * @return string[]
+     */
+    private function sortByCarouselPosition(string $currentPath, array $filenames): array
+    {
+        $positions = $this->carouselPositionRepo->findAll();
+
+        usort($filenames, static function (string $a, string $b) use ($currentPath, $positions): int {
+            $posA = $positions[$a] ?? null;
+            $posB = $positions[$b] ?? null;
+
+            return (($posB !== null) <=> ($posA !== null))
+                ?: ($posA !== null
+                    ? $posA <=> $posB
+                    : filectime($currentPath . '/' . $b) - filectime($currentPath . '/' . $a));
+        });
+
+        return $filenames;
+    }
 
     /**
      * Retourne la liste des images d'un dossier, triées par date de création décroissante.
@@ -534,6 +591,10 @@ class TreeImageController
         $parentRelPath = ltrim(dirname($relativePath), '.');
         $backUrl       = 'arbre.php' . ($parentRelPath !== '' ? '?path=' . urlencode($parentRelPath) : '');
         $galleryUrl    = $isCarousel ? null : 'galeries.php?path=' . urlencode($relativePath);
+        $breadcrumbs   = [
+            ['label' => "Gestion de l'arborescence", 'url' => 'arbre.php'],
+            ['label' => $isCarousel ? 'Carrousel' : $this->albumService->getAlbumInfo($currentPath)['title'], 'url' => null],
+        ];
 
         $this->view->render('pages/tree-image-public', [
             'siteTitle'     => $siteTitle,
@@ -544,6 +605,7 @@ class TreeImageController
             'isCarousel'    => $isCarousel,
             'galleryUrl'    => $galleryUrl,
             'dataPage'      => $isCarousel ? 'carrousel' : 'default',
+            'breadcrumbs'   => $breadcrumbs,
             'version'       => $this->config->getVersion(),
         ]);
     }
@@ -573,12 +635,17 @@ class TreeImageController
 
         $parentRelPath = ltrim(dirname($this->pathService->toRelative($currentPath)), '.');
         $backUrl       = 'arbre-prive.php' . ($parentRelPath !== '' ? '?path=' . urlencode($parentRelPath) : '');
+        $breadcrumbs   = [
+            ['label' => 'Gestion des albums privés', 'url' => 'arbre-prive.php'],
+            ['label' => $albumInfo['title'], 'url' => null],
+        ];
 
         $this->view->render('pages/tree-image-private', [
             'siteTitle'    => $siteTitle,
             'backUrl'      => $backUrl,
             'albumInfo'    => $albumInfo,
             'imageData'    => $imageData,
+            'breadcrumbs'  => $breadcrumbs,
             'version'      => $this->config->getVersion(),
         ]);
     }

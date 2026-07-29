@@ -7,6 +7,7 @@ namespace ICO\Controller;
 use DirectoryIterator;
 use ICO\Config\Config;
 use ICO\Http\Request;
+use ICO\Repository\CarouselPositionRepository;
 use ICO\Service\PathService;
 use ICO\View\ViewRenderer;
 
@@ -21,9 +22,10 @@ class HomeController
     private const array CAROUSEL_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif'];
 
     public function __construct(
-        private readonly Config      $config,
-        private readonly PathService $pathService,
-        private readonly ViewRenderer $view,
+        private readonly Config                     $config,
+        private readonly PathService                $pathService,
+        private readonly ViewRenderer                $view,
+        private readonly CarouselPositionRepository  $carouselPositionRepo,
     ) {
     }
 
@@ -63,7 +65,8 @@ class HomeController
             return [];
         }
 
-        $images = [];
+        $positions = $this->carouselPositionRepo->findAll();
+        $images    = [];
 
         foreach (new DirectoryIterator($carouselDir) as $file) {
             if ($file->isDot() || !$file->isFile()) {
@@ -72,15 +75,18 @@ class HomeController
 
             if (in_array(strtolower($file->getExtension()), self::CAROUSEL_EXTENSIONS, true)) {
                 $images[] = [
-                    'url'   => $this->pathService->toUrl($file->getPathname()),
-                    'ctime' => $file->getCTime(),
-                    'isTop' => str_contains($file->getFilename(), '--top--'),
+                    'url'      => $this->pathService->toUrl($file->getPathname()),
+                    'ctime'    => $file->getCTime(),
+                    'isTop'    => str_contains($file->getFilename(), '--top--'),
+                    'position' => $positions[$file->getFilename()] ?? null,
                 ];
             }
         }
 
         usort($images, static fn (array $a, array $b): int =>
-            $b['isTop'] <=> $a['isTop'] ?: $b['ctime'] - $a['ctime']);
+            $b['isTop'] <=> $a['isTop']
+                ?: ($b['position'] !== null) <=> ($a['position'] !== null)
+                ?: ($a['position'] !== null ? $a['position'] <=> $b['position'] : $b['ctime'] - $a['ctime']));
 
         return array_slice(array_column($images, 'url'), 0, $limit);
     }

@@ -18,7 +18,7 @@
             <div class="message error-message">{{ error_message }}</div>
         {% endif %}
 
-        <form method="post" action="pages-info.php?action=save" class="form-container">
+        <form method="post" action="pages-info.php?action=save" class="form-container form-container-wide">
             {% if isEdit %}
             <input type="hidden" name="id" value="{{ page.id }}">
             {% endif %}
@@ -45,10 +45,13 @@
             </div>
 
             <div class="form-group">
-                <label for="content">Contenu (HTML accepté) :</label>
-                <textarea id="content" name="content" rows="18"
-                          class="form-textarea" style="font-family: monospace; font-size: .9rem;">{{ page.content|default('') }}</textarea>
-                <small class="form-help">Le contenu HTML sera affiché tel quel sur la page publique.</small>
+                <label for="content">Contenu (Markdown) :</label>
+                <div class="markdown-editor">
+                    <textarea id="content" name="content" rows="18"
+                              class="form-textarea" style="font-family: monospace; font-size: .9rem;">{{ page.content|default('') }}</textarea>
+                    <div id="content-preview" class="markdown-preview"></div>
+                </div>
+                <small class="form-help">Le contenu est écrit en Markdown ; l'aperçu à droite reflète le rendu réel sur la page publique.</small>
             </div>
 
             <div class="form-group">
@@ -122,5 +125,24 @@
     document.getElementById('slug').addEventListener('input', function() {
         document.getElementById('slug-preview').textContent = this.value || 'mon-slug';
     });
+
+    let previewTimer = null;
+    const contentField   = document.getElementById('content');
+    const previewContainer = document.getElementById('content-preview');
+
+    function refreshPreview() {
+        const body = new URLSearchParams({ content: contentField.value });
+        fetch('pages-info.php?action=preview', { method: 'POST', body: body })
+            .then(response => response.text())
+            .then(html => { previewContainer.innerHTML = html; })
+            .catch(() => {});
+    }
+
+    contentField.addEventListener('input', function () {
+        clearTimeout(previewTimer);
+        previewTimer = setTimeout(refreshPreview, 300);
+    });
+
+    refreshPreview();
     </script>
 {% endblock %}

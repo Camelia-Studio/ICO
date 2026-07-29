@@ -9,6 +9,7 @@ use ICO\Http\Request;
 use ICO\Http\Response;
 use ICO\Http\TerminateException;
 use ICO\Repository\InfoPageRepository;
+use ICO\Service\MarkdownService;
 use ICO\View\ViewRenderer;
 
 /**
@@ -22,6 +23,7 @@ class PublicPageController
         private readonly Config             $config,
         private readonly InfoPageRepository $infoPageRepo,
         private readonly ViewRenderer       $view,
+        private readonly MarkdownService    $markdown,
     ) {
     }
 
@@ -47,9 +49,10 @@ class PublicPageController
         }
 
         $this->view->render('pages/public-page', [
-            'page'       => $page,
-            'site_title' => $this->config->getSiteTitle(),
-            'version'    => $this->config->getVersion(),
+            'page'         => $page,
+            'content_html' => $this->markdown->toHtml((string) $page['content']),
+            'site_title'   => $this->config->getSiteTitle(),
+            'version'      => $this->config->getVersion(),
         ]);
     }
 }

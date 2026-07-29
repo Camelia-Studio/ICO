@@ -3,6 +3,8 @@
 {% block page_title %}Gestion des images privées - {{ siteTitle }}{% endblock %}
 
 {% block content %}
+    {% include 'partials/breadcrumb.html.twig' with {'breadcrumbs': breadcrumbs} %}
+
     <div class="admin-header">
         <h1>
             Images de : {{ albumInfo.title }}

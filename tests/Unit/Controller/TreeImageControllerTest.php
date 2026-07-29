@@ -7,15 +7,19 @@ namespace ICO\Tests\Unit\Controller;
 use ICO\Config\Config;
 use ICO\Controller\TreeImageController;
 use ICO\Http\TerminateException;
+use ICO\Repository\CarouselPositionRepository;
 use ICO\Repository\LogRepository;
 use ICO\Service\AlbumService;
 use ICO\Service\AuthService;
 use ICO\Service\PathService;
+use ICO\Tests\Support\DatabaseTestTrait;
 use ICO\View\ViewRenderer;
 use PHPUnit\Framework\TestCase;
 
 class TreeImageControllerTest extends TestCase
 {
+    use DatabaseTestTrait;
+
     private string $tmpDir;
 
     private string $albumsRoot;
@@ -24,6 +28,8 @@ class TreeImageControllerTest extends TestCase
 
     protected function setUp(): void
     {
+        $this->setUpDatabase();
+
         $this->tmpDir      = sys_get_temp_dir() . '/ico_treeimg_test_' . uniqid();
         $this->albumsRoot  = $this->tmpDir . '/liste_albums';
         $this->privateRoot = $this->tmpDir . '/liste_albums_prives';
@@ -162,6 +168,72 @@ class TreeImageControllerTest extends TestCase
         $this->assertFileDoesNotExist($carouselDir . '/already--top--.jpg');
         $this->assertFileExists($carouselDir . '/already.jpg');
         $this->assertFileExists($carouselDir . '/new--top--.jpg');
+    }
+
+    // =========================================================================
+    // handlePublic — POST reorder (carrousel)
+    // =========================================================================
+
+    public function testCarouselReorderPersistsPositionAndReflectsInListing(): void
+    {
+        $carouselDir = $this->tmpDir . '/img_carrousel';
+        mkdir($carouselDir, 0o775, true);
+        file_put_contents($carouselDir . '/a.jpg', '');
+        file_put_contents($carouselDir . '/b.jpg', '');
+
+        $authMock = $this->createMock(AuthService::class);
+        $authMock->method('isLoggedIn')->willReturn(true);
+
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_GET['path']              = 'img_carrousel';
+        $_POST['action']           = 'reorder';
+        $_POST['order']            = ['b.jpg', 'a.jpg'];
+
+        try {
+            $controller = $this->makeController($authMock, $this->createMock(ViewRenderer::class));
+            $controller->handlePublic();
+        } catch (TerminateException) {
+        }
+
+        $this->assertSame(['b.jpg' => 0, 'a.jpg' => 1], (new CarouselPositionRepository($this->pdo))->findAll());
+
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        unset($_POST['action'], $_POST['order']);
+
+        $capturedData = null;
+        $viewMock     = $this->createMock(ViewRenderer::class);
+        $viewMock->method('render')->willReturnCallback(
+            function (string $tpl, array $data) use (&$capturedData): void {
+                $capturedData = $data;
+            }
+        );
+
+        $controller = $this->makeController($authMock, $viewMock);
+        $controller->handlePublic();
+
+        $names = array_column($capturedData['imageData'], 'name');
+        $this->assertSame(['b.jpg', 'a.jpg'], $names);
+    }
+
+    public function testTreeImagePagesExposeBreadcrumbs(): void
+    {
+        $authMock = $this->createMock(AuthService::class);
+        $authMock->method('isLoggedIn')->willReturn(true);
+
+        $capturedData = null;
+        $viewMock     = $this->createMock(ViewRenderer::class);
+        $viewMock->method('render')->willReturnCallback(
+            function (string $tpl, array $data) use (&$capturedData): void {
+                $capturedData = $data;
+            }
+        );
+
+        $_GET['path'] = 'liste_albums/album1';
+
+        $controller = $this->makeController($authMock, $viewMock);
+        $controller->handlePublic();
+
+        $this->assertSame('Album 1', $capturedData['breadcrumbs'][1]['label']);
     }
 
     // =========================================================================
@@ -457,7 +529,15 @@ class TreeImageControllerTest extends TestCase
         $log          = $logMock ?? $this->createMock(LogRepository::class);
         $albumService = new AlbumService($this->albumsRoot, $this->privateRoot, $this->tmpDir . '/img_carrousel');
 
-        return new TreeImageController($config, new PathService($this->tmpDir, 'http://localhost'), $auth, $albumService, $log, $view);
+        return new TreeImageController(
+            $config,
+            new PathService($this->tmpDir, 'http://localhost'),
+            $auth,
+            $albumService,
+            $log,
+            $view,
+            new CarouselPositionRepository($this->pdo),
+        );
     }
 
     private function makeConfig(): Config

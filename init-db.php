@@ -90,6 +90,12 @@ $db->exec('CREATE TABLE IF NOT EXISTS social_links (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 )');
 
+// Créer la table de l'ordre manuel des images du carrousel
+$db->exec('CREATE TABLE IF NOT EXISTS carousel_positions (
+    filename TEXT PRIMARY KEY,
+    position INTEGER NOT NULL
+)');
+
 // Créer les index nécessaires
 $db->exec('CREATE INDEX IF NOT EXISTS idx_share_keys_expires_at ON share_keys(expires_at)');
 $db->exec('CREATE INDEX IF NOT EXISTS idx_share_keys_album_identifier ON share_keys(album_identifier)');

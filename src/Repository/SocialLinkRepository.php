@@ -98,4 +98,31 @@ class SocialLinkRepository
 
         return $stmt->rowCount() > 0;
     }
+
+    /**
+     * Réordonne les liens selon l'ordre reçu (glisser/déposer).
+     *
+     * @param int[] $orderedIds identifiants des liens dans l'ordre souhaité
+     */
+    public function reorder(array $orderedIds): void
+    {
+        $this->pdo->beginTransaction();
+
+        $stmt = $this->pdo->prepare('UPDATE social_links SET display_order = :display_order WHERE id = :id');
+        foreach (array_values($orderedIds) as $displayOrder => $id) {
+            $stmt->execute([':display_order' => $displayOrder, ':id' => $id]);
+        }
+
+        $this->pdo->commit();
+    }
+
+    /**
+     * Retourne le prochain ordre d'affichage disponible (fin de liste).
+     */
+    public function nextDisplayOrder(): int
+    {
+        $stmt = $this->pdo->query('SELECT COALESCE(MAX(display_order), -1) + 1 FROM social_links');
+
+        return (int) $stmt->fetchColumn();
+    }
 }
