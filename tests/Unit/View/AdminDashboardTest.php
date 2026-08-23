@@ -27,6 +27,7 @@ class AdminDashboardTest extends TestCase
             'updateAvailable' => false,
             'updateStatus'    => null,
             'menuItemClass'   => 'admin-menu-item disabled',
+            'vestikanEnabled' => false,
         ]);
         $output = (string) ob_get_clean();
 

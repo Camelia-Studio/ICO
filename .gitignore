@@ -15,6 +15,7 @@ img_carrousel/*
 !liste_albums_prives/infos.txt
 !img_carrousel/infos.txt
 favicon-custom.png
+vestikan-config.php
 CLAUDE.md
 AGENTS.md
 .superpowers/

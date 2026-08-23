@@ -7,7 +7,7 @@ use PhpCsFixer\Finder;
 
 $finder = Finder::create()
     ->in([__DIR__ . '/src', __DIR__ . '/tests'])
-    ->exclude(['View/pages', 'View/layout', 'View/partials'])
+    ->exclude(['View/pages', 'View/layout', 'View/partials', 'Vestikan'])
     ->name('*.php');
 
 return (new Config())

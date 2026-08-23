@@ -49,7 +49,7 @@ class ViewRenderer
             'flash_messages',
             static function (): array {
                 $msgs = [];
-                foreach (['success_message' => 'success', 'error_message' => 'error'] as $key => $type) {
+                foreach (['success_message' => 'success', 'error_message' => 'error', 'info_message' => 'info'] as $key => $type) {
                     if (isset($_SESSION[$key])) {
                         $msgs[] = ['type' => $type, 'text' => $_SESSION[$key]];
                         unset($_SESSION[$key]);

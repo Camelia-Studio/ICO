@@ -15,4 +15,4 @@ return RectorConfig::configure()
         SetList::TYPE_DECLARATION,
     ])
     ->withImportNames()
-    ->withSkip([__DIR__ . '/src/View']);
+    ->withSkip([__DIR__ . '/src/View', __DIR__ . '/src/Vestikan']);

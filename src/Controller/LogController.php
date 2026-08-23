@@ -50,6 +50,8 @@ class LogController
         'CREATE_SOCIAL_LINK'     => 'Ajouter un lien social',
         'UPDATE_SOCIAL_LINK'     => 'Modifier un lien social',
         'DELETE_SOCIAL_LINK'     => 'Supprimer un lien social',
+        'LINK_VESTIKAN'          => 'Lier un compte Vestikan',
+        'UNLINK_VESTIKAN'        => 'Délier un compte Vestikan',
     ];
 
     public function __construct(
