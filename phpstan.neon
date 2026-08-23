@@ -10,5 +10,4 @@ parameters:
         - src/View/pages
         - src/View/layout
         - src/View/partials
-        - src/Vestikan
     phpVersion: 80300

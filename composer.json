@@ -27,7 +27,7 @@
             "ICO\\": "src/"
         },
         "files": [
-            "src/Vestikan/vestikan-sdk.php"
+            "vestikan-sdk.php"
         ]
     },
     "autoload-dev": {
