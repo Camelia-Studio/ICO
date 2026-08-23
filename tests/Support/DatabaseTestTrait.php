@@ -28,6 +28,12 @@ trait DatabaseTestTrait
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )');
 
+        $this->pdo->exec('CREATE TABLE vestikan_links (
+            vestikan_id   TEXT PRIMARY KEY,
+            local_user_id TEXT NOT NULL,
+            created_at    INTEGER NOT NULL
+        )');
+
         $this->pdo->exec('CREATE TABLE album_identifiers (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             identifier TEXT UNIQUE NOT NULL,

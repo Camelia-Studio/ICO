@@ -16,6 +16,11 @@
     color: white;
 }
 
+.info-message {
+    background-color: #0d6efd;
+    color: white;
+}
+
 /* Tableaux d'administration */
 .admin-table {
     width: 100%;

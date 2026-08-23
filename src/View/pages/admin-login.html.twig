@@ -6,6 +6,7 @@
     <a href="index.php" class="back-button">← Retour à l'accueil</a>
     <div class="admin-login">
         <h1>Connexion</h1>
+        {% include 'partials/messages.html.twig' %}
         {% if error is not null %}
             <div class="error-message">{{ error }}</div>
         {% endif %}
@@ -20,5 +21,10 @@
             </div>
             <button type="submit" class="action-button">Se connecter</button>
         </form>
+        {% if vestikanEnabled %}
+            <div class="admin-login-sso">
+                <a href="admin.php?action=vestikan_login" class="action-button">Se connecter avec Vestikan</a>
+            </div>
+        {% endif %}
     </div>
 {% endblock %}

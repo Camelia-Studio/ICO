@@ -32,6 +32,13 @@ if (!in_array('options', $columns)) {
     $db->exec("ALTER TABLE share_keys ADD COLUMN options TEXT NOT NULL DEFAULT '{\"download\":true,\"source\":true,\"share\":true}'");
 }
 
+// Créer la table de liaison des comptes Vestikan (SSO)
+$db->exec('CREATE TABLE IF NOT EXISTS vestikan_links (
+    vestikan_id   TEXT PRIMARY KEY,
+    local_user_id TEXT NOT NULL,
+    created_at    INTEGER NOT NULL
+)');
+
 // Créer la table des identifiants d'albums
 $db->exec('CREATE TABLE IF NOT EXISTS album_identifiers (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

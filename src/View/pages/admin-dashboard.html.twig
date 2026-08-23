@@ -15,6 +15,18 @@
     <div class="admin-content">
         {% include 'partials/messages.html.twig' %}
 
+        {% if vestikanEnabled %}
+        <div class="admin-vestikan-status">
+            {% if vestikanLinked %}
+                <span>Compte Vestikan lié.</span>
+                <a href="admin.php?action=unlink_vestikan" class="action-button action-button-danger">Délier mon compte Vestikan</a>
+            {% else %}
+                <span>Aucun compte Vestikan lié.</span>
+                <a href="admin.php?action=vestikan_login" class="action-button">Lier mon compte à Vestikan</a>
+            {% endif %}
+        </div>
+        {% endif %}
+
         <div class="admin-menu">
             <a href="arbre.php" class="admin-menu-item">
                 <div class="menu-icon">

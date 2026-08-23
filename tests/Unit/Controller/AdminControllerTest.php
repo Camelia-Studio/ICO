@@ -5,14 +5,20 @@ declare(strict_types=1);
 namespace ICO\Tests\Unit\Controller;
 
 use ICO\Config\Config;
+use ICO\Config\VestikanConfig;
 use ICO\Controller\AdminController;
 use ICO\Http\TerminateException;
 use ICO\Repository\AdminRepository;
+use ICO\Repository\LogRepository;
 use ICO\Service\AuthService;
 use ICO\Service\PasswordValidator;
 use ICO\Service\UpdateService;
+use ICO\Service\VestikanClientFactory;
+use ICO\Service\VestikanClientInterface;
+use ICO\Service\VestikanLinkService;
 use ICO\View\ViewRenderer;
 use PHPUnit\Framework\TestCase;
+use VestikanException;
 
 /**
  * Tests for AdminController — only paths that don't call exit().
@@ -391,14 +397,258 @@ class AdminControllerTest extends TestCase
     }
 
     // =========================================================================
+    // login POST success — lie le vestikan_id en attente
+    // =========================================================================
+
+    public function testLoginPostSuccessLinksPendingVestikanId(): void
+    {
+        $_GET['action']            = 'login';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST = ['username' => 'admin', 'password' => 'correct'];
+        $_SESSION['pending_vestikan_id'] = 'abc123';
+
+        $auth = $this->createMock(AuthService::class);
+        $auth->method('login')->willReturnCallback(function (): true {
+            $_SESSION['admin_id'] = 1;
+            return true;
+        });
+
+        $vestikanLink = $this->createMock(VestikanLinkService::class);
+        $vestikanLink->expects($this->once())->method('link')->with('abc123', 1);
+
+        $logRepo = $this->createMock(LogRepository::class);
+        $logRepo->expects($this->once())->method('log')->with(1, 'LINK_VESTIKAN', $this->anything());
+
+        $controller = $this->makeController(auth: $auth, vestikanLink: $vestikanLink, logRepo: $logRepo);
+
+        $this->expectException(TerminateException::class);
+        $controller->handle();
+
+        $this->assertArrayNotHasKey('pending_vestikan_id', $_SESSION);
+    }
+
+    // =========================================================================
+    // vestikan_login
+    // =========================================================================
+
+    public function testVestikanLoginRedirectsToLoginWhenNotConfigured(): void
+    {
+        $_GET['action'] = 'vestikan_login';
+
+        $controller = $this->makeController();
+
+        $this->expectException(TerminateException::class);
+        $controller->handle();
+    }
+
+    public function testVestikanLoginRedirectsToAuthorizeUrl(): void
+    {
+        $_GET['action'] = 'vestikan_login';
+
+        $auth = $this->createMock(AuthService::class);
+        $auth->method('isLoggedIn')->willReturn(false);
+
+        $client = $this->createMock(VestikanClientInterface::class);
+        $client->expects($this->once())->method('authorizeUrl')->with(null)
+            ->willReturn('https://vestikan.example/authorize?state=xyz');
+
+        $factory = $this->createMock(VestikanClientFactory::class);
+        $factory->method('create')->willReturn($client);
+
+        $controller = $this->makeController(
+            auth: $auth,
+            vestikanConfig: $this->makeVestikanConfig(configured: true),
+            vestikanClientFactory: $factory,
+        );
+
+        $this->expectException(TerminateException::class);
+        $controller->handle();
+    }
+
+    // =========================================================================
+    // vestikan_callback
+    // =========================================================================
+
+    public function testVestikanCallbackRedirectsToLoginWhenNotConfigured(): void
+    {
+        $_GET['action'] = 'vestikan_callback';
+
+        $controller = $this->makeController();
+
+        $this->expectException(TerminateException::class);
+        $controller->handle();
+    }
+
+    public function testVestikanCallbackShowsErrorWhenFlowFails(): void
+    {
+        $_GET['action'] = 'vestikan_callback';
+
+        $client = $this->createMock(VestikanClientInterface::class);
+        $client->method('complete')->willThrowException(new VestikanException('State invalide'));
+
+        $factory = $this->createMock(VestikanClientFactory::class);
+        $factory->method('create')->willReturn($client);
+
+        $controller = $this->makeController(
+            vestikanConfig: $this->makeVestikanConfig(configured: true),
+            vestikanClientFactory: $factory,
+        );
+
+        $this->expectException(TerminateException::class);
+        $controller->handle();
+
+        $this->assertArrayHasKey('error_message', $_SESSION);
+    }
+
+    public function testVestikanCallbackLogsInWhenAlreadyLinked(): void
+    {
+        $_GET['action'] = 'vestikan_callback';
+
+        $client = $this->createMock(VestikanClientInterface::class);
+        $client->method('complete')->willReturn('vestikan-id-1');
+        $client->method('popReturnTo')->willReturn(null);
+
+        $factory = $this->createMock(VestikanClientFactory::class);
+        $factory->method('create')->willReturn($client);
+
+        $vestikanLink = $this->createMock(VestikanLinkService::class);
+        $vestikanLink->method('resolveAdminId')->with('vestikan-id-1')->willReturn(1);
+
+        $adminRepo = $this->createMock(AdminRepository::class);
+        $adminRepo->method('findById')->with(1)->willReturn(['id' => 1, 'username' => 'admin']);
+
+        $controller = $this->makeController(
+            adminRepo: $adminRepo,
+            vestikanConfig: $this->makeVestikanConfig(configured: true),
+            vestikanLink: $vestikanLink,
+            vestikanClientFactory: $factory,
+        );
+
+        $this->expectException(TerminateException::class);
+        $controller->handle();
+
+        $this->assertSame(1, $_SESSION['admin_id']);
+        $this->assertSame('admin', $_SESSION['admin_username']);
+    }
+
+    public function testVestikanCallbackLinksToCurrentAdminWhenAlreadyLoggedIn(): void
+    {
+        $_GET['action']       = 'vestikan_callback';
+        $_SESSION['admin_id'] = 2;
+
+        $client = $this->createMock(VestikanClientInterface::class);
+        $client->method('complete')->willReturn('vestikan-id-2');
+
+        $factory = $this->createMock(VestikanClientFactory::class);
+        $factory->method('create')->willReturn($client);
+
+        $auth = $this->createMock(AuthService::class);
+        $auth->method('isLoggedIn')->willReturn(true);
+
+        $vestikanLink = $this->createMock(VestikanLinkService::class);
+        $vestikanLink->method('resolveAdminId')->willReturn(null);
+        $vestikanLink->expects($this->once())->method('link')->with('vestikan-id-2', 2);
+
+        $logRepo = $this->createMock(LogRepository::class);
+        $logRepo->expects($this->once())->method('log')->with(2, 'LINK_VESTIKAN', $this->anything());
+
+        $controller = $this->makeController(
+            auth: $auth,
+            vestikanConfig: $this->makeVestikanConfig(configured: true),
+            vestikanLink: $vestikanLink,
+            logRepo: $logRepo,
+            vestikanClientFactory: $factory,
+        );
+
+        $this->expectException(TerminateException::class);
+        $controller->handle();
+
+        $this->assertArrayHasKey('success_message', $_SESSION);
+    }
+
+    public function testVestikanCallbackStoresPendingIdWhenNotLoggedIn(): void
+    {
+        $_GET['action'] = 'vestikan_callback';
+
+        $client = $this->createMock(VestikanClientInterface::class);
+        $client->method('complete')->willReturn('vestikan-id-3');
+
+        $factory = $this->createMock(VestikanClientFactory::class);
+        $factory->method('create')->willReturn($client);
+
+        $auth = $this->createMock(AuthService::class);
+        $auth->method('isLoggedIn')->willReturn(false);
+
+        $vestikanLink = $this->createMock(VestikanLinkService::class);
+        $vestikanLink->method('resolveAdminId')->willReturn(null);
+        $vestikanLink->expects($this->never())->method('link');
+
+        $controller = $this->makeController(
+            auth: $auth,
+            vestikanConfig: $this->makeVestikanConfig(configured: true),
+            vestikanLink: $vestikanLink,
+            vestikanClientFactory: $factory,
+        );
+
+        $this->expectException(TerminateException::class);
+        $controller->handle();
+
+        $this->assertSame('vestikan-id-3', $_SESSION['pending_vestikan_id']);
+    }
+
+    // =========================================================================
+    // unlink_vestikan
+    // =========================================================================
+
+    public function testUnlinkVestikanRedirectsWhenNotLoggedIn(): void
+    {
+        $_GET['action'] = 'unlink_vestikan';
+
+        $auth = $this->createMock(AuthService::class);
+        $auth->method('isLoggedIn')->willReturn(false);
+
+        $controller = $this->makeController(auth: $auth);
+
+        $this->expectException(TerminateException::class);
+        $controller->handle();
+    }
+
+    public function testUnlinkVestikanRemovesExistingLink(): void
+    {
+        $_GET['action']       = 'unlink_vestikan';
+        $_SESSION['admin_id'] = 1;
+
+        $auth = $this->createMock(AuthService::class);
+        $auth->method('isLoggedIn')->willReturn(true);
+
+        $vestikanLink = $this->createMock(VestikanLinkService::class);
+        $vestikanLink->method('findLinkedVestikanId')->with(1)->willReturn('vestikan-id-1');
+        $vestikanLink->expects($this->once())->method('unlink')->with('vestikan-id-1');
+
+        $logRepo = $this->createMock(LogRepository::class);
+        $logRepo->expects($this->once())->method('log')->with(1, 'UNLINK_VESTIKAN', $this->anything());
+
+        $controller = $this->makeController(auth: $auth, vestikanLink: $vestikanLink, logRepo: $logRepo);
+
+        $this->expectException(TerminateException::class);
+        $controller->handle();
+
+        $this->assertArrayHasKey('success_message', $_SESSION);
+    }
+
+    // =========================================================================
     // Factory
     // =========================================================================
 
     private function makeController(
-        ?AuthService      $auth          = null,
-        ?AdminRepository  $adminRepo     = null,
-        ?UpdateService    $updateService = null,
-        ?ViewRenderer     $view          = null,
+        ?AuthService            $auth                  = null,
+        ?AdminRepository        $adminRepo             = null,
+        ?UpdateService          $updateService          = null,
+        ?ViewRenderer           $view                  = null,
+        ?VestikanConfig         $vestikanConfig        = null,
+        ?VestikanLinkService    $vestikanLink          = null,
+        ?LogRepository          $logRepo               = null,
+        ?VestikanClientFactory  $vestikanClientFactory = null,
     ): AdminController {
         $config    = $this->makeConfig();
         $auth ??= $this->createMock(AuthService::class);
@@ -406,8 +656,23 @@ class AdminControllerTest extends TestCase
         $pwdVal    = new PasswordValidator();
         $updSvc    = $updateService ?? $this->createMock(UpdateService::class);
         $view ??= $this->createMock(ViewRenderer::class);
+        $vestikanConfig ??= $this->makeVestikanConfig(configured: false);
+        $vestikanLink ??= $this->createMock(VestikanLinkService::class);
+        $logRepo ??= $this->createMock(LogRepository::class);
+        $vestikanClientFactory ??= $this->createMock(VestikanClientFactory::class);
 
-        return new AdminController($config, $auth, $adminRepo, $pwdVal, $updSvc, $view);
+        return new AdminController(
+            $config,
+            $auth,
+            $adminRepo,
+            $pwdVal,
+            $updSvc,
+            $view,
+            $vestikanConfig,
+            $vestikanLink,
+            $logRepo,
+            $vestikanClientFactory,
+        );
     }
 
     private function makeConfig(): Config
@@ -420,6 +685,28 @@ class AdminControllerTest extends TestCase
         unlink($tmp . '/config.txt');
         unlink($tmp . '/version.txt');
         rmdir($tmp);
+        return $config;
+    }
+
+    private function makeVestikanConfig(bool $configured): VestikanConfig
+    {
+        $tmp = sys_get_temp_dir() . '/ico_vestikan_cfg_' . uniqid() . '.php';
+
+        if ($configured) {
+            file_put_contents($tmp, "<?php\nreturn [\n"
+                . "    'base_url' => 'https://vestikan.example',\n"
+                . "    'client_id' => 'vk_client_test',\n"
+                . "    'client_secret' => 'secret',\n"
+                . "    'redirect_uri' => 'https://ico.example/admin.php?action=vestikan_callback',\n"
+                . "];\n");
+        }
+
+        $config = VestikanConfig::fromFile($tmp);
+
+        if (file_exists($tmp)) {
+            unlink($tmp);
+        }
+
         return $config;
     }
 }

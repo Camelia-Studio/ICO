@@ -25,7 +25,10 @@
     "autoload": {
         "psr-4": {
             "ICO\\": "src/"
-        }
+        },
+        "files": [
+            "src/Vestikan/vestikan-sdk.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {

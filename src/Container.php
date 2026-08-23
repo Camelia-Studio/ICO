@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ICO;
 
 use ICO\Config\Config;
+use ICO\Config\VestikanConfig;
 use ICO\Controller\AdminController;
 use ICO\Controller\AlbumController;
 use ICO\Controller\FeedController;
@@ -39,6 +40,8 @@ use ICO\Service\PasswordValidator;
 use ICO\Service\PathService;
 use ICO\Service\SessionCookieService;
 use ICO\Service\UpdateService;
+use ICO\Service\VestikanClientFactory;
+use ICO\Service\VestikanLinkService;
 use ICO\View\ViewRenderer;
 use PDO;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -92,6 +95,10 @@ final class Container
         $container->register(Config::class)
             ->setSynthetic(true);
         $container->set(Config::class, $config);
+
+        $container->register(VestikanConfig::class)
+            ->setSynthetic(true);
+        $container->set(VestikanConfig::class, VestikanConfig::fromFile($projectRoot . '/vestikan-config.php'));
 
         $container->register(PDO::class)
             ->setSynthetic(true);
@@ -158,6 +165,12 @@ final class Container
         $container->register(UpdateService::class)
             ->addArgument('%current_version%');
 
+        $container->register(VestikanLinkService::class)
+            ->addArgument(new Reference(PDO::class));
+
+        $container->register(VestikanClientFactory::class)
+            ->addArgument(new Reference(VestikanConfig::class));
+
         // -------------------------------------------------------------------------
         // Controllers — public car récupérés via $container->get() dans index.php
         // -------------------------------------------------------------------------
@@ -169,7 +182,11 @@ final class Container
             ->addArgument(new Reference(AdminRepository::class))
             ->addArgument(new Reference(PasswordValidator::class))
             ->addArgument(new Reference(UpdateService::class))
-            ->addArgument(new Reference(ViewRenderer::class));
+            ->addArgument(new Reference(ViewRenderer::class))
+            ->addArgument(new Reference(VestikanConfig::class))
+            ->addArgument(new Reference(VestikanLinkService::class))
+            ->addArgument(new Reference(LogRepository::class))
+            ->addArgument(new Reference(VestikanClientFactory::class));
 
         $container->register(UserController::class)
             ->setPublic(true)

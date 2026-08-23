@@ -25,6 +25,13 @@
     text-align: center;
 }
 
+.admin-login-sso {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #2a2a2a;
+    text-align: center;
+}
+
 /* En-tête de l'administration */
 .admin-header {
     width: 100%;
@@ -86,6 +93,19 @@
     font-size: 0.75rem;
     font-weight: normal;
     vertical-align: middle;
+}
+
+/* Statut de liaison Vestikan (dashboard) */
+.admin-vestikan-status {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 0.75rem 1rem;
+    background-color: #1e1e1e;
+    border-radius: 0.5rem;
 }
 
 /* Zone de contenu principale */
