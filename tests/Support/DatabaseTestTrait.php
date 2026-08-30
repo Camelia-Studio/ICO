@@ -25,7 +25,7 @@ trait DatabaseTestTrait
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
             password_hash TEXT NOT NULL,
-            role TEXT NOT NULL DEFAULT \'administrator\',
+            role TEXT NOT NULL DEFAULT \'visitor\',
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )');
 

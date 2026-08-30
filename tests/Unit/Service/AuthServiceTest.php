@@ -60,7 +60,7 @@ class AuthServiceTest extends TestCase
     public function testVerifyPasswordReturnsTrueForCorrectPassword(): void
     {
         $hash = $this->auth->hashPassword('correct');
-        $id   = $this->adminRepo->create('alice', $hash);
+        $id   = $this->adminRepo->create('alice', $hash, UserRole::ADMINISTRATOR);
 
         $this->assertTrue($this->auth->verifyPassword($id, 'correct'));
     }
@@ -68,7 +68,7 @@ class AuthServiceTest extends TestCase
     public function testVerifyPasswordReturnsFalseForWrongPassword(): void
     {
         $hash = $this->auth->hashPassword('correct');
-        $id   = $this->adminRepo->create('bob', $hash);
+        $id   = $this->adminRepo->create('bob', $hash, UserRole::ADMINISTRATOR);
 
         $this->assertFalse($this->auth->verifyPassword($id, 'wrong'));
     }
@@ -85,7 +85,7 @@ class AuthServiceTest extends TestCase
     public function testLoginSucceedsWithCorrectCredentials(): void
     {
         $hash = $this->auth->hashPassword('pass');
-        $id   = $this->adminRepo->create('charlie', $hash);
+        $id   = $this->adminRepo->create('charlie', $hash, UserRole::ADMINISTRATOR);
 
         $result = $this->auth->login('charlie', 'pass');
 
@@ -98,7 +98,7 @@ class AuthServiceTest extends TestCase
     public function testLoginFailsWithWrongPassword(): void
     {
         $hash = $this->auth->hashPassword('pass');
-        $this->adminRepo->create('diana', $hash);
+        $this->adminRepo->create('diana', $hash, UserRole::ADMINISTRATOR);
 
         $result = $this->auth->login('diana', 'wrong');
 
@@ -115,7 +115,7 @@ class AuthServiceTest extends TestCase
 
     public function testVisitorIsAuthenticatedWithoutAdministrativeAccess(): void
     {
-        $this->adminRepo->create('principal', $this->auth->hashPassword('pass'));
+        $this->adminRepo->create('principal', $this->auth->hashPassword('pass'), UserRole::ADMINISTRATOR);
         $this->adminRepo->create('visitor', $this->auth->hashPassword('pass'), UserRole::VISITOR);
 
         $this->assertTrue($this->auth->login('visitor', 'pass'));
@@ -125,7 +125,7 @@ class AuthServiceTest extends TestCase
 
     public function testVisitorCanOnlyAccessAssignedPrivateAlbum(): void
     {
-        $this->adminRepo->create('principal', $this->auth->hashPassword('pass'));
+        $this->adminRepo->create('principal', $this->auth->hashPassword('pass'), UserRole::ADMINISTRATOR);
         $visitorId = $this->adminRepo->create('visitor', $this->auth->hashPassword('pass'), UserRole::VISITOR);
         $identifierRepository = new AlbumIdentifierRepository($this->pdo);
         $identifier = $identifierRepository->create('assigned', '/private/assigned');

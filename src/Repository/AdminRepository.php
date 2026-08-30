@@ -124,7 +124,7 @@ class AdminRepository
     public function create(
         string $username,
         string $passwordHash,
-        UserRole $role = UserRole::ADMINISTRATOR,
+        UserRole $role,
     ): int {
         $stmt = $this->pdo->prepare(
             'INSERT INTO admins (username, password_hash, role) VALUES (:username, :password_hash, :role)'

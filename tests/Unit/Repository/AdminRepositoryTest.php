@@ -138,7 +138,7 @@ class AdminRepositoryTest extends TestCase
 
     public function testCreateInsertsAndReturnsId(): void
     {
-        $id = $this->repo->create('newuser', 'hashvalue');
+        $id = $this->repo->create('newuser', 'hashvalue', UserRole::ADMINISTRATOR);
 
         $this->assertGreaterThan(0, $id);
         $this->assertNotNull($this->repo->findById($id));
@@ -151,6 +151,13 @@ class AdminRepositoryTest extends TestCase
 
         $this->assertSame('visitor', $this->repo->findById($id)['role']);
         $this->assertSame(UserRole::VISITOR, $this->repo->getEffectiveRole($id));
+    }
+
+    public function testDatabaseDefaultRoleUsesLeastPrivilege(): void
+    {
+        $id = $this->insertAdmin('implicit-role');
+
+        $this->assertSame('visitor', $this->repo->findById($id)['role']);
     }
 
     // --- update ---

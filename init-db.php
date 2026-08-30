@@ -7,7 +7,7 @@ $db->exec('CREATE TABLE IF NOT EXISTS admins (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
-    role TEXT NOT NULL DEFAULT \'administrator\' CHECK (role IN (\'administrator\', \'moderator\', \'visitor\')),
+    role TEXT NOT NULL DEFAULT \'visitor\',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 )');
 
@@ -18,7 +18,10 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
     $admin_columns[] = $row['name'];
 }
 if (!in_array('role', $admin_columns)) {
-    $db->exec("ALTER TABLE admins ADD COLUMN role TEXT NOT NULL DEFAULT 'administrator'");
+    $db->exec("ALTER TABLE admins ADD COLUMN role TEXT NOT NULL DEFAULT 'visitor'");
+    // Les comptes antérieurs à la gestion des rôles étaient tous administrateurs.
+    // Ce backfill reste dans la condition pour ne jamais écraser les rôles lors d'une relance.
+    $db->exec("UPDATE admins SET role = 'administrator'");
 }
 
 // Créer la nouvelle table des clés de partage
@@ -77,7 +80,7 @@ if ($count === 0) {
     $default_password = 'admin';
     $password_hash = password_hash($default_password, PASSWORD_DEFAULT);
     
-    $stmt = $db->prepare('INSERT INTO admins (username, password_hash) VALUES (:username, :password_hash)');
+    $stmt = $db->prepare("INSERT INTO admins (username, password_hash, role) VALUES (:username, :password_hash, 'administrator')");
     $stmt->bindValue(':username', $default_username, SQLITE3_TEXT);
     $stmt->bindValue(':password_hash', $password_hash, SQLITE3_TEXT);
     $stmt->execute();

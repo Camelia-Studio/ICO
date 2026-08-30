@@ -23,7 +23,7 @@ class PrivateAlbumAccessRepositoryTest extends TestCase
     {
         $this->setUpDatabase();
         $adminRepository = new AdminRepository($this->pdo);
-        $adminRepository->create('principal', 'hash');
+        $adminRepository->create('principal', 'hash', UserRole::ADMINISTRATOR);
 
         $this->visitorId = $adminRepository->create('visiteur', 'hash', UserRole::VISITOR);
         $this->repository = new PrivateAlbumAccessRepository($this->pdo);
