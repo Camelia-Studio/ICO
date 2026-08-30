@@ -6,8 +6,10 @@ namespace ICO\Tests\Unit\Controller;
 
 use ICO\Config\Config;
 use ICO\Controller\GalleryController;
+use ICO\Enum\UserRole;
 use ICO\Http\Request;
 use ICO\Http\TerminateException;
+use ICO\Repository\PrivateAlbumAccessRepository;
 use ICO\Repository\ShareKeyRepository;
 use ICO\Service\AlbumService;
 use ICO\Service\AuthService;
@@ -254,6 +256,41 @@ class GalleryControllerTest extends TestCase
         $controller->showPrivate($request);
 
         $this->assertSame('Accès refusé', $capturedData['error_title']);
+    }
+
+    public function testVisitorWithoutShareKeySeesOnlyAssignedAlbums(): void
+    {
+        file_put_contents($this->privateRoot . '/secret/infos.txt', "Album attribué\nPrivé\n18-\n");
+        $albumService = new AlbumService($this->albumsRoot, $this->privateRoot);
+        $view = $this->createMock(ViewRenderer::class);
+        $view->expects($this->once())->method('render')
+            ->with('pages/albums', $this->callback(
+                static fn (array $data): bool =>
+                    $data['visitor_mode'] === true
+                    && count($data['albums']) === 1
+                    && $data['albums'][0]['title'] === 'Album attribué'
+            ));
+
+        $auth = $this->createMock(AuthService::class);
+        $auth->method('isAuthenticated')->willReturn(true);
+        $auth->method('getLoggedInRole')->willReturn(UserRole::VISITOR);
+        $auth->method('getLoggedInAdminId')->willReturn(2);
+        $access = $this->createMock(PrivateAlbumAccessRepository::class);
+        $access->method('findAlbumsForUser')->with(2)->willReturn([[
+            'identifier' => 'secret-id',
+            'path' => $this->privateRoot . '/secret',
+        ]]);
+
+        $controller = $this->makeController(
+            $albumService,
+            $this->createMock(FileService::class),
+            $this->createMock(ShareKeyRepository::class),
+            $view,
+            auth: $auth,
+            privateAlbumAccessRepo: $access,
+        );
+
+        $controller->showPrivate(new Request('GET', '/galeries-privees.php'));
     }
 
     public function testShowPrivateWithInvalidKeyRendersError(): void
@@ -865,6 +902,8 @@ class GalleryControllerTest extends TestCase
         ShareKeyRepository $shareKeyRepo,
         ViewRenderer $view,
         ?Config $config = null,
+        ?AuthService $auth = null,
+        ?PrivateAlbumAccessRepository $privateAlbumAccessRepo = null,
     ): GalleryController {
         $config ??= $this->makeConfig();
 
@@ -874,8 +913,9 @@ class GalleryControllerTest extends TestCase
             $fileService,
             $shareKeyRepo,
             new PathService($this->tmpDir, 'http://localhost'),
-            $this->makeAuthService(),
+            $auth ?? $this->makeAuthService(),
             $view,
+            $privateAlbumAccessRepo,
         );
     }
 

@@ -22,33 +22,41 @@
                     <tr>
                         <th>ID</th>
                         <th>Identifiant</th>
+                        <th>Rôle</th>
                         <th>Date de création</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for user in users %}
-                    {% set isMainAdmin = loop.first %}
-                    <tr class="{{ isMainAdmin ? 'main-admin' : '' }}">
+                    <tr class="{{ user.is_main ? 'main-admin' : '' }}">
                         <td>{{ user.id }}</td>
                         <td>
                             {{ user.username }}
-                            {% if isMainAdmin %}
+                            {% if user.is_main %}
                                 <span class="admin-badge">
                                     <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M12 2l3 7h7l-6 4 3 7-7-4-7 4 3-7-6-4h7z"/>
                                     </svg>
-                                    Admin principal
+                                    Administrateur principal
                                 </span>
                             {% endif %}
                         </td>
+                        <td>{{ user.role_label }}</td>
                         <td>{{ user.created_at|format_date }}</td>
                         <td class="table-actions">
-                            <button onclick="editUser({{ user.id }}, '{{ user.username|e('js') }}')"
+                            {% if user.can_manage %}
+                            <button onclick="editUser(this)"
+                                data-user-id="{{ user.id }}"
+                                data-username="{{ user.username }}"
+                                data-role="{{ user.role }}"
+                                data-is-main="{{ user.is_main ? '1' : '0' }}"
+                                data-private-albums="{{ user.album_identifiers|json_encode }}"
                                 class="tree-button">
                                 ✏️
                             </button>
-                            {% if not isMainAdmin %}
+                            {% endif %}
+                            {% if user.can_manage and not user.is_main and not user.is_current %}
                             <button onclick="deleteUser({{ user.id }})"
                                 class="tree-button tree-button-danger">
                                 🗑️
@@ -86,6 +94,25 @@
                         </ul>
                     </small>
                 </div>
+                <div class="form-group">
+                    <label for="role">Rôle :</label>
+                    <select id="role" name="role" required data-role-select data-album-target="add-private-albums">
+                        {% for value, label in roles %}
+                            <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <fieldset id="add-private-albums" class="form-group private-album-access" hidden>
+                    <legend>Albums privés accessibles</legend>
+                    {% for album in privateAlbums %}
+                        <label>
+                            <input type="checkbox" name="private_albums[]" value="{{ album.identifier }}">
+                            {{ album.title }} <small>({{ album.path }})</small>
+                        </label>
+                    {% else %}
+                        <p>Aucun album privé disponible.</p>
+                    {% endfor %}
+                </fieldset>
                 <div class="form-actions">
                     <button type="button" onclick="closeModal('addUserModal')"
                         class="action-button action-button-secondary">Annuler</button>
@@ -120,6 +147,25 @@
                         </ul>
                     </small>
                 </div>
+                <div class="form-group">
+                    <label for="edit_role">Rôle :</label>
+                    <select id="edit_role" name="role" required data-role-select data-album-target="edit-private-albums">
+                        {% for value, label in roles %}
+                            <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <fieldset id="edit-private-albums" class="form-group private-album-access" hidden>
+                    <legend>Albums privés accessibles</legend>
+                    {% for album in privateAlbums %}
+                        <label>
+                            <input type="checkbox" name="private_albums[]" value="{{ album.identifier }}">
+                            {{ album.title }} <small>({{ album.path }})</small>
+                        </label>
+                    {% else %}
+                        <p>Aucun album privé disponible.</p>
+                    {% endfor %}
+                </fieldset>
                 <div class="form-actions">
                     <button type="button" onclick="closeModal('editUserModal')"
                         class="action-button action-button-secondary">Annuler</button>

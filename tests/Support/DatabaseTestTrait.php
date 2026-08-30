@@ -25,6 +25,7 @@ trait DatabaseTestTrait
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
             password_hash TEXT NOT NULL,
+            role TEXT NOT NULL DEFAULT \'administrator\',
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )');
 
@@ -39,6 +40,14 @@ trait DatabaseTestTrait
             identifier TEXT UNIQUE NOT NULL,
             path TEXT UNIQUE NOT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )');
+
+        $this->pdo->exec('CREATE TABLE user_private_album_access (
+            user_id INTEGER NOT NULL,
+            album_identifier TEXT NOT NULL,
+            PRIMARY KEY (user_id, album_identifier),
+            FOREIGN KEY (user_id) REFERENCES admins(id) ON DELETE CASCADE,
+            FOREIGN KEY (album_identifier) REFERENCES album_identifiers(identifier) ON DELETE CASCADE
         )');
 
         $this->pdo->exec("CREATE TABLE share_keys (

@@ -6,6 +6,7 @@ namespace ICO\Controller;
 
 use ICO\Config\Config;
 use ICO\Config\VestikanConfig;
+use ICO\Enum\UserRole;
 use ICO\Http\TerminateException;
 use ICO\Repository\AdminRepository;
 use ICO\Repository\LogRepository;
@@ -70,7 +71,7 @@ class AdminController
 
             if ($this->auth->login($username, $password)) {
                 $this->completePendingVestikanLink();
-                header('Location: admin.php');
+                header('Location: ' . $this->authenticatedHome());
                 throw new TerminateException();
             }
 
@@ -121,7 +122,7 @@ class AdminController
     private function logout(): void
     {
         $this->auth->logout();
-        header('Location: admin.php');
+        header('Location: admin.php?action=login');
         throw new TerminateException();
     }
 
@@ -173,7 +174,7 @@ class AdminController
 
         // Si un admin est déjà connecté, on revient au dashboard après le
         // round-trip (cas "lier mon compte" depuis le tableau de bord).
-        $returnTo = $this->auth->isLoggedIn() ? 'admin.php' : null;
+        $returnTo = $this->isAuthenticatedUser() ? $this->authenticatedHome() : null;
 
         $url = $this->vestikanClientFactory->create()->authorizeUrl($returnTo);
 
@@ -215,13 +216,14 @@ class AdminController
 
             $_SESSION['admin_id']       = $admin['id'];
             $_SESSION['admin_username'] = $admin['username'];
+            $_SESSION['admin_role']     = $admin['role'] ?? UserRole::ADMINISTRATOR->value;
             $_SESSION['last_activity']  = time();
 
-            header('Location: ' . ($client->popReturnTo() ?: 'admin.php'));
+            header('Location: ' . ($client->popReturnTo() ?: $this->authenticatedHome()));
             throw new TerminateException();
         }
 
-        if ($this->auth->isLoggedIn()) {
+        if ($this->isAuthenticatedUser()) {
             $adminId = (int) $_SESSION['admin_id'];
 
             try {
@@ -232,7 +234,7 @@ class AdminController
                 $_SESSION['error_message'] = 'Ce compte Vestikan est déjà lié à un autre administrateur.';
             }
 
-            header('Location: admin.php');
+            header('Location: ' . $this->authenticatedHome());
             throw new TerminateException();
         }
 
@@ -247,7 +249,7 @@ class AdminController
      */
     private function unlinkVestikan(): void
     {
-        if (!$this->auth->isLoggedIn()) {
+        if (!$this->isAuthenticatedUser()) {
             header('Location: admin.php?action=login');
             throw new TerminateException();
         }
@@ -261,7 +263,7 @@ class AdminController
             $_SESSION['success_message'] = 'Compte Vestikan délié.';
         }
 
-        header('Location: admin.php');
+        header('Location: ' . $this->authenticatedHome());
         throw new TerminateException();
     }
 
@@ -271,25 +273,26 @@ class AdminController
 
     private function showChangePassword(): void
     {
-        if (!$this->auth->isLoggedIn()) {
+        if (!$this->isAuthenticatedUser()) {
             header('Location: admin.php?action=login');
             throw new TerminateException();
         }
 
         $this->view->render('pages/admin-change-password', [
             'version' => $this->config->getVersion(),
+            'returnUrl' => $this->authenticatedHome(),
         ]);
     }
 
     private function changePassword(): void
     {
-        if (!$this->auth->isLoggedIn()) {
+        if (!$this->isAuthenticatedUser()) {
             header('Location: admin.php?action=login');
             throw new TerminateException();
         }
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: admin.php');
+            header('Location: ' . $this->authenticatedHome());
             throw new TerminateException();
         }
 
@@ -323,12 +326,22 @@ class AdminController
         $newHash = $this->auth->hashPassword($newPassword);
         if ($this->adminRepo->updatePassword((int) $_SESSION['admin_id'], $newHash)) {
             $_SESSION['success_message'] = 'Mot de passe changé avec succès.';
-            header('Location: admin.php');
+            header('Location: ' . $this->authenticatedHome());
         } else {
             $_SESSION['error_message'] = 'Une erreur est survenue lors du changement de mot de passe.';
             header('Location: admin.php?action=show_change_password');
         }
 
         throw new TerminateException();
+    }
+
+    private function authenticatedHome(): string
+    {
+        return $this->auth->isLoggedIn() ? 'admin.php' : 'galeries-privees.php';
+    }
+
+    private function isAuthenticatedUser(): bool
+    {
+        return $this->auth->isAuthenticated() || $this->auth->isLoggedIn();
     }
 }

@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace ICO\Service;
 
 use ICO\Config\Config;
+use ICO\Enum\UserRole;
 use ICO\Repository\AdminRepository;
+use ICO\Repository\PrivateAlbumAccessRepository;
 
 /**
  * Gère l'authentification et la session administrateur.
@@ -16,6 +18,7 @@ class AuthService
         private readonly AdminRepository     $adminRepository,
         private readonly Config              $config,
         private readonly SessionCookieService $sessionCookie,
+        private readonly ?PrivateAlbumAccessRepository $privateAlbumAccessRepository = null,
     ) {
     }
 
@@ -38,6 +41,7 @@ class AuthService
 
         $_SESSION['admin_id']       = $admin['id'];
         $_SESSION['admin_username'] = $admin['username'];
+        $_SESSION['admin_role']     = $admin['role'] ?? UserRole::ADMINISTRATOR->value;
         $_SESSION['last_activity']  = time();
 
         return true;
@@ -64,6 +68,12 @@ class AuthService
      */
     public function isLoggedIn(): bool
     {
+        return $this->isAuthenticated()
+            && $this->getLoggedInRole()?->canAccessAdministration() === true;
+    }
+
+    public function isAuthenticated(): bool
+    {
         if (!isset($_SESSION['admin_id'])) {
             return false;
         }
@@ -81,6 +91,42 @@ class AuthService
         $this->sessionCookie->refresh(time() + $sessionLifetime);
 
         return true;
+    }
+
+    public function getLoggedInRole(): ?UserRole
+    {
+        $adminId = $this->getLoggedInAdminId();
+        if ($adminId === null) {
+            return null;
+        }
+
+        $role = $this->adminRepository->getEffectiveRole($adminId);
+        if (!$role instanceof UserRole) {
+            $role = UserRole::tryFrom((string) ($_SESSION['admin_role'] ?? ''))
+                ?? UserRole::ADMINISTRATOR;
+        }
+
+        $_SESSION['admin_role'] = $role->value;
+
+        return $role;
+    }
+
+    public function canAccessPrivatePath(string $path): bool
+    {
+        if (!$this->isAuthenticated()) {
+            return false;
+        }
+
+        $role = $this->getLoggedInRole();
+        if ($role?->canAccessAdministration() === true) {
+            return true;
+        }
+
+        $adminId = $this->getLoggedInAdminId();
+
+        return $role === UserRole::VISITOR
+            && $adminId !== null
+            && $this->privateAlbumAccessRepository?->canAccessPath($adminId, $path) === true;
     }
 
     /**

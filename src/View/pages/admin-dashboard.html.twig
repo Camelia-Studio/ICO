@@ -42,7 +42,6 @@
                 </div>
             </a>
 
-            {% if isFirst %}
             <a href="utilisateurs.php" class="admin-menu-item">
                 <div class="menu-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -52,10 +51,9 @@
                 </div>
                 <div class="menu-content">
                     <h2>Gestion des comptes</h2>
-                    <p>Gérez les comptes administrateurs de la galerie photo.</p>
+                    <p>Gérez les utilisateurs, leurs rôles et leurs accès privés.</p>
                 </div>
             </a>
-            {% endif %}
 
             <a href="arbre-prive.php" class="admin-menu-item">
                 <div class="menu-icon">
@@ -123,7 +121,6 @@
                 </div>
             </a>
 
-            {% if isFirst %}
             <a href="logs.php" class="admin-menu-item">
                 <div class="menu-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -139,7 +136,6 @@
                     <p>Consultez l'historique des actions des administrateurs.</p>
                 </div>
             </a>
-            {% endif %}
 
             {% if updateAvailable %}
                 <a href="https://git.crystalyx.net/camelia-studio/ICO/releases/tag/{{ updateStatus.latest }}"

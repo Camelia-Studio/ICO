@@ -9,6 +9,7 @@ use ICO\Http\Request;
 use ICO\Http\TerminateException;
 use ICO\Repository\ShareKeyRepository;
 use ICO\Service\AlbumService;
+use ICO\Service\AuthService;
 use ICO\Service\PathService;
 use ZipStream\CompressionMethod;
 use ZipStream\ZipStream;
@@ -28,6 +29,7 @@ class ZipController
         private readonly AlbumService       $albumService,
         private readonly PathService        $pathService,
         private readonly ShareKeyRepository $shareKeyRepo,
+        private readonly ?AuthService       $auth = null,
     ) {
     }
 
@@ -95,7 +97,8 @@ class ZipController
             return false;
         }
 
-        if (isset($_SESSION['admin_id'])) {
+        if ($this->auth?->canAccessPrivatePath($currentPath) === true
+            || (!$this->auth instanceof AuthService && isset($_SESSION['admin_id']))) {
             return true;
         }
 

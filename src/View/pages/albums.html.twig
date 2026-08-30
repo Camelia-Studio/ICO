@@ -12,6 +12,9 @@
         {% if current_album_info.description is not empty %}
             <p>{{ current_album_info.description|nl2br }}</p>
         {% endif %}
+        {% if visitor_mode|default(false) %}
+            <p><a href="admin.php?action=show_change_password">Changer mon mot de passe</a> · <a href="admin.php?action=logout">Déconnexion</a></p>
+        {% endif %}
     </div>
 
     <div class="albums-grid">

@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace ICO\Tests\Unit\Service;
 
 use ICO\Config\Config;
+use ICO\Enum\UserRole;
 use ICO\Repository\AdminRepository;
+use ICO\Repository\AlbumIdentifierRepository;
+use ICO\Repository\PrivateAlbumAccessRepository;
 use ICO\Service\AuthService;
 use ICO\Service\SessionCookieService;
 use ICO\Tests\Support\DatabaseTestTrait;
@@ -108,6 +111,33 @@ class AuthServiceTest extends TestCase
         $result = $this->auth->login('nobody', 'pass');
 
         $this->assertFalse($result);
+    }
+
+    public function testVisitorIsAuthenticatedWithoutAdministrativeAccess(): void
+    {
+        $this->adminRepo->create('principal', $this->auth->hashPassword('pass'));
+        $this->adminRepo->create('visitor', $this->auth->hashPassword('pass'), UserRole::VISITOR);
+
+        $this->assertTrue($this->auth->login('visitor', 'pass'));
+        $this->assertTrue($this->auth->isAuthenticated());
+        $this->assertFalse($this->auth->isLoggedIn());
+    }
+
+    public function testVisitorCanOnlyAccessAssignedPrivateAlbum(): void
+    {
+        $this->adminRepo->create('principal', $this->auth->hashPassword('pass'));
+        $visitorId = $this->adminRepo->create('visitor', $this->auth->hashPassword('pass'), UserRole::VISITOR);
+        $identifierRepository = new AlbumIdentifierRepository($this->pdo);
+        $identifier = $identifierRepository->create('assigned', '/private/assigned');
+        $accessRepository = new PrivateAlbumAccessRepository($this->pdo);
+        $accessRepository->replaceForUser($visitorId, [$identifier]);
+
+        $config = Config::fromFile('/nonexistent-config.txt', '/nonexistent-version.txt');
+        $auth = new AuthService($this->adminRepo, $config, $this->sessionCookie, $accessRepository);
+        $auth->login('visitor', 'pass');
+
+        $this->assertTrue($auth->canAccessPrivatePath('/private/assigned/photo.jpg'));
+        $this->assertFalse($auth->canAccessPrivatePath('/private/other/photo.jpg'));
     }
 
     // -------------------------------------------------------------------------

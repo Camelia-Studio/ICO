@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ICO\Tests\Unit\Repository;
 
+use ICO\Enum\UserRole;
 use ICO\Repository\AdminRepository;
 use ICO\Tests\Support\DatabaseTestTrait;
 use PHPUnit\Framework\TestCase;
@@ -143,6 +144,15 @@ class AdminRepositoryTest extends TestCase
         $this->assertNotNull($this->repo->findById($id));
     }
 
+    public function testCreateStoresSelectedRole(): void
+    {
+        $this->insertAdmin('main');
+        $id = $this->repo->create('visitor', 'hashvalue', UserRole::VISITOR);
+
+        $this->assertSame('visitor', $this->repo->findById($id)['role']);
+        $this->assertSame(UserRole::VISITOR, $this->repo->getEffectiveRole($id));
+    }
+
     // --- update ---
 
     public function testUpdateChangesUsername(): void
@@ -162,6 +172,16 @@ class AdminRepositoryTest extends TestCase
 
         $row = $this->repo->findById($id);
         $this->assertSame('newhash', $row['password_hash']);
+    }
+
+    public function testUpdateChangesRole(): void
+    {
+        $this->insertAdmin('main');
+        $id = $this->insertAdmin('user');
+
+        $this->repo->update($id, 'user', null, UserRole::MODERATOR);
+
+        $this->assertSame('moderator', $this->repo->findById($id)['role']);
     }
 
     // --- updatePassword ---

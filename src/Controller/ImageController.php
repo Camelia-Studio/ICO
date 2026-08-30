@@ -9,6 +9,7 @@ use ICO\Http\Response;
 use ICO\Http\TerminateException;
 use ICO\Repository\ShareKeyRepository;
 use ICO\Service\AlbumService;
+use ICO\Service\AuthService;
 
 /**
  * Contrôleur du proxy d'images privées.
@@ -25,6 +26,7 @@ class ImageController
         private readonly AlbumService       $albumService,
         private readonly ShareKeyRepository $shareKeyRepo,
         private readonly string             $projectRoot,
+        private readonly ?AuthService       $auth = null,
     ) {
     }
 
@@ -55,8 +57,9 @@ class ImageController
 
         // Authentification
         // 1. Admin connecté dans la session courante (cookie de session)
-        if (isset($_SESSION['admin_id'])) {
-            // Pas de vérification supplémentaire — la session PHP fait foi
+        if ($this->auth?->canAccessPrivatePath($path) === true
+            || (!$this->auth instanceof AuthService && isset($_SESSION['admin_id']))) {
+            // Session courante autorisée pour cet album.
         } elseif ($adminSession !== '') {
             if (!$this->checkAdminSession($adminSession)) {
                 Response::html('', 403)->send();
@@ -96,7 +99,8 @@ class ImageController
             session_start();
         }
 
-        $valid = isset($_SESSION['admin_id']);
+        $valid = isset($_SESSION['admin_id'])
+            && ($_SESSION['admin_role'] ?? 'administrator') !== 'visitor';
 
         if ($currentId !== '' && $currentId !== $sessionId) {
             session_write_close();

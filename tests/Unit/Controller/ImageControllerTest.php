@@ -9,6 +9,7 @@ use ICO\Http\Request;
 use ICO\Http\TerminateException;
 use ICO\Repository\ShareKeyRepository;
 use ICO\Service\AlbumService;
+use ICO\Service\AuthService;
 use PHPUnit\Framework\TestCase;
 
 class ImageControllerTest extends TestCase
@@ -134,6 +135,60 @@ class ImageControllerTest extends TestCase
         } finally {
             ob_end_clean();
             http_response_code(200);
+        }
+    }
+
+    public function testVisitorSessionIsRejectedForAnUnassignedAlbum(): void
+    {
+        $imagePath = $this->privateRoot . '/photo.jpg';
+        file_put_contents($imagePath, 'fake-image-data');
+        $_SESSION['admin_id'] = 2;
+        $_SESSION['admin_role'] = 'visitor';
+
+        $auth = $this->createMock(AuthService::class);
+        $auth->method('canAccessPrivatePath')->willReturn(false);
+        $controller = new ImageController(
+            new AlbumService($this->tmpDir . '/liste_albums', $this->tmpDir . '/liste_albums_prives'),
+            $this->createMock(ShareKeyRepository::class),
+            $this->tmpDir,
+            $auth,
+        );
+
+        http_response_code(200);
+        ob_start();
+        try {
+            $controller->serve($this->createRequest(['path' => 'liste_albums_prives/album/photo.jpg']));
+        } catch (TerminateException) {
+            $this->assertSame(403, http_response_code());
+        } finally {
+            ob_end_clean();
+            http_response_code(200);
+        }
+    }
+
+    public function testVisitorSessionCanReadAnAssignedAlbumImage(): void
+    {
+        $imagePath = $this->privateRoot . '/photo.jpg';
+        file_put_contents($imagePath, 'fake-image-data');
+        $_SESSION['admin_id'] = 2;
+        $_SESSION['admin_role'] = 'visitor';
+
+        $auth = $this->createMock(AuthService::class);
+        $auth->method('canAccessPrivatePath')->with($imagePath)->willReturn(true);
+        $controller = new ImageController(
+            new AlbumService($this->tmpDir . '/liste_albums', $this->tmpDir . '/liste_albums_prives'),
+            $this->createMock(ShareKeyRepository::class),
+            $this->tmpDir,
+            $auth,
+        );
+
+        ob_start();
+        try {
+            $controller->serve($this->createRequest(['path' => 'liste_albums_prives/album/photo.jpg']));
+        } catch (TerminateException) {
+            $this->assertSame('fake-image-data', ob_get_contents());
+        } finally {
+            ob_end_clean();
         }
     }
 

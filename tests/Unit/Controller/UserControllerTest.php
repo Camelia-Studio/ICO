@@ -6,9 +6,11 @@ namespace ICO\Tests\Unit\Controller;
 
 use ICO\Config\Config;
 use ICO\Controller\UserController;
+use ICO\Enum\UserRole;
 use ICO\Http\TerminateException;
 use ICO\Repository\AdminRepository;
 use ICO\Repository\LogRepository;
+use ICO\Repository\PrivateAlbumAccessRepository;
 use ICO\Service\AuthService;
 use ICO\Service\PasswordValidator;
 use ICO\View\ViewRenderer;
@@ -57,7 +59,7 @@ class UserControllerTest extends TestCase
     // Not first admin
     // =========================================================================
 
-    public function testHandleRedirectsWhenNotFirstAdmin(): void
+    public function testHandleAllowsNonFirstAdministrator(): void
     {
         $_SESSION['admin_id'] = 2;
 
@@ -66,13 +68,14 @@ class UserControllerTest extends TestCase
 
         $adminRepo = $this->createMock(AdminRepository::class);
         $adminRepo->method('findFirstAdminId')->willReturn(1);
+        $adminRepo->method('getEffectiveRole')->with(2)->willReturn(UserRole::ADMINISTRATOR);
+        $adminRepo->method('findAll')->willReturn([]);
 
         $view = $this->createMock(ViewRenderer::class);
-        $view->expects($this->never())->method('render');
+        $view->expects($this->once())->method('render');
 
         $controller = $this->makeController(auth: $auth, adminRepo: $adminRepo, view: $view);
 
-        $this->expectException(TerminateException::class);
         $controller->handle();
     }
 
@@ -111,7 +114,7 @@ class UserControllerTest extends TestCase
     {
         $_SESSION['admin_id'] = 1;
         $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_POST = ['action' => 'add', 'username' => 'newuser', 'password' => 'Str0ng!PassW0rd'];
+        $_POST = ['action' => 'add', 'username' => 'newuser', 'password' => 'Str0ng!PassW0rd', 'role' => 'administrator'];
 
         $auth = $this->createMock(AuthService::class);
         $auth->method('isLoggedIn')->willReturn(true);
@@ -185,13 +188,18 @@ class UserControllerTest extends TestCase
     {
         $_SESSION['admin_id'] = 1;
         $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_POST = ['action' => 'edit', 'user_id' => '2', 'username' => 'edited', 'password' => ''];
+        $_POST = ['action' => 'edit', 'user_id' => '2', 'username' => 'edited', 'password' => '', 'role' => 'moderator'];
 
         $auth = $this->createMock(AuthService::class);
         $auth->method('isLoggedIn')->willReturn(true);
 
         $adminRepo = $this->createMock(AdminRepository::class);
         $adminRepo->method('findFirstAdminId')->willReturn(1);
+        $adminRepo->method('findById')->with(2)->willReturn([
+            'id' => 2,
+            'username' => 'old',
+            'role' => 'administrator',
+        ]);
         $adminRepo->method('usernameExists')->willReturn(false);
         $adminRepo->method('update')->willReturn(true);
 
@@ -222,6 +230,11 @@ class UserControllerTest extends TestCase
 
         $adminRepo = $this->createMock(AdminRepository::class);
         $adminRepo->method('findFirstAdminId')->willReturn(1);
+        $adminRepo->method('findById')->with(2)->willReturn([
+            'id' => 2,
+            'username' => 'second',
+            'role' => 'administrator',
+        ]);
         $adminRepo->method('delete')->willReturn(true);
 
         $logRepo = $this->createMock(LogRepository::class);
@@ -258,6 +271,99 @@ class UserControllerTest extends TestCase
         $controller->handle();
     }
 
+    public function testModeratorCannotCreateAnotherModerator(): void
+    {
+        $_SESSION['admin_id'] = 2;
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST = [
+            'action' => 'add',
+            'username' => 'another-moderator',
+            'password' => 'Str0ng!PassW0rd',
+            'role' => 'moderator',
+        ];
+
+        $auth = $this->createMock(AuthService::class);
+        $auth->method('isLoggedIn')->willReturn(true);
+        $adminRepo = $this->createMock(AdminRepository::class);
+        $adminRepo->method('findFirstAdminId')->willReturn(1);
+        $adminRepo->method('getEffectiveRole')->with(2)->willReturn(UserRole::MODERATOR);
+        $adminRepo->expects($this->never())->method('create');
+
+        $controller = $this->makeController(auth: $auth, adminRepo: $adminRepo);
+
+        try {
+            $controller->handle();
+        } catch (TerminateException) {
+            $this->assertSame('Vous ne pouvez pas attribuer ce rôle.', $_SESSION['error_message']);
+        }
+    }
+
+    public function testModeratorCanEditVisitor(): void
+    {
+        $_SESSION['admin_id'] = 2;
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST = [
+            'action' => 'edit',
+            'user_id' => '3',
+            'username' => 'visitor',
+            'password' => '',
+            'role' => 'visitor',
+        ];
+
+        $auth = $this->createMock(AuthService::class);
+        $auth->method('isLoggedIn')->willReturn(true);
+        $adminRepo = $this->createMock(AdminRepository::class);
+        $adminRepo->method('findFirstAdminId')->willReturn(1);
+        $adminRepo->method('getEffectiveRole')->with(2)->willReturn(UserRole::MODERATOR);
+        $adminRepo->method('findById')->with(3)->willReturn([
+            'id' => 3,
+            'username' => 'visitor',
+            'role' => 'visitor',
+        ]);
+        $adminRepo->method('usernameExists')->willReturn(false);
+        $adminRepo->expects($this->once())->method('update')->willReturn(true);
+
+        $logRepo = $this->createMock(LogRepository::class);
+        $logRepo->expects($this->once())->method('log');
+        $controller = $this->makeController(auth: $auth, adminRepo: $adminRepo, logRepo: $logRepo);
+
+        $this->expectException(TerminateException::class);
+        $controller->handle();
+    }
+
+    public function testModeratorCannotEditAnotherModerator(): void
+    {
+        $_SESSION['admin_id'] = 2;
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST = [
+            'action' => 'edit',
+            'user_id' => '3',
+            'username' => 'other-moderator',
+            'password' => '',
+            'role' => 'visitor',
+        ];
+
+        $auth = $this->createMock(AuthService::class);
+        $auth->method('isLoggedIn')->willReturn(true);
+        $adminRepo = $this->createMock(AdminRepository::class);
+        $adminRepo->method('findFirstAdminId')->willReturn(1);
+        $adminRepo->method('getEffectiveRole')->with(2)->willReturn(UserRole::MODERATOR);
+        $adminRepo->method('findById')->with(3)->willReturn([
+            'id' => 3,
+            'username' => 'other-moderator',
+            'role' => 'moderator',
+        ]);
+        $adminRepo->expects($this->never())->method('update');
+
+        $controller = $this->makeController(auth: $auth, adminRepo: $adminRepo);
+
+        try {
+            $controller->handle();
+        } catch (TerminateException) {
+            $this->assertSame("Vous n'êtes pas autorisé à modifier ce compte.", $_SESSION['error_message']);
+        }
+    }
+
     // =========================================================================
     // Factory
     // =========================================================================
@@ -267,6 +373,7 @@ class UserControllerTest extends TestCase
         ?AdminRepository  $adminRepo = null,
         ?LogRepository    $logRepo   = null,
         ?ViewRenderer     $view      = null,
+        ?PrivateAlbumAccessRepository $privateAlbumAccessRepo = null,
     ): UserController {
         $config    = $this->makeConfig();
         $auth ??= $this->createMock(AuthService::class);
@@ -275,7 +382,16 @@ class UserControllerTest extends TestCase
         $pwdVal    = new PasswordValidator();
         $view ??= $this->createMock(ViewRenderer::class);
 
-        return new UserController($config, $auth, $adminRepo, $logRepo, $pwdVal, $view);
+        return new UserController(
+            $config,
+            $auth,
+            $adminRepo,
+            $logRepo,
+            $pwdVal,
+            $view,
+            null,
+            $privateAlbumAccessRepo,
+        );
     }
 
     private function makeConfig(): Config

@@ -6,9 +6,11 @@ namespace ICO\Controller;
 
 use DirectoryIterator;
 use ICO\Config\Config;
+use ICO\Enum\UserRole;
 use ICO\Http\Request;
 use ICO\Http\Response;
 use ICO\Http\TerminateException;
+use ICO\Repository\PrivateAlbumAccessRepository;
 use ICO\Repository\ShareKeyRepository;
 use ICO\Service\AlbumService;
 use ICO\Service\AuthService;
@@ -40,6 +42,7 @@ class GalleryController
         private readonly PathService        $pathService,
         private readonly AuthService        $auth,
         private readonly ViewRenderer       $view,
+        private readonly ?PrivateAlbumAccessRepository $privateAlbumAccessRepo = null,
     ) {
         $this->albumsRoot = $pathService->toAbsolute('liste_albums');
     }
@@ -110,11 +113,16 @@ class GalleryController
         $shareKey = (string) $request->query('key', '');
 
         if ($adminPath !== '' && $shareKey === '') {
-            $this->showPrivateForAdmin($adminPath);
+            $this->showPrivateForAuthenticatedUser($adminPath);
             return;
         }
 
         if ($shareKey === '') {
+            if ($this->auth->isAuthenticated() && $this->auth->getLoggedInRole() === UserRole::VISITOR) {
+                $this->showVisitorAlbums();
+                return;
+            }
+
             $this->view->render('pages/gallery-private', $this->errorData('Accès refusé', 'Aucune clé de partage fournie.', $shareKey));
             return;
         }
@@ -161,19 +169,22 @@ class GalleryController
     /**
      * Rend une galerie privée depuis l'admin, sans créer de clé de partage.
      */
-    private function showPrivateForAdmin(string $rawPath): void
+    private function showPrivateForAuthenticatedUser(string $rawPath): void
     {
-        if (!$this->auth->isLoggedIn()) {
+        if (!$this->auth->isAuthenticated() && !$this->auth->isLoggedIn()) {
             $this->view->render('pages/gallery-private', $this->errorData(
                 'Accès refusé',
-                'Vous devez être connecté à l\'administration pour visualiser cette galerie privée.',
+                'Vous devez être connecté pour visualiser cette galerie privée.',
                 '',
             ));
             return;
         }
 
         $currentPath = realpath($this->pathService->toAbsolute(ltrim($rawPath, '/')));
-        if ($currentPath === false || !$this->albumService->isSecurePrivatePath($currentPath)) {
+        if ($currentPath === false
+            || !$this->albumService->isSecurePrivatePath($currentPath)
+            || (!$this->auth->canAccessPrivatePath($currentPath) && !$this->auth->isLoggedIn())
+        ) {
             $this->view->render('pages/gallery-private', $this->errorData(
                 'Galerie privée introuvable',
                 'Ce dossier privé n\'existe pas ou n\'est pas accessible.',
@@ -183,12 +194,43 @@ class GalleryController
         }
 
         if ($this->albumService->hasSubfolders($currentPath)) {
-            $privateRoot = realpath($this->pathService->toAbsolute('liste_albums_prives')) ?: $currentPath;
-            $this->renderPrivateNavigation($currentPath, $privateRoot, null);
+            $sharedRoot = $this->auth->getLoggedInRole() === UserRole::VISITOR
+                ? $this->privateAlbumAccessRepo?->findGrantedRootForPath((int) $this->auth->getLoggedInAdminId(), $currentPath)
+                : realpath($this->pathService->toAbsolute('liste_albums_prives'));
+            $this->renderPrivateNavigation($currentPath, $sharedRoot ?: $currentPath, null);
             return;
         }
 
         $this->renderPrivateGallery($currentPath, '', []);
+    }
+
+    private function showVisitorAlbums(): void
+    {
+        $userId = $this->auth->getLoggedInAdminId();
+        if ($userId === null) {
+            return;
+        }
+
+        $albums = [];
+        foreach ($this->privateAlbumAccessRepo?->findAlbumsForUser($userId) ?? [] as $album) {
+            if (is_dir($album['path']) && $this->albumService->isSecurePrivatePath($album['path'])) {
+                $albums[] = $this->buildPrivateAlbumEntry($album['path'], null);
+            }
+        }
+
+        usort($albums, static fn (array $a, array $b): int => strcasecmp($a['title'], $b['title']));
+
+        $this->view->render('pages/albums', [
+            'albums' => $albums,
+            'current_album_info' => [
+                'title' => 'Mes albums privés',
+                'description' => $albums === [] ? 'Aucun album privé ne vous a encore été attribué.' : '',
+            ],
+            'parent_path' => null,
+            'breadcrumbs' => [['label' => 'Mes albums privés', 'url' => null]],
+            'site_title' => $this->config->getSiteTitle(),
+            'visitor_mode' => true,
+        ]);
     }
 
     /**
@@ -240,6 +282,7 @@ class GalleryController
             'parent_path'        => null,
             'breadcrumbs'        => $this->buildPrivateBreadcrumbs($currentPath, $sharedRoot, $shareKey),
             'site_title'         => $this->config->getSiteTitle(),
+            'visitor_mode'       => $this->auth->getLoggedInRole() === UserRole::VISITOR,
         ]);
     }
 
@@ -253,8 +296,6 @@ class GalleryController
         }
 
         $albums = [];
-        $baseUrl = $this->pathService->getBaseUrl();
-
         foreach (new DirectoryIterator($currentPath) as $item) {
             if ($item->isDot() || !$item->isDir()) {
                 continue;
@@ -265,46 +306,51 @@ class GalleryController
                 continue;
             }
 
-            $info          = $this->albumService->getAlbumInfo($albumPath);
-            $hasSubfolders = $this->albumService->hasSubfolders($albumPath);
-            $images        = $hasSubfolders
-                ? $this->albumService->getImagesRecursively($albumPath)
-                : $this->albumService->getLatestImages($albumPath);
-
-            $previews = array_map(function (mixed $image) use ($baseUrl, $shareKey): array {
-                if (is_string($image)) {
-                    $relativePath = $this->pathService->toRelative($image);
-
-                    return [
-                        'url'       => $this->privateMediaUrl($baseUrl, 'images.php', $relativePath, $shareKey ?? ''),
-                        'is_mature' => false,
-                    ];
-                }
-
-                $relativePath = $this->pathService->toRelative($image['path']);
-
-                return [
-                    'url'       => $this->privateMediaUrl($baseUrl, 'images.php', $relativePath, $shareKey ?? ''),
-                    'is_mature' => $image['is_mature'],
-                ];
-            }, $images);
-
-            $relativePath = $this->pathService->toRelative($albumPath);
-            $albums[] = [
-                'path'           => $relativePath,
-                'url'            => $this->privateNavigationUrl($shareKey, $relativePath),
-                'title'          => $info['title'],
-                'description'    => $info['description'],
-                'images'         => $previews,
-                'hasSubfolders'  => $hasSubfolders,
-                'hasImages'      => $this->albumService->hasImages($albumPath),
-                'mature_content' => $info['mature_content'],
-            ];
+            $albums[] = $this->buildPrivateAlbumEntry($albumPath, $shareKey);
         }
 
         usort($albums, static fn (array $a, array $b): int => strcasecmp($a['title'], $b['title']));
 
         return $albums;
+    }
+
+    /** @return array{path: string, url: string, title: string, description: string, images: list<array{url: string, is_mature: bool}>, hasSubfolders: bool, hasImages: bool, mature_content: bool} */
+    private function buildPrivateAlbumEntry(string $albumPath, ?string $shareKey): array
+    {
+        $baseUrl = $this->pathService->getBaseUrl();
+        $info = $this->albumService->getAlbumInfo($albumPath);
+        $hasSubfolders = $this->albumService->hasSubfolders($albumPath);
+        $images = $hasSubfolders
+            ? $this->albumService->getImagesRecursively($albumPath)
+            : $this->albumService->getLatestImages($albumPath);
+
+        $previews = array_map(function (mixed $image) use ($baseUrl, $shareKey): array {
+            $isMature = !is_string($image) && $image['is_mature'];
+            $path = is_string($image) ? $image : $image['path'];
+
+            return [
+                'url' => $this->privateMediaUrl(
+                    $baseUrl,
+                    'images.php',
+                    $this->pathService->toRelative($path),
+                    $shareKey ?? '',
+                ),
+                'is_mature' => $isMature,
+            ];
+        }, $images);
+
+        $relativePath = $this->pathService->toRelative($albumPath);
+
+        return [
+            'path' => $relativePath,
+            'url' => $this->privateNavigationUrl($shareKey, $relativePath),
+            'title' => $info['title'],
+            'description' => $info['description'],
+            'images' => $previews,
+            'hasSubfolders' => $hasSubfolders,
+            'hasImages' => $this->albumService->hasImages($albumPath),
+            'mature_content' => $info['mature_content'],
+        ];
     }
 
     /**

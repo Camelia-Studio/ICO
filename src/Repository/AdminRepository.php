@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ICO\Repository;
 
+use ICO\Enum\UserRole;
 use PDO;
 
 /**
@@ -17,14 +18,14 @@ class AdminRepository
 
     /**
      * Trouve un admin par son nom d'utilisateur.
-     * Retourne ['id', 'username', 'password_hash', 'created_at'] ou null.
+     * Retourne ['id', 'username', 'password_hash', 'role', 'created_at'] ou null.
      *
      * @return array<string, mixed>|null
      */
     public function findByUsername(string $username): ?array
     {
         $stmt = $this->pdo->prepare(
-            'SELECT id, username, password_hash, created_at FROM admins WHERE username = :username'
+            'SELECT id, username, password_hash, role, created_at FROM admins WHERE username = :username'
         );
         $stmt->execute([':username' => $username]);
 
@@ -41,7 +42,7 @@ class AdminRepository
     public function findById(int $id): ?array
     {
         $stmt = $this->pdo->prepare(
-            'SELECT id, username, password_hash, created_at FROM admins WHERE id = :id'
+            'SELECT id, username, password_hash, role, created_at FROM admins WHERE id = :id'
         );
         $stmt->execute([':id' => $id]);
 
@@ -51,13 +52,13 @@ class AdminRepository
     }
 
     /**
-     * Retourne tous les admins triés par id croissant.
+     * Retourne tous les utilisateurs triés par id croissant.
      *
      * @return array<int, array<string, mixed>>
      */
     public function findAll(): array
     {
-        $stmt = $this->pdo->query('SELECT id, username, created_at FROM admins ORDER BY id ASC');
+        $stmt = $this->pdo->query('SELECT id, username, role, created_at FROM admins ORDER BY id ASC');
 
         return $stmt->fetchAll();
     }
@@ -71,6 +72,20 @@ class AdminRepository
         $row = $stmt->fetch();
 
         return isset($row['first_id']) ? (int) $row['first_id'] : null;
+    }
+
+    public function getEffectiveRole(int $id): ?UserRole
+    {
+        $admin = $this->findById($id);
+        if ($admin === null) {
+            return null;
+        }
+
+        if ($id === $this->findFirstAdminId()) {
+            return UserRole::ADMINISTRATOR;
+        }
+
+        return UserRole::tryFrom((string) $admin['role']) ?? UserRole::ADMINISTRATOR;
     }
 
     /**
@@ -106,12 +121,19 @@ class AdminRepository
     /**
      * Crée un nouvel admin. Retourne l'id inséré.
      */
-    public function create(string $username, string $passwordHash): int
-    {
+    public function create(
+        string $username,
+        string $passwordHash,
+        UserRole $role = UserRole::ADMINISTRATOR,
+    ): int {
         $stmt = $this->pdo->prepare(
-            'INSERT INTO admins (username, password_hash) VALUES (:username, :password_hash)'
+            'INSERT INTO admins (username, password_hash, role) VALUES (:username, :password_hash, :role)'
         );
-        $stmt->execute([':username' => $username, ':password_hash' => $passwordHash]);
+        $stmt->execute([
+            ':username' => $username,
+            ':password_hash' => $passwordHash,
+            ':role' => $role->value,
+        ]);
 
         return (int) $this->pdo->lastInsertId();
     }
@@ -119,8 +141,24 @@ class AdminRepository
     /**
      * Met à jour le nom d'utilisateur et optionnellement le hash du mot de passe.
      */
-    public function update(int $id, string $username, ?string $passwordHash = null): bool
-    {
+    public function update(
+        int $id,
+        string $username,
+        ?string $passwordHash = null,
+        ?UserRole $role = null,
+    ): bool {
+        if ($passwordHash !== null && $role instanceof UserRole) {
+            $stmt = $this->pdo->prepare(
+                'UPDATE admins SET username = :username, password_hash = :password_hash, role = :role WHERE id = :id'
+            );
+            return $stmt->execute([
+                ':username'      => $username,
+                ':password_hash' => $passwordHash,
+                ':role'          => $role->value,
+                ':id'            => $id,
+            ]);
+        }
+
         if ($passwordHash !== null) {
             $stmt = $this->pdo->prepare(
                 'UPDATE admins SET username = :username, password_hash = :password_hash WHERE id = :id'
@@ -129,6 +167,17 @@ class AdminRepository
                 ':username'      => $username,
                 ':password_hash' => $passwordHash,
                 ':id'            => $id,
+            ]);
+        }
+
+        if ($role instanceof UserRole) {
+            $stmt = $this->pdo->prepare(
+                'UPDATE admins SET username = :username, role = :role WHERE id = :id'
+            );
+            return $stmt->execute([
+                ':username' => $username,
+                ':role' => $role->value,
+                ':id' => $id,
             ]);
         }
 

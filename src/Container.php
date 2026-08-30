@@ -30,6 +30,7 @@ use ICO\Repository\AlbumIdentifierRepository;
 use ICO\Repository\CarouselPositionRepository;
 use ICO\Repository\InfoPageRepository;
 use ICO\Repository\LogRepository;
+use ICO\Repository\PrivateAlbumAccessRepository;
 use ICO\Repository\ShareKeyRepository;
 use ICO\Repository\SocialLinkRepository;
 use ICO\Service\AlbumService;
@@ -124,6 +125,9 @@ final class Container
         $container->register(LogRepository::class)
             ->addArgument(new Reference(PDO::class));
 
+        $container->register(PrivateAlbumAccessRepository::class)
+            ->addArgument(new Reference(PDO::class));
+
         $container->register(InfoPageRepository::class)
             ->addArgument(new Reference(PDO::class));
 
@@ -143,7 +147,8 @@ final class Container
         $container->register(AuthService::class)
             ->addArgument(new Reference(AdminRepository::class))
             ->addArgument(new Reference(Config::class))
-            ->addArgument(new Reference(SessionCookieService::class));
+            ->addArgument(new Reference(SessionCookieService::class))
+            ->addArgument(new Reference(PrivateAlbumAccessRepository::class));
 
         $container->register(AlbumService::class)
             ->addArgument('%albums_root%')
@@ -195,7 +200,11 @@ final class Container
             ->addArgument(new Reference(AdminRepository::class))
             ->addArgument(new Reference(LogRepository::class))
             ->addArgument(new Reference(PasswordValidator::class))
-            ->addArgument(new Reference(ViewRenderer::class));
+            ->addArgument(new Reference(ViewRenderer::class))
+            ->addArgument(new Reference(AlbumIdentifierRepository::class))
+            ->addArgument(new Reference(PrivateAlbumAccessRepository::class))
+            ->addArgument(new Reference(AlbumService::class))
+            ->addArgument(new Reference(PathService::class));
 
         $container->register(TreeController::class)
             ->setPublic(true)
@@ -242,19 +251,22 @@ final class Container
             ->addArgument(new Reference(ShareKeyRepository::class))
             ->addArgument(new Reference(PathService::class))
             ->addArgument(new Reference(AuthService::class))
-            ->addArgument(new Reference(ViewRenderer::class));
+            ->addArgument(new Reference(ViewRenderer::class))
+            ->addArgument(new Reference(PrivateAlbumAccessRepository::class));
 
         $container->register(ImageController::class)
             ->setPublic(true)
             ->addArgument(new Reference(AlbumService::class))
             ->addArgument(new Reference(ShareKeyRepository::class))
-            ->addArgument('%project_root%');
+            ->addArgument('%project_root%')
+            ->addArgument(new Reference(AuthService::class));
 
         $container->register(VideoController::class)
             ->setPublic(true)
             ->addArgument(new Reference(AlbumService::class))
             ->addArgument(new Reference(ShareKeyRepository::class))
-            ->addArgument('%project_root%');
+            ->addArgument('%project_root%')
+            ->addArgument(new Reference(AuthService::class));
 
         $container->register(SettingsController::class)
             ->setPublic(true)
@@ -329,7 +341,8 @@ final class Container
             ->setPublic(true)
             ->addArgument(new Reference(AlbumService::class))
             ->addArgument(new Reference(PathService::class))
-            ->addArgument(new Reference(ShareKeyRepository::class));
+            ->addArgument(new Reference(ShareKeyRepository::class))
+            ->addArgument(new Reference(AuthService::class));
 
         $container->compile();
 

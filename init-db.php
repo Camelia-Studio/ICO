@@ -7,8 +7,19 @@ $db->exec('CREATE TABLE IF NOT EXISTS admins (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT \'administrator\' CHECK (role IN (\'administrator\', \'moderator\', \'visitor\')),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 )');
+
+// Migration : ajout des rôles aux installations existantes
+$admin_columns = [];
+$result = $db->query('PRAGMA table_info(admins)');
+while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+    $admin_columns[] = $row['name'];
+}
+if (!in_array('role', $admin_columns)) {
+    $db->exec("ALTER TABLE admins ADD COLUMN role TEXT NOT NULL DEFAULT 'administrator'");
+}
 
 // Créer la nouvelle table des clés de partage
 $db->exec("CREATE TABLE IF NOT EXISTS share_keys (
@@ -45,6 +56,15 @@ $db->exec('CREATE TABLE IF NOT EXISTS album_identifiers (
     identifier TEXT UNIQUE NOT NULL,
     path TEXT UNIQUE NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+)');
+
+// Droits permanents des visiteurs sur les albums privés
+$db->exec('CREATE TABLE IF NOT EXISTS user_private_album_access (
+    user_id INTEGER NOT NULL,
+    album_identifier TEXT NOT NULL,
+    PRIMARY KEY (user_id, album_identifier),
+    FOREIGN KEY (user_id) REFERENCES admins(id) ON DELETE CASCADE,
+    FOREIGN KEY (album_identifier) REFERENCES album_identifiers(identifier) ON DELETE CASCADE
 )');
 
 // Insérer un admin par défaut si la table est vide
